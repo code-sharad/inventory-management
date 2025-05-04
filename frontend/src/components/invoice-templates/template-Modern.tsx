@@ -1,260 +1,21 @@
-// import React, { useRef } from "react";
-// import { jsPDF } from "jspdf";
-// import html2canvas from "html2canvas-pro";
-// import { Download } from "lucide-react";
-
-// interface InvoiceItem {
-//   id: string;
-//   name: string;
-//   quantity: number;
-//   price: number;
-//   category: string;
-// }
-
-// interface InvoiceData {
-//   customerName: string;
-//   customerEmail: string;
-//   customerAddress: string;
-//   invoiceNumber: string;
-//   invoiceDate: string;
-//   items: InvoiceItem[];
-//   companyDetails: {
-//     name: string;
-//     address: string;
-//     cityState: string;
-//     phone: string;
-//     email: string;
-//   };
-// }
-
-// interface ModernInvoiceTemplateProps {
-//   invoiceData: InvoiceData;
-// }
-
-// const ModernInvoiceTemplate: React.FC<ModernInvoiceTemplateProps> = ({
-//   invoiceData,
-// }) => {
-//   const invoiceRef = useRef<HTMLDivElement>(null);
-
-//   // Calculation Methods
-//   const calculateSubtotal = () => {
-//     return invoiceData.items.reduce(
-//       (sum, item) => sum + item.price * item.quantity,
-//       0
-//     );
-//   };
-
-//   const calculateTax = () => {
-//     const taxRate = 0.095; // 9.5% tax rate
-//     return calculateSubtotal() * taxRate;
-//   };
-
-//   const calculateTotal = () => {
-//     return calculateSubtotal() + calculateTax();
-//   };
-
-//   // PDF Download Function
-//   const downloadPDF = async () => {
-//     const input = invoiceRef.current;
-//     if (!input) return;
-
-//     try {
-//       const canvas = await html2canvas(input, {
-//         scale: 2,
-//         logging: false,
-//         useCORS: true,
-//         allowTaint: true,
-//         foreignObjectRendering: false,
-//         scrollY: -window.scrollY,
-//         windowWidth: input.scrollWidth,
-//         windowHeight: input.scrollHeight
-//       });
-
-//       // Wait for canvas to be fully rendered
-//       await new Promise(resolve => setTimeout(resolve, 100));
-
-//       const imgData = canvas.toDataURL('image/png', 1.0);
-//       const pdf = new jsPDF({
-//         orientation: 'portrait',
-//         unit: 'mm',
-//         format: 'a4',
-//         compress: true
-//       });
-
-//       const pdfWidth = pdf.internal.pageSize.getWidth();
-//       const pdfHeight = pdf.internal.pageSize.getHeight();
-//       const imgWidth = canvas.width;
-//       const imgHeight = canvas.height;
-//       const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-
-//       const imgX = (pdfWidth - imgWidth * ratio) / 2;
-//       const imgY = 0;
-
-//       pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio, '', 'FAST');
-//       pdf.save(`Invoice-${invoiceData.invoiceNumber}.pdf`);
-//     } catch (error) {
-//       console.error("PDF generation error:", error);
-//       alert("Failed to generate PDF. Please try again.");
-//     }
-//   };
-
-//   return (
-//     <div className="bg-white p-4 sm:p-8">
-//       {/* Action Buttons */}
-//       <div className="flex justify-end space-x-4 mb-8 print:hidden">
-//         <button
-//                   onClick={downloadPDF}
-//                   className="flex items-center px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors"
-//                 >
-//                   <Download className="mr-2" size={16} /> Download PDF
-//                 </button>
-//       </div>
-
-//       {/* Invoice Container */}
-//       <div
-//         ref={invoiceRef}
-//         className="border border-gray-300 p-4 sm:p-8 w-[210mm] h-[297mm] mx-auto text-sm sm:text-base flex flex-col bg-white"
-//       >
-//         {/* Header Section */}
-//         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
-//           {/* Company Logo & Details */}
-//           <div className="w-full sm:w-auto">
-//             <h1 className="text-2xl font-bold mb-4">
-//               {invoiceData.companyDetails.name}
-//             </h1>
-//             <div className="text-xs sm:text-sm text-gray-700">
-//               <p>{invoiceData.companyDetails.address}</p>
-//               <p>{invoiceData.companyDetails.cityState}</p>
-//               <p>Phone: {invoiceData.companyDetails.phone}</p>
-//               <p>Email: {invoiceData.companyDetails.email}</p>
-//             </div>
-//           </div>
-
-//           {/* Invoice Details */}
-//           <div className="text-right w-full sm:w-auto">
-//             <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">
-//               INVOICE
-//             </h1>
-//             <div className="text-xs sm:text-sm text-gray-600">
-//               <p>
-//                 <strong>Invoice #:</strong> {invoiceData.invoiceNumber}
-//               </p>
-//               <p>
-//                 <strong>Date:</strong> {invoiceData.invoiceDate}
-//               </p>
-//               <p>
-//                 <strong>Due Date:</strong>{" "}
-//                 {new Date(
-//                   new Date(invoiceData.invoiceDate).setDate(
-//                     new Date(invoiceData.invoiceDate).getDate() + 30
-//                   )
-//                 ).toLocaleDateString()}
-//               </p>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Bill To Section */}
-//         <div className="mb-10">
-//           <h2 className="text-base sm:text-lg font-semibold mb-2">Bill To:</h2>
-//           <div className="text-xs sm:text-sm text-gray-700">
-//             <p className="font-medium">{invoiceData.customerName}</p>
-//             <p>{invoiceData.customerAddress}</p>
-//             <p>Email: {invoiceData.customerEmail}</p>
-//           </div>
-//         </div>
-
-//         {/* Line Items Table */}
-//         <div className="overflow-x-auto flex-grow">
-//           <table className="w-full text-xs sm:text-sm">
-//             <thead>
-//               <tr className="bg-gray-50">
-//                 <th className="py-2 px-3 text-left border-b whitespace-nowrap">
-//                   Name
-//                 </th>
-//                 <th className="py-2 px-3 text-right border-b whitespace-nowrap">
-//                   Category
-//                 </th>
-//                 <th className="py-2 px-3 text-right border-b whitespace-nowrap">
-//                   Quantity
-//                 </th>
-//                 <th className="py-2 px-3 text-right border-b whitespace-nowrap">
-//                   Rate
-//                 </th>
-//                 <th className="py-2 px-3 text-right border-b whitespace-nowrap">
-//                   Total
-//                 </th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               {invoiceData.items.map((item) => (
-//                 <tr key={item.id} className="border-b">
-//                   <td className="py-2 px-3">{item.name}</td>
-//                   <td className="py-2 px-3 text-right">{item.category}</td>
-//                   <td className="py-2 px-3 text-right">{item.quantity}</td>
-//                   <td className="py-2 px-3 text-right">
-//                     ₹{item.price.toFixed(2)}
-//                   </td>
-//                   <td className="py-2 px-3 text-right">
-//                     ₹{(item.price * item.quantity).toFixed(2)}
-//                   </td>
-//                 </tr>
-//               ))}
-//             </tbody>
-//           </table>
-//         </div>
-
-//         {/* Financial Summary */}
-//         <div className="flex justify-end border-t pt-6 mt-auto">
-//           <div className="w-full sm:w-64 text-xs sm:text-sm">
-//             <div className="flex justify-between py-2">
-//               <span>Subtotal</span>
-//               <span>₹{calculateSubtotal().toFixed(2)}</span>
-//             </div>
-//             <div className="flex justify-between py-2">
-//               <span>Tax (9.5%)</span>
-//               <span>₹{calculateTax().toFixed(2)}</span>
-//             </div>
-//             <div className="flex justify-between py-3 font-bold text-lg">
-//               <span>Total (INR)</span>
-//               <span>₹{calculateTotal().toFixed(2)}</span>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ModernInvoiceTemplate;
-
-
-
-
-
-
-
-
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
-// import html2canvas from 'html2canvas';
+import { formatCurrency } from '@/lib/formatCurrency';
+
 
 interface InvoiceData {
+  id: string;
+  invoiceNumber: string;
+  createdAt: string;
+  invoiceDate: string;
   customer: {
     name: string;
     email: string;
     address: string;
-  },
-  subtotal: number;
-  gstAmount: number;
-  total: number;
-  gstRate: number;
-  invoiceNumber: string;
-  invoiceDate: string;
-  items: { name: string; category: {name:string}; quantity: number; price: number }[];
+  };
   companyDetails: {
     name: string;
     address: string;
@@ -262,142 +23,223 @@ interface InvoiceData {
     phone: string;
     email: string;
   };
-}
+  items: {
+    id: string;
+    productId: string;
+    name: string;
+    price: number;
+    quantity: number;
+    category: string;
+  }[];
+  subtotal: number;
+  gstAmount: number;
+  gstRate: number;
+  total: number;
+  template: "modern" | "minimal" | "classic";
+};
+
 
 const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }) => {
   const { customer, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
-  console.log(items)
-  // const gstRate = 0.18;
-  // const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  // const gstAmount = subtotal * gstRate;
-  // const total = subtotal + gstAmount;
   const contentRef = useRef<HTMLDivElement>(null);
+  const url = window.location.href;
+  const [loading, setLoading] = useState(false);
 
   const handleDownloadPDF = async () => {
-    console.log(contentRef)
+    setLoading(true);
     try {
       if (contentRef.current) {
-        html2canvas(contentRef.current, { scale: 1 }).then((canvas) => {
-          const imgData = canvas.toDataURL('image/png');
+        await html2canvas(contentRef.current, { scale: 2 }).then((canvas) => {
+          const imgWidth = 210; // A4 width in mm
+          const pageHeight = 297; // A4 height in mm
+          const margin = 10; // 10mm margin
+          const usableWidth = imgWidth - 2 * margin;
+          const usablePageHeight = pageHeight - 2 * margin;
           const pdf = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
             format: 'a4',
           });
-          const width = 210;
-          const height = (canvas.height * width) / canvas.width;
-          let pageHeight = 297;
-          let position = 0;
 
-          pdf.addImage(imgData, 'PNG', 0, position, width, height);
-          console.log(width, height)
-          console.log(pageHeight)
-          console.log(position)
-          if (height > pageHeight) {
-            while (position < height / 1.4) {
-              position += pageHeight;
-              pdf.addPage();
-              pdf.addImage(imgData, 'PNG', 0, -position , width, height);
+          const imgData = canvas.toDataURL('image/png');
+          const imgProps = {
+            width: canvas.width,
+            height: canvas.height,
+          };
+          const pdfHeight = (imgProps.height * usableWidth) / imgProps.width;
+
+          if (pdfHeight <= usablePageHeight) {
+            // Single page
+            pdf.addImage(imgData, 'PNG', margin, margin, usableWidth, pdfHeight);
+          } else {
+            // Multi-page
+            let position = 0;
+            let remainingHeight = imgProps.height;
+            while (remainingHeight > 0) {
+              const sliceHeight = Math.min(canvas.height - position, (usablePageHeight * canvas.width) / usableWidth);
+              if (sliceHeight <= 0 || canvas.width <= 0) break; // Prevents extra blank page and corrupt PNG
+
+              const pageCanvas = document.createElement('canvas');
+              pageCanvas.width = canvas.width;
+              pageCanvas.height = sliceHeight;
+
+              const ctx = pageCanvas.getContext('2d');
+              if (ctx) {
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+                ctx.drawImage(
+                  canvas,
+                  0,
+                  position,
+                  canvas.width,
+                  sliceHeight,
+                  0,
+                  0,
+                  canvas.width,
+                  sliceHeight
+                );
+              }
+
+              // Only add the page if the canvas is not empty and image data is valid
+              if (pageCanvas.width > 0 && pageCanvas.height > 0) {
+                const pageImgData = pageCanvas.toDataURL('image/png');
+                if (
+                  pageImgData &&
+                  pageImgData.startsWith('data:image/png;base64,') &&
+                  pageImgData.length > 'data:image/png;base64,'.length
+                ) {
+                  if (position > 0) pdf.addPage();
+                  pdf.addImage(pageImgData, 'PNG', margin, margin, usableWidth, (sliceHeight * usableWidth) / canvas.width);
+                }
+              }
+
+              position += sliceHeight;
+              remainingHeight -= sliceHeight;
             }
           }
+
           pdf.save(`invoice_${invoiceNumber}.pdf`);
         });
       }
     } catch (error) {
       console.error("Error generating PDF:", error);
       alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div id="modern-invoice" className="p-6 bg-[#ffffff] shadow-lg rounded-lg max-w-4xl mx-auto">
-      <div ref={contentRef} className='px-12 py-18' >
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-[#000000]">{companyDetails.name}</h1>
-            <p className="text-[#4b5563]">{companyDetails.address}</p>
-            <p className="text-[#4b5563]">{companyDetails.cityState}</p>
-            <p className="text-[#4b5563]">Phone: {companyDetails.phone}</p>
-            <p className="text-[#4b5563]">Email: {companyDetails.email}</p>
+    <div id="modern-invoice" className="w-[794px] min-h-[1123px] mx-auto flex flex-col items-center">
+      {/* Header Bar */}
+      
+
+      {/* Main Content Card */}
+      <div ref={contentRef} className="w-[794px] min-h-[1123px] bg-white rounded-b-lg shadow-lg px-6 py-8 flex flex-col gap-8">
+      <div className="w-full rounded-t-lg bg-gradient-to-r from-blue-600 to-blue-400 px-8 py-6 flex flex-col flex-row justify-between items-center shadow-lg">
+        <div className="flex flex-col items-start">
+          <h1 className="text-3xl font-bold text-white tracking-wide">{companyDetails.name}</h1>
+          <span className="text-blue-100 text-sm mt-1">{companyDetails.address}, {companyDetails.cityState}</span>
+        </div>
+        <div className="mt-4 flex flex-col items-end">
+          <span className="text-lg font-semibold text-white tracking-widest">INVOICE</span>
+          <span className="text-blue-100 text-xs mt-1">Invoice #: {invoiceNumber}</span>
+          <span className="text-blue-100 text-xs">Date: {invoiceDate}</span>
+        </div>
+      </div>
+        {/* Bill To & Company Details */}
+        <div className="flex flex-col flex-row justify-between gap-8">
+          <div className="bg-[#f8fafc] rounded-lg p-4 flex-1 min-w-[220px]">
+            <h3 className="text-lg font-semibold text-blue-700 mb-2">Bill To</h3>
+            <p className="font-medium text-gray-900">{customer.name}</p>
+            <p className="text-gray-700 text-sm">{customer.address}</p>
+            <p className="text-gray-700 text-sm">{customer.email}</p>
           </div>
-          <div className="text-right">
-            <h2 className="text-2xl font-semibold text-[#000000]">Invoice</h2>
-            <p><strong>Invoice #:</strong> {invoiceNumber}</p>
-            <p><strong>Date:</strong> {invoiceDate}</p>
+          <div className="bg-[#f8fafc] rounded-lg p-4 flex-1 min-w-[220px]">
+            <h3 className="text-lg font-semibold text-blue-700 mb-2">Company Info</h3>
+            <p className="font-medium text-gray-900">{companyDetails.name}</p>
+            <p className="text-gray-700 text-sm">{companyDetails.phone}</p>
+            <p className="text-gray-700 text-sm">{companyDetails.email}</p>
           </div>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-xl font-semibold mb-2 text-[#000000]">Bill To:</h3>
-          <p><strong>Name:</strong> {customer.name}</p>
-          <p><strong>Email:</strong> {customer.email}</p>
-          <p><strong>Address:</strong> {customer.address}</p>
-        </div>
-
-        <Table className=''>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[200px] p-4 bg-[#f8fafc] text-[#000000]">Item</TableHead>
-              <TableHead className="w-[150px] p-4 bg-[#f8fafc] text-[#000000]">Category</TableHead>
-              <TableHead className="w-[100px] p-4 bg-[#f8fafc] text-[#000000]">Quantity</TableHead>
-              <TableHead className="w-[150px] p-4 bg-[#f8fafc] text-[#000000]">Unit Price</TableHead>
-              <TableHead className="w-[150px] p-4 bg-[#f8fafc] text-[#000000]">Total</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.length > 1 ? (
-              items.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell className="p-4 font-medium">{item.name}</TableCell>
+        {/* Items Table */}
+        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+          <Table className='min-w-full'>
+            <TableHeader>
+              <TableRow className="bg-blue-50">
+                <TableHead className="p-4 text-blue-900 font-semibold">Item</TableHead>
+                <TableHead className="p-4 text-blue-900 font-semibold">Category</TableHead>
+                <TableHead className="p-4 text-blue-900 font-semibold">Quantity</TableHead>
+                <TableHead className="p-4 text-blue-900 font-semibold">Unit Price</TableHead>
+                <TableHead className="p-4 text-blue-900 font-semibold">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.length > 0 && items.map((item, index) => (
+                <TableRow key={index} className={index % 2 === 0 ? "bg-white" : "bg-blue-50"}>
+                  <TableCell className="p-4 font-medium text-gray-900">{item.name}</TableCell>
                   <TableCell className="p-4">
-                    <Badge className="bg-[#f1f5f9] text-[#1e293b]">
-                      {item.category?.name  }
-                    </Badge>
+                    {/* @ts-ignore */}
+                    <Badge className="bg-blue-100 text-blue-800 font-semibold">{item.category?.name}</Badge>
                   </TableCell>
-                  <TableCell className="p-4">{item.quantity}</TableCell>
-                  <TableCell className="p-4">₹{item.price}</TableCell>
-                  <TableCell className="p-4">₹{(item.price * item.quantity)}</TableCell>
+                  <TableCell className="p-4 text-gray-800">{item.quantity}</TableCell>
+                  <TableCell className="p-4 text-gray-800">₹{formatCurrency(item.price)}</TableCell>
+                  <TableCell className="p-4 text-gray-900 font-semibold">₹{formatCurrency(item.price * item.quantity)}</TableCell>
                 </TableRow>
-              ))
-            ) : items.length === 1 ? (<TableRow key={1}>
-              <TableCell className="p-4 font-medium">{items[0].name}</TableCell>
-              <TableCell className="p-4">
-                <Badge className="bg-[#f1f5f9] text-[#1e293b]">
-                  {items[0].category?.name}
-                </Badge>
-              </TableCell>
-              <TableCell className="p-4">{items[0].quantity}</TableCell>
-              <TableCell className="p-4">₹{items[0].price}</TableCell>
-              <TableCell className="p-4">₹{(items[0].price * items[0].quantity)}</TableCell>
-            </TableRow>) : ''}
-          </TableBody>
-        </Table>
-        <div className="mt-24 text-right">
-          <p className="text-lg"><strong>Subtotal:</strong> ₹{invoiceData.subtotal}</p>
-          <p className="text-lg"><strong>GST ({invoiceData.gstRate}%):</strong> ₹{invoiceData.gstAmount.toFixed(2)}</p>
-          <p className="text-xl font-bold"><strong>Total:</strong> ₹{invoiceData.total}</p>
+              ))}
+            </TableBody>
+          </Table>
         </div>
 
+        {/* Financial Summary */}
+        <div className="flex flex-col items-end">
+          <div className="w-full bg-blue-50 rounded-lg p-6 shadow flex flex-col gap-2">
+            <div className="flex justify-between text-gray-700 text-base">
+              <span>Subtotal</span>
+              <span>₹{formatCurrency(invoiceData.subtotal)}</span>
+            </div>
+            <div className="flex justify-between text-gray-700 text-base">
+              <span>GST ({invoiceData.gstRate}%)</span>
+              <span>₹{formatCurrency(invoiceData.gstAmount)}</span>
+            </div>
+            <div className="flex justify-between text-blue-900 text-lg font-bold mt-2 border-t pt-2">
+              <span>Total</span>
+              <span>₹{formatCurrency(invoiceData.total)}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="mt-6 text-center">
+      {/* Download Button */}
+      {
+        url.includes('invoice') ? '' : (
+          <div className="mt-8 mb-4 w-full max-w-4xl flex justify-end">
         <button
           onClick={handleDownloadPDF}
-          className="px-4 py-2 bg-[#3b82f6] text-[#ffffff] cursor-pointer rounded hover:bg-[#2563eb]"
+          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold rounded-lg shadow hover:from-blue-700 hover:to-blue-500 transition-colors text-lg disabled:opacity-60 disabled:cursor-not-allowed"
+          disabled={loading}
         >
-          Download PDF
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+              </svg>
+              Downloading...
+            </span>
+          ) : (
+            'Download PDF'
+          )}
         </button>
       </div>
+        )
+      }
     </div>
   );
 };
 
 export default ModernInvoiceTemplate;
-
-
-
-
-
 
 
 

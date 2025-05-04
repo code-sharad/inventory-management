@@ -3,7 +3,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+.no-page-break {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
 :root {
+  --tw-prose-body: #22292f !important;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);

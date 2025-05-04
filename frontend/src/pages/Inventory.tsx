@@ -474,8 +474,8 @@
 
 
 const handleApiError = (err: unknown) => {
-  console.error("API Error:", err);
-  return err instanceof Error ? err.message : "An unknown error occurred";
+    console.error("API Error:", err);
+    return err instanceof Error ? err.message : "An unknown error occurred";
 };
 
 import { useState, useEffect } from "react"
@@ -498,19 +498,18 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 type Product = {
-  _id: string;
-  name: string;
-  quantity: number;
-  price: number;
-  category: { _id: string; name: string }; // Handle both cases
+    _id: string;
+    name: string;
+    quantity: number;
+    price: number;
+    category: { _id: string; name: string }; // Handle both cases
 };
 
 type Category = {
-  _id: string;
-  name: string;
+    _id: string;
+    name: string;
 };
 
-const API_BASE_URL = "http://localhost:3000" // Adjust this based on your backend URL
 
 export default function InventoryPage() {
     const [products, setProducts] = useState<Product[]>([])
@@ -531,44 +530,44 @@ export default function InventoryPage() {
 
     // Fetch initial data
     useEffect(() => {
-      fetchProducts();
-      fetchCategories();
-  }, []);
+        fetchProducts();
+        fetchCategories();
+    }, []);
 
-  const fetchProducts = async () => {
-    try {
-        setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/item`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        console.log("Products fetched:", data); // Debug log
-        setProducts(data);
-    } catch (err) {
-        setError(handleApiError(err));
-    } finally {
-        setLoading(false);
-    }
-};
+    const fetchProducts = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/item`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            console.log("Products fetched:", data); // Debug log
+            setProducts(data);
+        } catch (err) {
+            setError(handleApiError(err));
+        } finally {
+            setLoading(false);
+        }
+    };
 
-const fetchCategories = async () => {
-    try {
-        setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/category`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        console.log("Categories fetched:", data); // Debug log
-        setCategories(data);
-    } catch (err) {
-        setError(handleApiError(err));
-    } finally {
-        setLoading(false);
-    }
-};
+    const fetchCategories = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/category`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            console.log("Categories fetched:", data); // Debug log
+            setCategories(data);
+        } catch (err) {
+            setError(handleApiError(err));
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Add new product
     const handleAddProduct = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/item`, {
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/item`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(newProduct)
@@ -589,7 +588,7 @@ const fetchCategories = async () => {
     // Add new category
     const handleAddCategory = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/category`, {
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/category`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name: newCategory })
@@ -608,7 +607,7 @@ const fetchCategories = async () => {
     const handleEditProduct = async () => {
         if (!currentProduct) return
         try {
-            const response = await fetch(`${API_BASE_URL}/item/${currentProduct._id}`, {
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/item/${currentProduct._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(currentProduct)
@@ -626,7 +625,7 @@ const fetchCategories = async () => {
     // Delete product
     const handleDeleteProduct = async (id: string) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/item/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/item/${id}`, {
                 method: "DELETE"
             })
             if (!response.ok) throw new Error("Failed to delete product")
@@ -639,7 +638,7 @@ const fetchCategories = async () => {
     // Delete category
     const handleDeleteCategory = async (id: string) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/category/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/category/${id}`, {
                 method: "DELETE"
             })
             if (!response.ok) throw new Error("Failed to delete category")
@@ -659,7 +658,7 @@ const fetchCategories = async () => {
         <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
             {error && <div className="text-red-500">{error}</div>}
             {loading && <div>Loading...</div>}
-            
+
             <div className="flex items-center justify-between">
                 <h2 className="text-3xl font-serif font-bold tracking-tight">Inventory</h2>
                 <div className="flex gap-8">
@@ -794,7 +793,8 @@ const fetchCategories = async () => {
                                 <TableCell>{product.name}</TableCell>
                                 <TableCell>
                                     <Badge variant="outline">
-                                        {typeof product.category === 'string' 
+                                        {typeof product.category === 'string'
+                                            // @ts-ignore
                                             ? product.category?.name
                                             : product.category?.name || "Uncategorized"}
                                     </Badge>
@@ -857,6 +857,7 @@ const fetchCategories = async () => {
                                 <Label htmlFor="edit-category">Category</Label>
                                 <Select
                                     value={typeof currentProduct.category === 'string' ? currentProduct.category : currentProduct.category._id}
+                                    // @ts-ignore
                                     onValueChange={(value) => setCurrentProduct({ ...currentProduct, category: value })}
                                 >
                                     <SelectTrigger>

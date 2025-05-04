@@ -62,16 +62,27 @@ router.get('/', async (req, res) => {
       .find()
       .select({
       __v: 0,
-      _id: 0,
       "items._id": 0,
       "items.__v": 0,
       "items.category.__v": 0,
       "items.category._id": 0
       })
       .populate("items.category");
+    
+
     res.json(invoices);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching invoices', error });
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await invoiceModel.findByIdAndDelete(id);
+    res.json({ message: 'Invoice deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting invoice', error });
   }
 });
 

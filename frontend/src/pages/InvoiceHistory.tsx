@@ -15,16 +15,15 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   ChevronLeft,
   ChevronRight,
-  Download,
   Eye,
-  FileDown,
   Search,
+  Trash2,
 } from "lucide-react";
-
-import { format, parseISO } from "date-fns";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import ModernInvoiceTemplate from "@/components/invoice-templates/template-Modern";
 import PremiumMinimalInvoice from "@/components/invoice-templates/template-minimal";
+import { formatCurrency } from "@/lib/formatCurrency";
+import { format, parseISO } from "date-fns";
 
 // Define invoice type
 type Invoice = {
@@ -37,7 +36,7 @@ type Invoice = {
     email: string;
     address: string;
   };
-  companyDetails:{
+  companyDetails: {
     name: string;
     address: string;
     cityState: string;
@@ -53,33 +52,12 @@ type Invoice = {
     category: string;
   }[];
   subtotal: number;
-  gstAmount: number;  
+  gstAmount: number;
   gstRate: number;
   total: number;
   template: "modern" | "minimal" | "classic";
 };
 
-interface InvoiceData {
-  customer: {
-    name: string;
-    email: string;
-    address: string;
-  },
-  subtotal: number;
-  gstAmount: number;
-  total: number;
-  gstRate: number;
-  invoiceNumber: string;
-  invoiceDate: string;
-  items: { name: string; category: string; quantity: number; price: number }[];
-  companyDetails: {
-    name: string;
-    address: string;
-    cityState: string;
-    phone: string;
-    email: string;
-  };
-}
 
 
 
@@ -94,34 +72,42 @@ export default function BillingHistoryPage() {
   // @ts-ignore
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const itemsPerPage = 10;
+  // @ts-ignore
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
 
   useEffect(() => {
     // Fetch invoices from the server
     const fetchInvoices = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/invoice`);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/invoice`);
         if (!response.ok) {
           throw new Error("Failed to fetch invoices");
         }
         const data = await response.json();
-        setInvoices(data);
-        console.log(data)
+        const invoicesWithIds = data.map((invoice: any) => ({
+          ...invoice,
+          id: invoice._id
+        }));
+        const invoiceRemove_id = invoicesWithIds.filter((invoice: any) => delete invoice._id);
+        setInvoices(invoiceRemove_id);
+        console.log(invoiceRemove_id)
       } catch (error) {
         console.error("Error fetching invoices:", error);
       }
     };
 
     fetchInvoices();
-  },[])
+  }, [])
 
   const filteredInvoices = invoices.filter((invoice) => {
     // Search filter
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch =
       searchQuery === "" ||
-      invoice.invoiceNumber.toLowerCase().includes(searchLower) ||
-      invoice.customer.name.toLowerCase().includes(searchLower) ||
-      invoice.customer.email.toLowerCase().includes(searchLower);
+      invoice.invoiceNumber.toLocaleUpperCase().includes(searchLower.toLocaleUpperCase()) ||
+      invoice.customer.name.toLocaleUpperCase().includes(searchLower.toLocaleUpperCase()) ||
+      invoice.customer.email.toLocaleUpperCase().includes(searchLower.toLocaleUpperCase());
 
     // Date range filter
 
@@ -135,20 +121,32 @@ export default function BillingHistoryPage() {
     currentPage * itemsPerPage
   );
 
-  // Generate PDF
-  const generatePDF = (invoice: Invoice) => {
-    // In a real application, this would generate a PDF using a library like jspdf or react-pdf
-    alert(`Downloading invoice: ${invoice.invoiceNumber}`);
-    // For a real implementation, you would use:
-    // 1. Create a PDF document
-    // 2. Add the invoice content based on the selected template
-    // 3. Save or download the PDF
-  };
+  
 
   // Preview invoice
   const previewInvoice = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
     setIsPreviewOpen(true);
+  };
+
+  // Delete invoice
+  const handleDeleteInvoice = async () => {
+    if (!invoiceToDelete) return;
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/invoice/${invoiceToDelete.id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to delete invoice");
+      }
+      setInvoices((prev) => prev.filter((inv) => inv.id !== invoiceToDelete.id));
+      setDeleteDialogOpen(false);
+      setInvoiceToDelete(null);
+    } catch (error) {
+      alert("Error deleting invoice");
+      setDeleteDialogOpen(false);
+      setInvoiceToDelete(null);
+    }
   };
 
   // Get status badge color
@@ -189,7 +187,7 @@ export default function BillingHistoryPage() {
               </TableHeader>
               <TableBody>
                 {paginatedInvoices.length > 1 ? (
-                  paginatedInvoices.map((invoice,index) => (
+                  paginatedInvoices.map((invoice, index) => (
                     <TableRow key={index}>
                       <TableCell className="font-medium">
                         {invoice.invoiceNumber}
@@ -208,7 +206,7 @@ export default function BillingHistoryPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        ₹{invoice.total}
+                        ₹{formatCurrency(invoice.total)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -224,11 +222,15 @@ export default function BillingHistoryPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => generatePDF(invoice)}
-                            title="Download Invoice"
+                            title="Delete Invoice"
+                            onClick={() => {
+                              setInvoiceToDelete(invoice);
+                              setDeleteDialogOpen(true);
+                              handleDeleteInvoice();
+                            }}
                           >
-                            <Download className="h-4 w-4" />
-                            <span className="sr-only">Download</span>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <span className="sr-only">Delete</span>
                           </Button>
                         </div>
                       </TableCell>
@@ -296,14 +298,16 @@ export default function BillingHistoryPage() {
 
       {/* Invoice Preview Dialog */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="min-w-[1000px] mt-20 max-h-[900px] overflow-y-auto">
+        <DialogContent 
+          className="w-full max-w-[95vw] sm:min-w-[600px] sm:max-w-[1000px] mt-4 sm:mt-20 max-h-[90vh] sm:max-h-[900px] overflow-y-auto p-2 sm:p-6"
+        >
           <DialogHeader>
             <DialogTitle>Invoice Preview</DialogTitle>
             <DialogDescription>
               {selectedInvoice?.invoiceNumber} - {selectedInvoice?.customer.name}
             </DialogDescription>
           </DialogHeader>
-          <div className="bg-white  overflow-y-auto">
+          <div className="bg-white overflow-y-auto w-full max-w-full min-h-[60vh] sm:min-h-[400px] rounded-md shadow-sm p-2 sm:p-6">
             {selectedInvoice?.template === "modern" && (
               <ModernInvoiceTemplate
                 invoiceData={selectedInvoice}
@@ -314,43 +318,27 @@ export default function BillingHistoryPage() {
                 invoiceData={selectedInvoice}
               />
             )}
-            
-            {/* {selectedInvoice?.template === "template2" && (
-              <InvoiceTemplate2
-                invoiceNumber={selectedInvoice.invoiceNumber}
-                invoiceDate={selectedInvoice.date}
-                customerName={selectedInvoice.customerName}
-                customerEmail={selectedInvoice.customerEmail}
-                customerAddress={selectedInvoice.customerAddress}
-                items={selectedInvoice.items}
-                subtotal={selectedInvoice.subtotal}
-                tax={selectedInvoice.tax}
-                total={selectedInvoice.total}
-              />
-            )}
-            {selectedInvoice?.template === "template3" && (
-              <InvoiceTemplate3
-                invoiceNumber={selectedInvoice.invoiceNumber}
-                invoiceDate={selectedInvoice.date}
-                customerName={selectedInvoice.customerName}
-                customerEmail={selectedInvoice.customerEmail}
-                customerAddress={selectedInvoice.customerAddress}
-                items={selectedInvoice.items}
-                subtotal={selectedInvoice.subtotal}
-                tax={selectedInvoice.tax}
-                total={selectedInvoice.total}
-              />
-            )} */}
           </div>
-          {/* <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
-              Close
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Invoice</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete invoice <b>{invoiceToDelete?.invoiceNumber}</b>? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
             </Button>
-            <Button onClick={() => generatePDF(selectedInvoice!)}>
-              <FileDown className="mr-2 h-4 w-4" />
-              Download PDF
+            <Button variant="destructive" onClick={handleDeleteInvoice}>
+              Delete
             </Button>
-          </div> */}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

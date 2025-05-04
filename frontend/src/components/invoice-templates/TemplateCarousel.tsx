@@ -28,16 +28,30 @@ const TemplateCarousel: React.FC<TemplateCarouselProps> = ({
   invoiceData,
 }) => {
   const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [slidesPerView, setSlidesPerView] = React.useState(3);
+
+  React.useEffect(() => {
+    const updateSlidesPerView = () => {
+      if (window.innerWidth < 640) setSlidesPerView(1);
+      else if (window.innerWidth < 1024) setSlidesPerView(2);
+      else setSlidesPerView(3);
+    };
+    updateSlidesPerView();
+    window.addEventListener("resize", updateSlidesPerView);
+    return () => window.removeEventListener("resize", updateSlidesPerView);
+  }, []);
+
+  const maxIndex = Math.max(templates.length - slidesPerView, 0);
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === templates.length - 3 ? 0 : prevIndex + 1
+      prevIndex >= maxIndex ? 0 : prevIndex + 1
     );
   };
 
   const prevSlide = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? templates.length - 3 : prevIndex - 1
+      prevIndex <= 0 ? maxIndex : prevIndex - 1
     );
   };
 
@@ -55,12 +69,12 @@ const TemplateCarousel: React.FC<TemplateCarouselProps> = ({
   };
 
   return (
-    <div className="w-full py-4 ">
+    <div className="w-full py-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">Select Template</h3>
         <div className="flex items-center gap-4 ">
           <span className="text-sm text-muted-foreground">
-            {currentIndex + 1} / {templates.length / 3}
+            {currentIndex + 1} / {Math.ceil(templates.length / slidesPerView)}
           </span>
           <div className="flex gap-2">
             <Button
@@ -84,9 +98,9 @@ const TemplateCarousel: React.FC<TemplateCarouselProps> = ({
       </div>
       <div className="relative overflow-hidden ">
         <div
-          className="flex transition-transform duration-300 ease-in-out gap-12"
+          className="flex transition-transform duration-300 ease-in-out gap-4 sm:gap-8 lg:gap-12"
           style={{
-            transform: `translateX(-${currentIndex * 100}%)`,
+            transform: `translateX(-${(currentIndex * 100) / slidesPerView}%)`,
           }}
         >
           {templates.map((template) => {
@@ -95,7 +109,7 @@ const TemplateCarousel: React.FC<TemplateCarouselProps> = ({
             return (
               <div
                 key={template.id}
-                className="w-72 flex-shrink-0 px-2 "
+                className="w-full sm:w-1/2 lg:w-1/3 flex-shrink-0 px-1 sm:px-2 lg:px-2"
                 onClick={() => onSelectTemplate(template.id)}
               >
                 <Card
@@ -105,7 +119,7 @@ const TemplateCarousel: React.FC<TemplateCarouselProps> = ({
                     }`}
                 >
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-                    <img src={template.preview} />
+                    <img src={template.preview} className="object-contain w-full h-full" />
                   </div>
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
                   {selectedTemplate === template.id && (
@@ -125,6 +139,17 @@ const TemplateCarousel: React.FC<TemplateCarouselProps> = ({
           })}
         </div>
       </div>
+      <style>{`
+        @media (max-width: 639px) {
+          .flex > div.w-full { width: 100% !important; }
+        }
+        @media (min-width: 640px) and (max-width: 1023px) {
+          .flex > div.sm\\:w-1\/2 { width: 50% !important; }
+        }
+        @media (min-width: 1024px) {
+          .flex > div.lg\\:w-1\/3 { width: 33.3333% !important; }
+        }
+      `}</style>
     </div>
   );
 };

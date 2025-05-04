@@ -4,14 +4,15 @@ const bodyParser = require("body-parser");
 
 const app = express();
 
-app.use(
-  cors({
-    origin: "http://localhost:5173", // Your frontend URL (Vite default port)
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type"],
-  })
-);
+// app.use(
+//   cors({
+//     origin: "http://localhost:5173", // Your frontend URL (Vite default port)
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//     allowedHeaders: ["Content-Type"],
+//   })
+// );
 
+app.use(cors())
 app.use(bodyParser.json());
 
 const db = require("./db");

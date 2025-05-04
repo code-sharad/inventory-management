@@ -1,0 +1,13 @@
+.invoice-fixed-width {
+  width: 900px !important;
+  max-width: 900px !important;
+  min-width: 900px !important;
+}
+
+@media print {
+  .invoice-fixed-width {
+    width: 900px !important;
+    max-width: 900px !important;
+    min-width: 900px !important;
+  }
+} 

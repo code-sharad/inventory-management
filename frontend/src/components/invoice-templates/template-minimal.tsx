@@ -1,285 +1,20 @@
-// import React, {  useRef } from "react";
-// import { jsPDF } from "jspdf";
-// import html2canvas from "html2canvas-pro";
-// import { Download } from "lucide-react";
-
-// interface InvoiceItem {
-//   id: string;
-//   name: string;
-//   quantity: number;
-//   price: number;
-//   category: string;
-// }
-
-// interface InvoiceData {
-//   customerName: string;
-//   customerEmail: string;
-//   customerAddress: string;
-//   invoiceNumber: string;
-//   invoiceDate: string;
-//   items: InvoiceItem[];
-//   companyDetails: {
-//     name: string;
-//     address: string;
-//     cityState: string;
-//     phone: string;
-//     email: string;
-//   };
-// }
-
-// interface PremiumMinimalInvoiceProps {
-//   invoiceData: InvoiceData;
-// }
-
-// const PremiumMinimalInvoice: React.FC<PremiumMinimalInvoiceProps> = ({
-//   invoiceData,
-// }) => {
-//   const invoiceRef = useRef<HTMLDivElement>(null);
-
-//   // Calculation Methods
-//   const calculateSubtotal = () => {
-//     return invoiceData.items.reduce(
-//       (sum, item) => sum + item.price * item.quantity,
-//       0
-//     );
-//   };
-
-//   const calculateTax = () => {
-//     const taxRate = 0.085; // 8.5% tax rate
-//     return calculateSubtotal() * taxRate;
-//   };
-
-//   const calculateTotal = () => {
-//     return calculateSubtotal() + calculateTax();
-//   };
-
-//   // PDF Download Function
-//   const downloadPDF = async () => {
-//     const input = invoiceRef.current;
-//     if (!input) return;
-
-//     try {
-//       const canvas = await html2canvas(input, {
-//         scale: 2,
-//         useCORS: true,
-//       });
-//       const imgData = canvas.toDataURL("image/png");
-//       const pdf = new jsPDF("p", "mm", "a4", true);
-//       const imgProps = pdf.getImageProperties(imgData);
-//       const pdfWidth = pdf.internal.pageSize.getWidth();
-//       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-//       const pageHeight = pdf.internal.pageSize.getHeight();
-
-//       // Add the image to the PDF with proper pagination
-//       let heightLeft = pdfHeight;
-//       let position = 0;
-//       let page = 1;
-
-//       // First page
-//       pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-//       heightLeft -= pageHeight;
-
-//       // Add additional pages as needed
-//       while (heightLeft > 0) {
-//         position = -pageHeight * page;
-//         pdf.addPage();
-//         pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-//         heightLeft -= pageHeight;
-//         page++;
-//       }
-
-//       pdf.save("Invoice.pdf");
-//     } catch (error) {
-//       console.error("PDF generation error:", error);
-//       alert("Failed to generate PDF. Please try again.");
-//     }
-//   };
-
-//   return (
-//     <div className="bg-white min-h-screen p-12 font-sans">
-//       {/* Action Buttons */}
-//       <div className="flex justify-end space-x-4 mb-8 print:hidden">
-
-//         <button
-//           onClick={downloadPDF}
-//           className="flex items-center px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors"
-//         >
-//           <Download className="mr-2" size={16} /> Download PDF
-//         </button>
-//       </div>
-
-//       {/* Invoice Container */}
-//       <div
-//         ref={invoiceRef}
-//         className="w-[210mm] h-[297mm] mx-auto border p-8 flex flex-col"
-//       >
-//         {/* Header */}
-//         <div className="flex justify-between items-start border-b pb-6 mb-8">
-//           <div>
-//             <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-//               {invoiceData.companyDetails.name}
-//             </h1>
-//             <div className="text-sm text-gray-600 mt-2">
-//               <p>{invoiceData.companyDetails.address}</p>
-//               <p>{invoiceData.companyDetails.cityState}</p>
-//               <p>Phone: {invoiceData.companyDetails.phone}</p>
-//               <p>Email: {invoiceData.companyDetails.email}</p>
-//             </div>
-//           </div>
-//           <div className="text-right">
-//             <div className="text-4xl font-light text-gray-900 mb-2">
-//               INVOICE
-//             </div>
-//             <div className="text-sm text-gray-600">
-//               <p>Invoice #: {invoiceData.invoiceNumber}</p>
-//               <p>Date: {invoiceData.invoiceDate}</p>
-//               <p className="text-red-600 font-medium">
-//                 Due:{" "}
-//                 {new Date(
-//                   new Date(invoiceData.invoiceDate).setDate(
-//                     new Date(invoiceData.invoiceDate).getDate() + 30
-//                   )
-//                 ).toLocaleDateString()}
-//               </p>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Client Information */}
-//         <div className="grid grid-cols-2 gap-6 mb-8">
-//           <div>
-//             <h2 className="text-lg font-semibold text-gray-800 mb-3">
-//               Bill To
-//             </h2>
-//             <div className="text-sm text-gray-700">
-//               <p className="font-medium">{invoiceData.customerName}</p>
-//               <p>{invoiceData.customerAddress}</p>
-//               <p>Email: {invoiceData.customerEmail}</p>
-//             </div>
-//           </div>
-//           <div className="text-right">
-//             <h2 className="text-lg font-semibold text-gray-800 mb-3">
-//               Payment Details
-//             </h2>
-//             <div className="text-sm text-gray-700">
-//               <p>Method: Bank Transfer</p>
-//               <p>Bank: Your Bank</p>
-//               <p>Account: XXXX-XXXX-XXXX-1234</p>
-//               <p>SWIFT: XXXXXXXX</p>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Services Table */}
-//         <div className="flex-grow overflow-auto">
-//           <table className="w-full text-sm">
-//             <thead>
-//               <tr className="border-b">
-//                 <th className="pb-3 text-left font-medium text-gray-600">
-//                   Name
-//                 </th>
-//                 <th className="pb-3 text-right font-medium text-gray-600">
-//                   Category
-//                 </th>
-//                 <th className="pb-3 text-right font-medium text-gray-600">
-//                   Quantity
-//                 </th>
-//                 <th className="pb-3 text-right font-medium text-gray-600">
-//                   Rate
-//                 </th>
-//                 <th className="pb-3 text-right font-medium text-gray-600">
-//                   Total
-//                 </th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               {invoiceData.items.map((item) => (
-//                 <tr key={item.id} className="border-b">
-//                   <td className="py-3 text-gray-900">{item.name}</td>
-//                   <td className="py-3 text-right text-gray-700">
-//                     {item.category}
-//                   </td>
-//                   <td className="py-3 text-right text-gray-700">
-//                     {item.quantity}
-//                   </td>
-//                   <td className="py-3 text-right text-gray-700">
-//                     ₹{item.price.toFixed(2)}
-//                   </td>
-//                   <td className="py-3 text-right text-gray-900 font-medium">
-//                     ₹{(item.price * item.quantity).toFixed(2)}
-//                   </td>
-//                 </tr>
-//               ))}
-//             </tbody>
-//           </table>
-//         </div>
-
-//         {/* Financial Summary */}
-//         <div className="mt-auto pt-8 border-t">
-//           <div className="flex justify-end">
-//             <div className="w-72 text-sm">
-//               <div className="flex justify-between py-2 border-b">
-//                 <span className="text-gray-600">Subtotal</span>
-//                 <span className="text-gray-900">
-//                   ₹{calculateSubtotal().toFixed(2)}
-//                 </span>
-//               </div>
-//               <div className="flex justify-between py-2 border-b">
-//                 <span className="text-gray-600">Tax (8.5%)</span>
-//                 <span className="text-gray-900">
-//                   ₹{calculateTax().toFixed(2)}
-//                 </span>
-//               </div>
-//               <div className="flex justify-between py-3 text-lg font-semibold">
-//                 <span className="text-gray-900">Total</span>
-//                 <span className="text-black">
-//                   ₹{calculateTotal().toFixed(2)}
-//                 </span>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default PremiumMinimalInvoice;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas-pro';
+import { formatCurrency } from '@/lib/formatCurrency';
 
 interface InvoiceData {
+  id: string;
+  invoiceNumber: string;
+  createdAt: string;
+  invoiceDate: string;
   customer: {
     name: string;
     email: string;
     address: string;
-  },
-  subtotal: number;
-  gstAmount: number;
-  total: number;
-  gstRate: number;
-  invoiceNumber: string;
-  invoiceDate: string;
-  items: { name: string; category: {
-    name: string;
-  }; quantity: number; price: number }[];
+  };
   companyDetails: {
     name: string;
     address: string;
@@ -287,7 +22,20 @@ interface InvoiceData {
     phone: string;
     email: string;
   };
-}
+  items: {
+    id: string;
+    productId: string;
+    name: string;
+    price: number;
+    quantity: number;
+    category: string;
+  }[];
+  subtotal: number;
+  gstAmount: number;
+  gstRate: number;
+  total: number;
+  template: "modern" | "minimal" | "classic";
+};
 
 const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }) => {
   const { customer, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
@@ -298,110 +46,201 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
   const total = subtotal + gstAmount;
 
   const contentRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(false);
 
-
+  // PDF Download (A4, scale=2)
   const handleDownloadPDF = async () => {
-    console.log(contentRef)
+    setLoading(true);
     try {
       if (contentRef.current) {
-        html2canvas(contentRef.current, { scale: 1 }).then((canvas) => {
-          const imgData = canvas.toDataURL('image/png');
+        await html2canvas(contentRef.current, { scale: 2 }).then((canvas) => {
+          const imgWidth = 210; // A4 width in mm
+          const pageHeight = 297; // A4 height in mm
+          const margin = 10; // 10mm margin
+          const usableWidth = imgWidth - 2 * margin;
+          const usablePageHeight = pageHeight - 2 * margin;
           const pdf = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
             format: 'a4',
           });
-          const width = 210;
-          const height = (canvas.height * width) / canvas.width;
-          let pageHeight = 297;
-          let position = 0;
 
-          pdf.addImage(imgData, 'PNG', 0, position, width, height);
-          console.log(width, height)
-          console.log(pageHeight)
-          console.log(position)
-          if (height > pageHeight) {
-            while (position < height / 1.4) {
-              position += pageHeight;
-              pdf.addPage();
-              pdf.addImage(imgData, 'PNG', 0, -position, width, height);
+          const imgData = canvas.toDataURL('image/png');
+          const imgProps = {
+            width: canvas.width,
+            height: canvas.height,
+          };
+          const pdfHeight = (imgProps.height * usableWidth) / imgProps.width;
+
+          if (pdfHeight <= usablePageHeight) {
+            // Single page
+            pdf.addImage(imgData, 'PNG', margin, margin, usableWidth, pdfHeight);
+          } else {
+            // Multi-page
+            let position = 0;
+            let remainingHeight = imgProps.height;
+            while (remainingHeight > 0) {
+              const sliceHeight = Math.min(canvas.height - position, (usablePageHeight * canvas.width) / usableWidth);
+              if (sliceHeight <= 0 || canvas.width <= 0) break; // Prevents extra blank page and corrupt PNG
+
+              const pageCanvas = document.createElement('canvas');
+              pageCanvas.width = canvas.width;
+              pageCanvas.height = sliceHeight;
+
+              const ctx = pageCanvas.getContext('2d');
+              if (ctx) {
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+                ctx.drawImage(
+                  canvas,
+                  0,
+                  position,
+                  canvas.width,
+                  sliceHeight,
+                  0,
+                  0,
+                  canvas.width,
+                  sliceHeight
+                );
+              }
+
+              // Only add the page if the canvas is not empty and image data is valid
+              if (pageCanvas.width > 0 && pageCanvas.height > 0) {
+                const pageImgData = pageCanvas.toDataURL('image/png');
+                if (
+                  pageImgData &&
+                  pageImgData.startsWith('data:image/png;base64,') &&
+                  pageImgData.length > 'data:image/png;base64,'.length
+                ) {
+                  if (position > 0) pdf.addPage();
+                  pdf.addImage(pageImgData, 'PNG', margin, margin, usableWidth, (sliceHeight * usableWidth) / canvas.width);
+                }
+              }
+
+              position += sliceHeight;
+              remainingHeight -= sliceHeight;
             }
           }
+
           pdf.save(`invoice_${invoiceNumber}.pdf`);
         });
       }
     } catch (error) {
       console.error("Error generating PDF:", error);
       alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
-
   return (
-    <div id="minimal-invoice" className="p-4 bg-[#ffffff] shadow-sm rounded-lg max-w-2xl mx-auto">
-      <div ref={contentRef} className='px-12 py-18'>
-        <div className="text-center mb-4">
-          <h1 className="text-xl font-semibold">{companyDetails.name}</h1>
-          <p className="text-sm text-[#b9b9b9]">Invoice #{invoiceNumber} | {invoiceDate}</p>
-        </div>
-        <div className="mb-4">
-          <p className="text-sm"><strong>Bill To:</strong> {customer.name}</p>
-          <p className="text-sm"><strong>Email:</strong> {customer.email}</p>
-          <p className="text-sm"><strong>Address:</strong> {customer.address}</p>
-        </div>
+    <div className="min-h-screen bg-[#fafafa] flex flex-col items-center py-8 px-2 font-sans">
+      <div className="w-[210mm] min-h-[297mm] bg-white rounded-lg shadow border border-gray-200 flex flex-col mx-auto print:w-[210mm] print:min-h-[297mm]">
+        <div ref={contentRef} className="flex-1 flex flex-col px-10 py-8 gap-8">
+          {/* Header */}
+          <div className="border-b border-gray-200 pb-6 mb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-1 uppercase">{companyDetails.name}</h1>
+              <div className="text-sm text-gray-500 space-y-0.5">
+                <p>{companyDetails.address}</p>
+                <p>{companyDetails.cityState}</p>
+                <p>Phone: {companyDetails.phone}</p>
+                <p>Email: {companyDetails.email}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-gray-900 mb-1 tracking-widest">INVOICE</div>
+              <div className="text-xs text-gray-700 space-y-0.5">
+                <p>Invoice #: <span className="font-semibold">{invoiceNumber}</span></p>
+                <p>Date: <span className="font-semibold">{invoiceDate}</span></p>
+                <p className="text-gray-600 font-bold">Due: {new Date(new Date(invoiceDate).setDate(new Date(invoiceDate).getDate() + 30)).toLocaleDateString()}</p>
+              </div>
+            </div>
+          </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="p-2 text-left">Item</TableHead>
-              <TableHead className="p-2 text-left">Category</TableHead>
-              <TableHead className="p-2 text-right">Qty</TableHead>
-              <TableHead className="p-2 text-right">Price</TableHead>
-              <TableHead className="p-2 text-right">Total</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.length > 1 ? (
-              items.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell className="p-4 font-medium">{item.name}</TableCell>
-                  <TableCell className="p-4">
-                    <Badge className="bg-[#f1f5f9] text-[#1e293b]">
-                      {item.category?.name}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="p-4">{item.quantity}</TableCell>
-                  <TableCell className="p-4">₹{item.price}</TableCell>
-                  <TableCell className="p-4">₹{(item.price * item.quantity)}</TableCell>
-                </TableRow>
-              ))
-            ) : items.length === 1 ? (<TableRow key={1}>
-              <TableCell className="p-4 font-medium">{items[0].name}</TableCell>
-              <TableCell className="p-4">
-                <Badge className="bg-[#f1f5f9] text-[#1e293b]">
-                  {items[0].category?.name}
-                </Badge>
-              </TableCell>
-              <TableCell className="p-4">{items[0].quantity}</TableCell>
-              <TableCell className="p-4">₹{items[0].price}</TableCell>
-              <TableCell className="p-4">₹{(items[0].price * items[0].quantity)}</TableCell>
-            </TableRow>) : ''}
-          </TableBody>
-        </Table>
+          {/* Bill To only */}
+          <div className="flex flex-col sm:flex-row justify-between gap-8">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 flex-1 min-w-[220px]">
+              <h3 className="text-lg font-bold text-gray-800 mb-2 uppercase tracking-wide">Bill To</h3>
+              <p className="font-semibold text-gray-900">{customer.name}</p>
+              <p className="text-gray-700 text-sm">{customer.address}</p>
+              <p className="text-gray-700 text-sm">{customer.email}</p>
+            </div>
+          </div>
 
-        <div className="mt-4 text-right">
-          <p className="text-sm"><strong>Subtotal:</strong> ₹{subtotal.toFixed(2)}</p>
-          <p className="text-sm"><strong>GST (18%):</strong> ₹{gstAmount.toFixed(2)}</p>
-          <p className="text-base font-bold"><strong>Total:</strong> ₹{total.toFixed(2)}</p>
+          {/* Items Table + Summary */}
+          <div className="flex-1 flex flex-col">
+            <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+              <Table className='min-w-full'>
+                <TableHeader>
+                  <TableRow className="bg-gray-100">
+                    <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">Item</TableHead>
+                    <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">Category</TableHead>
+                    <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">Qty</TableHead>
+                    <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">Price</TableHead>
+                    <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {items.length > 0 ? (
+                    items.map((item, index) => (
+                      <TableRow key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                        <TableCell className="p-4 font-semibold text-gray-900">{item.name}</TableCell>
+                        <TableCell className="p-4">
+                          {/* @ts-ignore */}
+                          <Badge className="bg-gray-200 text-gray-800 font-semibold border border-gray-300">{item.category?.name}</Badge>
+                        </TableCell>
+                        <TableCell className="p-4 text-gray-900">{item.quantity}</TableCell>
+                        <TableCell className="p-4 text-gray-900">₹{formatCurrency(item.price)}</TableCell>
+                        <TableCell className="p-4 text-gray-900 font-bold">₹{formatCurrency(item.price * item.quantity)}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow><TableCell colSpan={5} className="text-center py-4 text-gray-400">No items</TableCell></TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            {/* Financial Summary at bottom right */}
+            <div className="flex-1 flex flex-col justify-end">
+              <div className="flex justify-end mt-8">
+                <div className="w-full sm:w-80 bg-gray-50 border border-gray-200 rounded-lg p-7 shadow flex flex-col gap-2 ">
+                  <div className="flex justify-between text-gray-700 text-base font-semibold">
+                    <span>Subtotal</span>
+                    <span>₹{formatCurrency(subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-700 text-base font-semibold">
+                    <span>GST (18%)</span>
+                    <span>₹{formatCurrency(gstAmount)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-900 text-2xl font-extrabold mt-2 border-t border-gray-200 pt-3">
+                    <span>Total</span>
+                    <span>₹{formatCurrency(total)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div className="mt-4 text-center">
-        <button
-          onClick={handleDownloadPDF}
-          className="px-3 py-1 bg-[#e89cff] text-[#ffff] rounded hover:bg-[#df78ff] text-sm"
-        >
-          Download PDF
-        </button>
+        {/* Download Button */}
+        <div className="bg-gray-50 px-10 py-6 border-t border-gray-200 flex justify-end rounded-b-lg">
+          <button
+            onClick={handleDownloadPDF}
+            className="px-7 py-3 bg-gray-800 text-white font-bold rounded shadow hover:bg-black transition-colors text-lg border border-gray-700"
+            disabled={loading}
+          >
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                Downloading...
+              </span>
+            ) : (
+              'Download PDF'
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
