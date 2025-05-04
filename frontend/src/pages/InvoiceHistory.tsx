@@ -172,7 +172,7 @@ export default function BillingHistoryPage() {
         </div>
       </div>
 
-      <Card className="border-none shadow-none">
+      <Card className="border-none shadow-none p-0">
         <CardContent className="p-0">
           <div className="rounded-md border">
             <Table>

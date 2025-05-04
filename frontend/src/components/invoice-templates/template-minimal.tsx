@@ -40,6 +40,8 @@ interface InvoiceData {
 const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }) => {
   const { customer, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
 
+  const url = window.location.href;
+
   const gstRate = 0.18; // 18% GST
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const gstAmount = subtotal * gstRate;
@@ -222,25 +224,28 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
           </div>
         </div>
         {/* Download Button */}
-        <div className="bg-gray-50 px-10 py-6 border-t border-gray-200 flex justify-end rounded-b-lg">
-          <button
-            onClick={handleDownloadPDF}
-            className="px-7 py-3 bg-gray-800 text-white font-bold rounded shadow hover:bg-black transition-colors text-lg border border-gray-700"
-            disabled={loading}
-          >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                </svg>
-                Downloading...
-              </span>
-            ) : (
-              'Download PDF'
-            )}
-          </button>
-        </div>
+        {
+          url.includes('invoice') ? '' : (
+            <div className="bg-gray-50 px-10 py-6 border-t border-gray-200 flex justify-end rounded-b-lg">
+              <button
+                onClick={handleDownloadPDF}
+                className="px-7 py-3 bg-gray-800 text-white font-bold rounded shadow hover:bg-black transition-colors text-lg border border-gray-700"
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    Downloading...
+                  </span>
+                ) : (
+                  'Download PDF'
+                )}
+              </button>
+            </div>)
+        }
       </div>
     </div>
   );

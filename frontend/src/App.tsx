@@ -9,39 +9,42 @@ import Invoice from "./pages/Invoice";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CustoemrPage from "./pages/Customer";
+import { ThemeProvider } from "./ThemeProvider";
 
 function App() {
   return (
-    <UserProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route
-            path="/login"
-            element={
-              <ProtectedRoute requireAuth={false}>
-                <Login />
-              </ProtectedRoute>
-            }
-          />
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <UserProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public routes */}
+            <Route
+              path="/login"
+              element={
+                <ProtectedRoute requireAuth={false}>
+                  <Login />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Protected routes */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <Navbar />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/inventory" element={<Inventory />} />
-            <Route path="/billing" element={<BillingHistoryPage />} />
-            <Route path="/invoice" element={<Invoice />} />
-            <Route path="/customer" element={<CustoemrPage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </UserProvider>
+            {/* Protected routes */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <Navbar />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/inventory" element={<Inventory />} />
+              <Route path="/billing" element={<BillingHistoryPage />} />
+              <Route path="/invoice" element={<Invoice />} />
+              <Route path="/customer" element={<CustoemrPage />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </UserProvider>
+    </ThemeProvider>
   );
 }
 

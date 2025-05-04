@@ -659,9 +659,9 @@ export default function InventoryPage() {
             {error && <div className="text-red-500">{error}</div>}
             {loading && <div>Loading...</div>}
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
                 <h2 className="text-3xl font-serif font-bold tracking-tight">Inventory</h2>
-                <div className="flex gap-8">
+                <div className="flex gap-8 flex-wrap">
                     {/* Add Product Dialog */}
                     <Dialog open={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen}>
                         <DialogTrigger asChild>

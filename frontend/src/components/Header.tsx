@@ -8,27 +8,87 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { ThemeToggle } from "./ThemeToggle";
+import { Link } from "react-router-dom";
+import { useState } from "react";
 
 export default function Header() {
   const { logout } = useUser();
+  const [isOpen, setIsOpen] = useState(false);
 
 
   return (
-    <header className="w-screen  flex justify-between text-2xl md:pt-3 px-8 pr-18 h-16 border-b-1 sticky top-0 bg-white/90 backdrop-blur-3xl ">
-      <h1>Invoice Manager</h1>
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Avatar className="cursor-pointer">
-            <AvatarImage src="https://github.com/shadcn.png" alt="User profile" />
-            <AvatarFallback>US</AvatarFallback>
-          </Avatar>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="mr-12">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={logout}>Sign Out</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </header>
+    <div className="flex items-center h-16 gap-1 border-b-1  justify-between w-full">
+      <div className="flex items-center   gap-1 z-[1000]">
+        <div className="md:hidden ">
+          <button onClick={() => setIsOpen(!isOpen)} className="p-4 dark:text-white ">
+            <div className="w-6 h-0.5 bg-black dark:bg-white mb-1"></div>
+            <div className="w-6 h-0.5 bg-black dark:bg-white mb-1"></div>
+            <div className="w-6 h-0.5 bg-black dark:bg-white"></div>
+          </button>
+          <nav className={`bg-black/80 backdrop-blur-lg text-white fixed top-0 left-0 h-full w-64 max-w-full z-50 overflow-y-auto max-h-screen transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className="flex flex-col gap-6 p-4 pt-8">
+              <Link
+                onClick={() => setIsOpen(false)}
+                className={`${location.pathname === '/dashboard' ? 'font-semibold' : 'text-neutral-500'}`}
+                to="/"
+              >
+                Dashboard
+              </Link>
+              <Link
+                onClick={() => setIsOpen(false)}
+                className={`${location.pathname === '/inventory' ? 'font-semibold' : 'text-neutral-500'}`}
+                to="/inventory"
+              >
+                Inventory
+              </Link>
+              <Link
+                onClick={() => setIsOpen(false)}
+                className={`${location.pathname === '/billing' ? 'font-semibold' : 'text-neutral-500'}`}
+                to="/billing"
+              >
+                Billing
+              </Link>
+              <Link
+                onClick={() => setIsOpen(false)}
+                className={`${location.pathname === '/invoice' ? 'font-semibold' : 'text-neutral-500'}`}
+                to="/invoice"
+              >
+                Invoice
+              </Link>
+              <Link
+                onClick={() => setIsOpen(false)}
+                className={`${location.pathname === '/customer' ? 'font-semibold' : 'text-neutral-500'}`}
+                to="/customer"
+              >
+                Customer
+              </Link>
+            </div>
+          </nav>
+        </div>
+        <h1 className="md:hidden block text-2xl font-bold">IM</h1>
+      </div>
+      <header className="w-screen z-10 flex justify-end items-center text-2xl md:pt-3 lg:px-8 pr-8 lg:pr-18  sticky top-0 dark:bg-black/90 bg-white/90 backdrop-blur-3xl ">
+        {/* <h1 className="hidden md:block">Invoice Manager</h1> */}
+        <div className="flex gap-4 z-10 justify-center items-center">
+          <ThemeToggle />
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Avatar className="cursor-pointer">
+                <AvatarImage src="https://github.com/shadcn.png" alt="User profile" />
+                <AvatarFallback>US</AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="mr-12">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={logout}>Sign Out</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+
+      </header>
+    </div>
   );
 }

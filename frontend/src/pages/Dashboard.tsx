@@ -209,7 +209,7 @@ const Dashboard: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen dark:bg-black bg-gray-50">
       <div className="container mx-auto p-6">
         {/* Filter Dropdown */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
@@ -269,7 +269,7 @@ const Dashboard: React.FC = () => {
               <CardTitle className="flex items-center gap-2"><BarChart className="w-5 h-5 text-blue-500" /> Monthly Bills</CardTitle>
               <CardDescription>Bills generated per month</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="min-h-64">
               <Bar
                 data={barChartData}
                 options={{
@@ -284,7 +284,7 @@ const Dashboard: React.FC = () => {
               <CardTitle>Category Sales</CardTitle>
               <CardDescription>Sales distribution by category</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="h-72 w-full">
               <Pie data={pieChartData} />
             </CardContent>
           </Card>
