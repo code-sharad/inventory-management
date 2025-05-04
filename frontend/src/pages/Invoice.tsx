@@ -556,7 +556,7 @@ function Invoice() {
                                       <div className="flex flex-col">
                                         <span className="font-semibold text-base">{product.name}</span>
                                         <div className="flex items-center gap-2 mr-2 mt-1">
-                                          <Badge className="bg-gray-200 text-gray-700 border-none px-2 py-1 text-xs">
+                                          <Badge className="bg-gray-200 dark:bg-zinc-700 dark:text-white text-gray-700 border-none px-2 py-1 text-xs">
                                             {product.category}
                                           </Badge>
                                           <span className="text-xs text-muted-foreground ">Stock: {product.quantity}</span>
@@ -582,7 +582,7 @@ function Invoice() {
                   <div className="flex border rounded-md w-full max-w-xs">
                     <Button
                       variant="secondary"
-                      className="max-w-8 rounded-r-none rounded-l-md bg-white"
+                      className="max-w-8 rounded-r-none rounded-l-md "
                       onClick={() =>
                         setSelectedProduct({
                           ...selectedProduct,
@@ -608,7 +608,7 @@ function Invoice() {
                     />
                     <Button
                       variant="secondary"
-                      className="rounded-l-none rounded-r-md bg-white"
+                      className="rounded-l-none rounded-r-md "
                       onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                         e.preventDefault();
                         setSelectedProduct({

@@ -9,7 +9,7 @@ export default function Navbar() {
                 {/* <Header /> */}
                 <div>
                     <div className="flex items-center justify-between p-4">
-                        <h1 className="text-lg font-bold dark:text-white text-gray-900">My App</h1>
+                        <h1 className="text-lg font-bold dark:text-white text-gray-900">Invoice Management</h1>
 
                     </div>
                 </div>
