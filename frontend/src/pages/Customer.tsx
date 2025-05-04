@@ -307,7 +307,7 @@ export default function CustoemrPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
+                            <TableHead>GST Number</TableHead>
                             <TableHead className="text-left">Address</TableHead>
                             {/* <TableHead className="text-right">Price</TableHead>
                             <TableHead className="text-right">Actions</TableHead> */}
@@ -328,9 +328,9 @@ export default function CustoemrPage() {
                                 <TableCell className="text-left">{product.address}</TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
-                                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>
+                                        {/* <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>
                                             <Edit className="h-4 w-4" />
-                                        </Button>
+                                        </Button> */}
                                         <Button variant="ghost" size="icon" onClick={() => handleDeleteCustomer(product._id)}>
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
