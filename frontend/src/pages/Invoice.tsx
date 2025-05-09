@@ -104,6 +104,11 @@ function Invoice() {
   });
   const [quantity, setQuantity] = useState(0);
 
+  const [includeTransportation, setIncludeTransportation] = useState(false);
+  const [transportationValue, setTransportationValue] = useState(0);
+  const [includePackaging, setIncludePackaging] = useState(false);
+  const [packagingValue, setPackagingValue] = useState(0);
+
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -265,39 +270,6 @@ function Invoice() {
       alert("All items must have a valid category (not 'Uncategorized').");
       return;
     }
-    const subtotal = invoiceItems.reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
-    const gstAmount = subtotal * gstRate;
-    const total = subtotal + gstAmount;
-
-    const invoiceData = {
-      template: selectedTemplate,
-      gstRate,
-      subtotal,
-      gstAmount,
-      total,
-      customer: selectedCustomer,
-      invoiceNumber,
-      invoiceDate: invoiceDate || new Date().toISOString().split("T")[0],
-      items: invoiceItems.map((item) => {
-        const inventoryItem = inventoryItems.find(
-          (inv) => inv.name === item.name && inv.category === item.category
-        );
-        return {
-          id: item.id,
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-          category: inventoryItem?.categoryId || undefined,
-        };
-      }),
-      companyDetails: {
-        name: companyDetails.name || "N/A",
-        address: companyDetails.address || "N/A",
-        cityState: companyDetails.cityState || "N/A",
-        phone: companyDetails.phone || "N/A",
-        email: companyDetails.email || "N/A",
-      },
-    };
 
     try {
       console.log("Saving invoice with data:", JSON.stringify(invoiceData, null, 2));
@@ -316,6 +288,13 @@ function Invoice() {
     }
   };
 
+  // Calculate invoice summary for preview and template
+  const subtotal = invoiceItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    + transportationValue
+    + packagingValue;
+  const gstAmount = subtotal * gstRate;
+  const total = subtotal + gstAmount;
+
   const invoiceData = {
     gstRate,
     customer: selectedCustomer,
@@ -323,9 +302,11 @@ function Invoice() {
     invoiceDate,
     items: invoiceItems,
     companyDetails,
-    subtotal: invoiceItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    gstAmount: invoiceItems.reduce((sum, item) => sum + item.price * item.quantity, 0) * gstRate,
-    total: invoiceItems.reduce((sum, item) => sum + item.price * item.quantity, 0) * (1 + gstRate),
+    subtotal,
+    gstAmount,
+    total,
+    transportationAndOthers: transportationValue,
+    packaging: packagingValue,
   };
 
   return (
@@ -475,8 +456,8 @@ function Invoice() {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold mb-4">Invoice Details</h3>
-                <div className="flex flex-col sm:flex-row gap-4">
+                <h3 className="text-lg font-semibold mb-4 flex flex-col gap-4">Invoice Details</h3>
+                <div className="flex flex-col sm:flex-row gap-4 ">
                   <div className="min-w-0 flex-1">
                     <Label className="mb-2"># Invoice Number</Label>
                     <Input
@@ -493,6 +474,38 @@ function Invoice() {
                       onChange={(e) => setGstRate(Number(e.target.value))}
                       type="number"
                     />
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                  <div className="flex flex-col flex-1 gap-2">
+                    <Label className="mb-0">Transportation & Others</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">₹</span>
+                      <Input
+                        className="w-full ml-0"
+                        value={transportationValue}
+                        onChange={(e) => setTransportationValue(Number(e.target.value) || 0)}
+                        type="number"
+                        min="0"
+                        placeholder="Enter amount"
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground mt-1">Enter extra transportation or miscellaneous charges</span>
+                  </div>
+                  <div className="flex flex-col flex-1 gap-2">
+                    <Label className="mb-0">Packaging</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">₹</span>
+                      <Input
+                        className="w-full ml-0"
+                        value={packagingValue}
+                        onChange={(e) => setPackagingValue(Number(e.target.value) || 0)}
+                        type="number"
+                        min="0"
+                        placeholder="Enter amount"
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground mt-1">Enter packaging charges</span>
                   </div>
                 </div>
                 <div className="w-full">

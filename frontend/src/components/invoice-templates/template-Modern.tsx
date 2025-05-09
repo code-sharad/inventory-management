@@ -37,6 +37,8 @@ interface InvoiceData {
   gstRate: number;
   total: number;
   template: "modern" | "minimal" | "classic";
+  packaging?: number;
+  transportationAndOthers?: number;
 };
 
 
@@ -200,6 +202,18 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
               <span>Subtotal</span>
               <span>₹{formatCurrency(invoiceData.subtotal)}</span>
             </div>
+            {invoiceData.transportationAndOthers !== undefined && (
+              <div className="flex justify-between text-gray-700 text-base">
+                <span>Transportation & Others</span>
+                <span>₹{formatCurrency(invoiceData.transportationAndOthers)}</span>
+              </div>
+            )}
+            {invoiceData.packaging !== undefined && (
+              <div className="flex justify-between text-gray-700 text-base">
+                <span>Packaging</span>
+                <span>₹{formatCurrency(invoiceData.packaging)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-gray-700 text-base">
               <span>GST ({invoiceData.gstRate}%)</span>
               <span>₹{formatCurrency(invoiceData.gstAmount)}</span>

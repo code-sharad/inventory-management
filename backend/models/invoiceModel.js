@@ -15,6 +15,14 @@ const invoiceSchema = mongoose.Schema({
       required: true,
     },
   },
+  packaging: {
+    type: Number,
+    required: true,
+  },
+  transportationAndOthers: {
+    type: Number,
+    required: true,
+  },
   subtotal: {
     type: Number,
     required: true,
