@@ -136,7 +136,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
     }
   };
   return (
-    <div className="min-h-screen bg-[#fafafa] flex flex-col items-center py-8 px-2 font-sans">
+    <div className="min-h-screen bg-[#fafafa] dark:bg-neutral-900 flex flex-col items-center py-8 px-2 font-sans">
       <div className="w-[210mm] min-h-[297mm] bg-white rounded-lg shadow border border-gray-200 flex flex-col mx-auto print:w-[210mm] print:min-h-[297mm]">
         <div ref={contentRef} className="flex-1 flex flex-col px-10 py-8 gap-8">
           {/* Header */}

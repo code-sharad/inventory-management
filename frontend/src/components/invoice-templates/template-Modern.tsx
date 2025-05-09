@@ -136,28 +136,28 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
 
 
       {/* Main Content Card */}
-      <div ref={contentRef} className="w-[794px] min-h-[1123px] bg-white rounded-b-lg shadow-lg px-6 py-8 flex flex-col gap-8">
-        <div className="w-full rounded-t-lg bg-gradient-to-r from-blue-600 to-blue-400 px-8 py-6 flex flex-col flex-row justify-between items-center shadow-lg">
+      <div ref={contentRef} className="w-[794px] min-h-[1123px] bg-white rounded-b-lg shadow border border-gray-200 px-8 py-8 flex flex-col gap-8">
+        <div className="w-full rounded-t-lg bg-white border-b border-gray-300 px-0 py-6 flex flex-row justify-between items-center">
           <div className="flex flex-col items-start">
-            <h1 className="text-3xl font-bold text-white tracking-wide">{companyDetails.name}</h1>
-            <span className="text-blue-100 text-sm mt-1">{companyDetails.address}, {companyDetails.cityState}</span>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-wide">{companyDetails.name}</h1>
+            <span className="text-gray-600 text-sm mt-1">{companyDetails.address}, {companyDetails.cityState}</span>
           </div>
-          <div className="mt-4 flex flex-col items-end">
-            <span className="text-lg font-semibold text-white tracking-widest">INVOICE</span>
-            <span className="text-blue-100 text-xs mt-1">Invoice #: {invoiceNumber}</span>
-            <span className="text-blue-100 text-xs">Date: {invoiceDate}</span>
+          <div className="flex flex-col items-end">
+            <span className="text-lg font-semibold text-gray-900 tracking-widest">INVOICE</span>
+            <span className="text-gray-600 text-xs mt-1">Invoice #: {invoiceNumber}</span>
+            <span className="text-gray-600 text-xs">Date: {invoiceDate}</span>
           </div>
         </div>
         {/* Bill To & Company Details */}
-        <div className="flex flex-col flex-row justify-between gap-8">
-          <div className="bg-[#f8fafc] rounded-lg p-4 flex-1 min-w-[220px]">
-            <h3 className="text-lg font-semibold text-blue-700 mb-2">Bill To</h3>
+        <div className="flex flex-row justify-between gap-8">
+          <div className="bg-gray-50 rounded-lg p-4 flex-1 min-w-[220px] border border-gray-200">
+            <h3 className="text-base font-semibold text-gray-800 mb-2">Bill To</h3>
             <p className="font-medium text-gray-900">{customer.name}</p>
             <p className="text-gray-700 text-sm">{customer.address}</p>
             <p className="text-gray-700 text-sm">{customer.email}</p>
           </div>
-          <div className="bg-[#f8fafc] rounded-lg p-4 flex-1 min-w-[220px]">
-            <h3 className="text-lg font-semibold text-blue-700 mb-2">Company Info</h3>
+          <div className="bg-gray-50 rounded-lg p-4 flex-1 min-w-[220px] border border-gray-200">
+            <h3 className="text-base font-semibold text-gray-800 mb-2">Company Info</h3>
             <p className="font-medium text-gray-900">{companyDetails.name}</p>
             <p className="text-gray-700 text-sm">{companyDetails.phone}</p>
             <p className="text-gray-700 text-sm">{companyDetails.email}</p>
@@ -168,21 +168,21 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
         <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
           <Table className='min-w-full'>
             <TableHeader>
-              <TableRow className="bg-blue-50">
-                <TableHead className="p-4 text-blue-900 font-semibold">Item</TableHead>
-                <TableHead className="p-4 text-blue-900 font-semibold">Category</TableHead>
-                <TableHead className="p-4 text-blue-900 font-semibold">Quantity</TableHead>
-                <TableHead className="p-4 text-blue-900 font-semibold">Unit Price</TableHead>
-                <TableHead className="p-4 text-blue-900 font-semibold">Total</TableHead>
+              <TableRow className="bg-gray-100">
+                <TableHead className="p-4 text-gray-900 font-semibold">Item</TableHead>
+                <TableHead className="p-4 text-gray-900 font-semibold">Category</TableHead>
+                <TableHead className="p-4 text-gray-900 font-semibold">Quantity</TableHead>
+                <TableHead className="p-4 text-gray-900 font-semibold">Unit Price</TableHead>
+                <TableHead className="p-4 text-gray-900 font-semibold">Total</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {items.length > 0 && items.map((item, index) => (
-                <TableRow key={index} className={index % 2 === 0 ? "bg-white" : "bg-blue-50"}>
+                <TableRow key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                   <TableCell className="p-4 font-medium text-gray-900">{item.name}</TableCell>
                   <TableCell className="p-4">
                     {/* @ts-ignore */}
-                    <Badge className="bg-blue-100 text-blue-800 font-semibold">{item.category?.name}</Badge>
+                    <Badge className="bg-gray-200 text-gray-800 font-semibold">{item.category?.name}</Badge>
                   </TableCell>
                   <TableCell className="p-4 text-gray-800">{item.quantity}</TableCell>
                   <TableCell className="p-4 text-gray-800">₹{formatCurrency(item.price)}</TableCell>
@@ -195,7 +195,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
 
         {/* Financial Summary */}
         <div className="flex flex-col items-end">
-          <div className="w-full bg-blue-50 rounded-lg p-6 shadow flex flex-col gap-2">
+          <div className="w-full bg-white rounded-lg p-6 border border-gray-200 flex flex-col gap-2">
             <div className="flex justify-between text-gray-700 text-base">
               <span>Subtotal</span>
               <span>₹{formatCurrency(invoiceData.subtotal)}</span>
@@ -204,7 +204,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
               <span>GST ({invoiceData.gstRate}%)</span>
               <span>₹{formatCurrency(invoiceData.gstAmount)}</span>
             </div>
-            <div className="flex justify-between text-blue-900 text-lg font-bold mt-2 border-t pt-2">
+            <div className="flex justify-between text-gray-900 text-lg font-bold mt-2 border-t pt-2">
               <span>Total</span>
               <span>₹{formatCurrency(invoiceData.total)}</span>
             </div>
@@ -221,7 +221,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
           <div className="mt-8 mb-4 w-full max-w-4xl flex justify-end">
             <button
               onClick={handleDownloadPDF}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold rounded-lg shadow hover:from-blue-700 hover:to-blue-500 transition-colors text-lg disabled:opacity-60 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-gray-900 text-white font-semibold rounded-lg shadow hover:bg-gray-800 transition-colors text-lg disabled:opacity-60 disabled:cursor-not-allowed"
               disabled={loading}
             >
               {loading ? (

@@ -2,7 +2,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import InvoiceTemplate from "./template-1";
+import InvoiceClassic from "./template-classic";
 import ModernInvoiceTemplate from "./template-Modern";
 import PremiumMinimalInvoice from "./template-minimal";
 
@@ -60,7 +60,7 @@ const TemplateCarousel: React.FC<TemplateCarouselProps> = ({
       case "modern":
         return ModernInvoiceTemplate;
       case "classic":
-        return InvoiceTemplate;
+        return InvoiceClassic;
       case "minimal":
         return PremiumMinimalInvoice;
       default:

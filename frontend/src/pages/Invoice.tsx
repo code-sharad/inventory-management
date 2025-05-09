@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect } from "react";
-import InvoiceTemplate from "@/components/invoice-templates/template-1";
+import InvoiceClassic from "@/components/invoice-templates/template-classic";
 import ModernInvoiceTemplate from "@/components/invoice-templates/template-Modern";
 import PremiumMinimalInvoice from "@/components/invoice-templates/template-minimal";
 import TemplateCarousel from "@/components/invoice-templates/TemplateCarousel";
@@ -168,7 +168,7 @@ function Invoice() {
       id: "classic",
       name: "Classic Template",
       preview: "/templates/classic.png",
-      component: InvoiceTemplate,
+      component: InvoiceClassic,
     },
     {
       id: "minimal",

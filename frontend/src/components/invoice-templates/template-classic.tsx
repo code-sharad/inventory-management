@@ -6,12 +6,15 @@ import html2canvas from 'html2canvas-pro';
 import QRCode from 'react-qr-code';
 
 interface InvoiceData {
-  customerName: string;
-  customerEmail: string;
-  customerAddress: string;
+  id: string;
   invoiceNumber: string;
+  createdAt: string;
   invoiceDate: string;
-  items: { name: string; category: string; quantity: number; price: number }[];
+  customer: {
+    name: string;
+    email: string;
+    address: string;
+  };
   companyDetails: {
     name: string;
     address: string;
@@ -19,10 +22,23 @@ interface InvoiceData {
     phone: string;
     email: string;
   };
-}
+  items: {
+    id: string;
+    productId: string;
+    name: string;
+    price: number;
+    quantity: number;
+    category: string;
+  }[];
+  subtotal: number;
+  gstAmount: number;
+  gstRate: number;
+  total: number;
+  template: "modern" | "minimal" | "classic";
+};
 
-const InvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }) => {
-  const { customerName, customerEmail, customerAddress, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
+const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }) => {
+  const { customer, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
   const gstRate = 0.18; // 18% GST
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const gstAmount = subtotal * gstRate;
@@ -87,7 +103,7 @@ const InvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }
   };
 
   return (
-    <div className="p-0 bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col items-center justify-center">
+    <div className="p-0 bg-gray-50 dark:bg-neutral-900 min-h-screen flex flex-col items-center justify-center">
       <div ref={contentRef} className="bg-white shadow-md rounded-lg max-w-2xl w-full overflow-hidden border border-gray-200">
         {/* Header */}
         <div className="px-8 py-6 flex items-center justify-between border-b border-gray-200 bg-white">
@@ -108,9 +124,9 @@ const InvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }
         <div className="px-8 py-6 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row md:justify-between md:items-center">
           <div className="mb-4 md:mb-0">
             <h3 className="text-lg font-semibold text-gray-800 mb-1">Bill To:</h3>
-            <p className="text-gray-700"><span className="font-medium">Name:</span> {customerName}</p>
-            <p className="text-gray-700"><span className="font-medium">Email:</span> {customerEmail}</p>
-            <p className="text-gray-700"><span className="font-medium">Address:</span> {customerAddress}</p>
+            <p className="text-gray-700"><span className="font-medium">Name:</span> {customer.name}</p>
+            <p className="text-gray-700"><span className="font-medium">Email:</span> {customer.email}</p>
+            <p className="text-gray-700"><span className="font-medium">Address:</span> {customer.address}</p>
           </div>
           <div className="text-right">
             <p className="text-gray-700"><span className="font-medium">Invoice #:</span> {invoiceNumber}</p>
@@ -194,4 +210,4 @@ const InvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }
   );
 };
 
-export default InvoiceTemplate;
+export default InvoiceClassic;
