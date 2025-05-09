@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
 import { formatCurrency } from '@/lib/formatCurrency';
+import QRCode from 'react-qr-code';
 
 interface InvoiceData {
   id: string;
@@ -222,7 +223,11 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
               </div>
             </div>
           </div>
+          <div className='flex flex-col items-end justify-center'>
+            <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} width={60} height={60} />
+          </div>
         </div>
+
         {/* Download Button */}
         {
           url.includes('invoice') ? '' : (

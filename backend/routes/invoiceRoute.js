@@ -56,6 +56,19 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.get('/:id', async(req,res) => {
+  const id = req.params.id;
+  try{
+    const invoice = await invoiceModel.findById(id);
+    if(!invoice){
+      return res.status(404).json({message: "Invoice not found"});
+    }
+    res.json(invoice);
+  }catch(err){
+    console.log(err)
+  }
+})
+
 router.get('/', async (req, res) => {
   try {
     const invoices = await invoiceModel

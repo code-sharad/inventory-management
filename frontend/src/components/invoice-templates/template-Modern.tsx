@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
 import { formatCurrency } from '@/lib/formatCurrency';
-
+import QRCode from "react-qr-code"
+import { QrCode } from 'lucide-react';
 
 interface InvoiceData {
   id: string;
@@ -132,21 +133,21 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
   return (
     <div id="modern-invoice" className="w-[794px] min-h-[1123px] mx-auto flex flex-col items-center">
       {/* Header Bar */}
-      
+
 
       {/* Main Content Card */}
       <div ref={contentRef} className="w-[794px] min-h-[1123px] bg-white rounded-b-lg shadow-lg px-6 py-8 flex flex-col gap-8">
-      <div className="w-full rounded-t-lg bg-gradient-to-r from-blue-600 to-blue-400 px-8 py-6 flex flex-col flex-row justify-between items-center shadow-lg">
-        <div className="flex flex-col items-start">
-          <h1 className="text-3xl font-bold text-white tracking-wide">{companyDetails.name}</h1>
-          <span className="text-blue-100 text-sm mt-1">{companyDetails.address}, {companyDetails.cityState}</span>
+        <div className="w-full rounded-t-lg bg-gradient-to-r from-blue-600 to-blue-400 px-8 py-6 flex flex-col flex-row justify-between items-center shadow-lg">
+          <div className="flex flex-col items-start">
+            <h1 className="text-3xl font-bold text-white tracking-wide">{companyDetails.name}</h1>
+            <span className="text-blue-100 text-sm mt-1">{companyDetails.address}, {companyDetails.cityState}</span>
+          </div>
+          <div className="mt-4 flex flex-col items-end">
+            <span className="text-lg font-semibold text-white tracking-widest">INVOICE</span>
+            <span className="text-blue-100 text-xs mt-1">Invoice #: {invoiceNumber}</span>
+            <span className="text-blue-100 text-xs">Date: {invoiceDate}</span>
+          </div>
         </div>
-        <div className="mt-4 flex flex-col items-end">
-          <span className="text-lg font-semibold text-white tracking-widest">INVOICE</span>
-          <span className="text-blue-100 text-xs mt-1">Invoice #: {invoiceNumber}</span>
-          <span className="text-blue-100 text-xs">Date: {invoiceDate}</span>
-        </div>
-      </div>
         {/* Bill To & Company Details */}
         <div className="flex flex-col flex-row justify-between gap-8">
           <div className="bg-[#f8fafc] rounded-lg p-4 flex-1 min-w-[220px]">
@@ -209,30 +210,33 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
             </div>
           </div>
         </div>
+        <div className='flex flex-col items-end justify-center'>
+          <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} width={60} height={60} />
+        </div>
       </div>
 
       {/* Download Button */}
       {
         url.includes('invoice') ? '' : (
           <div className="mt-8 mb-4 w-full max-w-4xl flex justify-end">
-        <button
-          onClick={handleDownloadPDF}
-          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold rounded-lg shadow hover:from-blue-700 hover:to-blue-500 transition-colors text-lg disabled:opacity-60 disabled:cursor-not-allowed"
-          disabled={loading}
-        >
-          {loading ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-              </svg>
-              Downloading...
-            </span>
-          ) : (
-            'Download PDF'
-          )}
-        </button>
-      </div>
+            <button
+              onClick={handleDownloadPDF}
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold rounded-lg shadow hover:from-blue-700 hover:to-blue-500 transition-colors text-lg disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                  </svg>
+                  Downloading...
+                </span>
+              ) : (
+                'Download PDF'
+              )}
+            </button>
+          </div>
         )
       }
     </div>

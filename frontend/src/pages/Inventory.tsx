@@ -633,7 +633,7 @@ export default function InventoryPage() {
         } catch (err) {
             setError("Failed to delete product")
         }
-    }
+    }       
 
     // Delete category
     const handleDeleteCategory = async (id: string) => {

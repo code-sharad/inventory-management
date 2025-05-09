@@ -3,6 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
+import QRCode from 'react-qr-code';
 
 interface InvoiceData {
   customerName: string;
@@ -86,22 +87,21 @@ const InvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }
   };
 
   return (
-    <div className="p-0 bg-gray-100 min-h-screen  flex flex-col items-center justify-center">
-      <div ref={contentRef} className="bg-white shadow-2xl rounded-2xl max-w-2xl w-full overflow-hidden border-none">
+    <div className="p-0 bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col items-center justify-center">
+      <div ref={contentRef} className="bg-white shadow-md rounded-lg max-w-2xl w-full overflow-hidden border border-gray-200">
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-600 to-green-400 px-8 py-6 flex items-center justify-between">
+        <div className="px-8 py-6 flex items-center justify-between border-b border-gray-200 bg-white">
           <div className="flex items-center space-x-4">
             {/* Logo Placeholder */}
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-green-600 font-bold text-xl shadow-md">
+            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-700 font-bold text-xl">
               {/* You can replace this with an <img src=... /> for a real logo */}
               <span>{companyDetails.name[0]}</span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-wide">{companyDetails.name}</h1>
-              <p className="text-sm text-green-100">{companyDetails.cityState}</p>
+              <h1 className="text-2xl font-bold text-gray-900 tracking-wide">{companyDetails.name}</h1>
+              <p className="text-sm text-gray-500">{companyDetails.cityState}</p>
             </div>
           </div>
-          
         </div>
 
         {/* Invoice Info */}
@@ -119,27 +119,27 @@ const InvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }
         </div>
 
         {/* Table Section */}
-        <div ref={contentRef} className="px-8 py-6 bg-white ">
-          <Table className='border-none rounded-lg overflow-hidden'>
+        <div className="px-8 py-6 bg-white">
+          <Table className="border border-gray-200 rounded-lg overflow-hidden">
             <TableHeader>
               <TableRow className="bg-gray-100">
-                <TableHead className="p-2">Item</TableHead>
-                <TableHead className="p-2">Category</TableHead>
-                <TableHead className="p-2">Qty</TableHead>
-                <TableHead className="p-2">Price</TableHead>
-                <TableHead className="p-2">Total</TableHead>
+                <TableHead className="p-2 text-gray-700 font-semibold border-b border-gray-200">Item</TableHead>
+                <TableHead className="p-2 text-gray-700 font-semibold border-b border-gray-200">Category</TableHead>
+                <TableHead className="p-2 text-gray-700 font-semibold border-b border-gray-200">Qty</TableHead>
+                <TableHead className="p-2 text-gray-700 font-semibold border-b border-gray-200">Price</TableHead>
+                <TableHead className="p-2 text-gray-700 font-semibold border-b border-gray-200">Total</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {items.map((item, index) => (
-                <TableRow key={index} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                  <TableCell className="p-2 font-medium text-gray-800">{item.name}</TableCell>
-                  <TableCell className="p-2">
-                    <Badge className="bg-green-100 text-green-800">{item.category || "Uncategorized"}</Badge>
+                <TableRow key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                  <TableCell className="p-2 font-medium text-gray-900 border-b border-gray-100">{item.name}</TableCell>
+                  <TableCell className="p-2 border-b border-gray-100">
+                    <Badge className="bg-gray-200 text-gray-700 font-normal">{item.category || "Uncategorized"}</Badge>
                   </TableCell>
-                  <TableCell className="p-2">{item.quantity}</TableCell>
-                  <TableCell className="p-2">₹{item.price.toFixed(2)}</TableCell>
-                  <TableCell className="p-2">₹{(item.price * item.quantity).toFixed(2)}</TableCell>
+                  <TableCell className="p-2 border-b border-gray-100">{item.quantity}</TableCell>
+                  <TableCell className="p-2 border-b border-gray-100">₹{item.price.toFixed(2)}</TableCell>
+                  <TableCell className="p-2 border-b border-gray-100">₹{(item.price * item.quantity).toFixed(2)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -148,44 +148,46 @@ const InvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }
           {/* Totals Section */}
           <div className="mt-8 flex flex-col items-end">
             <div className="w-full max-w-xs">
-              <div className="flex justify-between py-2 text-gray-700 border-b">
+              <div className="flex justify-between py-2 text-gray-700 border-b border-gray-200">
                 <span>Subtotal</span>
                 <span>₹{subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between py-2 text-gray-700 border-b">
+              <div className="flex justify-between py-2 text-gray-700 border-b border-gray-200">
                 <span>GST (18%)</span>
                 <span>₹{gstAmount.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between py-3 text-xl font-bold text-green-700">
+              <div className="flex justify-between py-3 text-xl font-bold text-gray-900">
                 <span>Total</span>
                 <span>₹{total.toFixed(2)}</span>
               </div>
             </div>
           </div>
         </div>
+        <div className="flex flex-col items-end justify-center px-8 pb-6">
+          <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} width={60} height={60} />
+        </div>
       </div>
-      
       {
         url.includes('invoice') ? '' : (
           <div className="mt-8 mb-4 w-full max-w-4xl flex justify-end">
-        <button
-          onClick={handleDownloadPDF}
-          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold rounded-lg shadow hover:from-blue-700 hover:to-blue-500 transition-colors text-lg disabled:opacity-60 disabled:cursor-not-allowed"
-          disabled={loading}
-        >
-          {loading ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-              </svg>
-              Downloading...
-            </span>
-          ) : (
-            'Download PDF'
-          )}
-        </button>
-      </div>
+            <button
+              onClick={handleDownloadPDF}
+              className="px-6 py-3 bg-gray-800 text-white font-semibold rounded-lg shadow hover:bg-gray-900 transition-colors text-lg disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                  </svg>
+                  Downloading...
+                </span>
+              ) : (
+                'Download PDF'
+              )}
+            </button>
+          </div>
         )
       }
     </div>

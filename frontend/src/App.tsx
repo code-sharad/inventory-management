@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CustoemrPage from "./pages/Customer";
 import { ThemeProvider } from "./ThemeProvider";
+import ModernOverview from "./components/invoice-templates/overview/modern-overview";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
               }
             />
 
+              <Route path="/invoice/:id" element={<ModernOverview />} />
             {/* Protected routes */}
             <Route
               element={
