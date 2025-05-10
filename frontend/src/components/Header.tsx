@@ -30,35 +30,35 @@ export default function Header() {
             <div className="flex flex-col gap-6 p-4 pt-8">
               <Link
                 onClick={() => setIsOpen(false)}
-                className={`${location.pathname === '/dashboard' ? 'font-semibold' : 'text-neutral-500'}`}
+                className={`${location.pathname === '/' ? 'font-semibold underline underline-offset-4' : 'text-neutral-500'}`}
                 to="/"
               >
                 Dashboard
               </Link>
               <Link
                 onClick={() => setIsOpen(false)}
-                className={`${location.pathname === '/inventory' ? 'font-semibold' : 'text-neutral-500'}`}
+                className={`${location.pathname === '/inventory' ? 'font-semibold underline underline-offset-4' : 'text-neutral-500'}`}
                 to="/inventory"
               >
                 Inventory
               </Link>
               <Link
                 onClick={() => setIsOpen(false)}
-                className={`${location.pathname === '/billing' ? 'font-semibold' : 'text-neutral-500'}`}
+                className={`${location.pathname === '/billing' ? 'font-semibold underline underline-offset-4' : 'text-neutral-500'}`}
                 to="/billing"
               >
                 Billing
               </Link>
               <Link
                 onClick={() => setIsOpen(false)}
-                className={`${location.pathname === '/invoice' ? 'font-semibold' : 'text-neutral-500'}`}
+                className={`${location.pathname === '/invoice' ? 'font-semibold underline underline-offset-4' : 'text-neutral-500'}`}
                 to="/invoice"
               >
                 Invoice
               </Link>
               <Link
                 onClick={() => setIsOpen(false)}
-                className={`${location.pathname === '/customer' ? 'font-semibold' : 'text-neutral-500'}`}
+                className={`${location.pathname === '/customer' ? 'font-semibold underline underline-offset-4' : 'text-neutral-500'}`}
                 to="/customer"
               >
                 Customer
@@ -66,7 +66,7 @@ export default function Header() {
               {user?.user.role === "admin" && (
                 <Link
                   onClick={() => setIsOpen(false)}
-                  className={`${location.pathname === '/admin' ? 'font-semibold' : 'text-neutral-500'}`}
+                  className={`${location.pathname === '/admin' ? 'font-semibold underline underline-offset-4' : 'text-neutral-500'}`}
                   to="/admin"
                 >
                   Admin

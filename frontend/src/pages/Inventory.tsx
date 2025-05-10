@@ -24,6 +24,7 @@ import { Edit, Plus, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import axiosInstance from "@/api";
+import { toast } from "sonner";
 
 type Product = {
     _id: string;
@@ -68,7 +69,7 @@ export default function InventoryPage() {
         try {
             setLoading(true);
             const response = await axiosInstance.get(`/item`);
-           
+
             if (response.status !== 200) throw new Error(`HTTP error! status: ${response.status}`);
             const data = response.data;
             console.log("Products fetched:", data); // Debug log
@@ -88,6 +89,7 @@ export default function InventoryPage() {
             const data = response.data;
             console.log("Categories fetched:", data); // Debug log
             setCategories(data);
+
         } catch (err) {
             setError(handleApiError(err));
         } finally {
@@ -110,14 +112,16 @@ export default function InventoryPage() {
     const handleAddProduct = async () => {
         try {
             const response = await axiosInstance.post(`/item`, newProduct)
-            if (response.status !== 200) throw new Error("Failed to add product")
+            if (response.status !== 201) throw new Error("Failed to add product")
 
             fetchProducts();
             fetchCategories();
 
             setNewProduct({ name: "", quantity: 0, price: 0, hsnCode: "", category: "" })
             setIsAddProductDialogOpen(false)
+            toast.success("Product added successfully")
         } catch (err) {
+            console.log("firstError")
             setError("Failed to add product")
         }
     }
@@ -126,12 +130,14 @@ export default function InventoryPage() {
     const handleAddCategory = async () => {
         try {
             const response = await axiosInstance.post(`/category`, { name: newCategory })
-            if (response.status !== 200) throw new Error("Failed to add category")
+            if (response.status !== 201) throw new Error("Failed to add category")
             const addedCategory = response.data
             setCategories([...categories, addedCategory])
             fetchProducts();
+            fetchCategories();
             setNewCategory("")
             setIsAddCategoryDialogOpen(false)
+            toast.success("Category added successfully")
         } catch (err) {
             setError("Failed to add category")
         }
@@ -158,6 +164,7 @@ export default function InventoryPage() {
             const response = await axiosInstance.delete(`/item/${id}`)
             if (response.status !== 200) throw new Error("Failed to delete product")
             setProducts(products.filter(p => p._id !== id))
+            toast.success("Product deleted successfully")
         } catch (err) {
             setError("Failed to delete product")
         }
@@ -169,6 +176,7 @@ export default function InventoryPage() {
             const response = await axiosInstance.delete(`/category/${id}`)
             if (response.status !== 200) throw new Error("Failed to delete category")
             setCategories(categories.filter(c => c._id !== id))
+            toast.success("Category deleted successfully")
         } catch (err) {
             setError("Failed to delete category")
         }

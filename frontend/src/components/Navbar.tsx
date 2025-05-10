@@ -15,12 +15,12 @@ export default function Navbar() {
                     </div>
                 </div>
                 <nav className="flex flex-col text-md pl-4 pt-8 gap-6 ">
-                    {user?.user.role === "admin" && <Link className={`${location.pathname === '/dashboard' ? 'font-semibold underline' : 'text-neutral-500'}`} to={"/"}>Dashboard</Link>}
-                    <Link className={`${location.pathname === '/inventory' ? 'font-semibold ' : 'text-neutral-500'}`} to={"/inventory"}>Inventory</Link>
-                    <Link className={`${location.pathname === '/billing' ? 'font-semibold' : 'text-neutral-500'}`} to={"/billing"}>Billing History</Link>
-                    <Link className={`${location.pathname === '/invoice' ? 'font-semibold' : 'text-neutral-500'}`} to={"/invoice"}>Create Invoice</Link>
-                    <Link className={`${location.pathname === '/customer' ? 'font-semibold' : 'text-neutral-500'}`} to={"/customer"}>Create Customer</Link>
-                    {user?.user.role === "admin" && <Link className={`${location.pathname === '/admin' ? 'font-semibold' : 'text-neutral-500'}`} to={"/admin"}>Admin</Link>}
+                    {user?.user.role === "admin" && <Link className={`${location.pathname === '/' ? 'font-semibold underline underline-offset-4' : 'text-neutral-500'}`} to={"/"}>Dashboard</Link>}
+                    <Link className={`${location.pathname === '/inventory' ? 'font-semibold underline underline-offset-4  transition-all' : 'text-neutral-500'}`} to={"/inventory"}>Inventory</Link>
+                    <Link className={`${location.pathname === '/billing' ? 'font-semibold  transition-all underline underline-offset-4' : 'text-neutral-500'}`} to={"/billing"}>Billing History</Link>
+                    <Link className={`${location.pathname === '/invoice' ? 'font-semibold  transition-all underline underline-offset-4' : 'text-neutral-500'}`} to={"/invoice"}>Invoice Maker</Link>
+                    <Link className={`${location.pathname === '/customer' ? 'font-semibold  transition-all underline underline-offset-4' : 'text-neutral-500'}`} to={"/customer"}>Customer</Link>
+                    {user?.user.role === "admin" && <Link className={`${location.pathname === '/admin' ? 'font-semibold  transition-all underline underline-offset-4    ' : 'text-neutral-500'}`} to={"/admin"}>Admin</Link>}
                 </nav>
             </div>
             <div className="flex-1 min-h-screen overflow-y-auto w-full">

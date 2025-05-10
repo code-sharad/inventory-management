@@ -78,8 +78,9 @@ const AdminAccess: React.FC = () => {
         e.preventDefault();
         try {
             const response = await axiosInstance.post("/auth/create-user", newUser);
-            if (response.status === 200) {
+            if (response.status === 200 || response.status === 201) {
                 toast.success("User created successfully");
+                fetchUsers();
             } else {
                 toast.error("User creation failed");
             }
@@ -96,7 +97,7 @@ const AdminAccess: React.FC = () => {
         }
         try {
             const response = await axiosInstance.post("/auth/change-admin-password", passwords);
-            if (response.status === 200) {
+            if (response.status === 200 || response.status === 201) {
                 toast.success("Password changed successfully");
             } else {
                 toast.error("Password change failed");
@@ -114,7 +115,8 @@ const AdminAccess: React.FC = () => {
         }
         try {
             const response = await axiosInstance.post("/auth/change-admin-email", emails);
-            if (response.status === 200) {
+            if (response.status === 200 || response.status === 201) {
+                fetchUsers();
                 toast.success("Email changed successfully");
             } else {
                 toast.error("Email change failed");

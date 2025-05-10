@@ -18,12 +18,12 @@ import { Toaster } from 'sonner'
 
 function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+    <ThemeProvider attribute="class"  enableSystem defaultTheme="system">
       <Toaster richColors closeButton />
       <UserProvider>
         <BrowserRouter>
           <Routes>
-          <Route path="/invoice/:id" element={<ModernOverview />} />
+            <Route path="/invoice/:id" element={<ModernOverview />} />
             {/* Public routes */}
             <Route
               path="/login"
