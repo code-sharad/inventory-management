@@ -17,6 +17,10 @@ const itemSchema = mongoose.Schema({
     price:{
         type:Number,
         required:true
+    },
+    hsnCode:{
+        type:String,
+        required:true
     }
 })
 

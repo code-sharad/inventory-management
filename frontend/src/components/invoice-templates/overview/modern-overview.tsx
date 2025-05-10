@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-
+import axiosInstance from '@/api';
 interface InvoiceData {
     id: string;
     invoiceNumber: string;
@@ -48,9 +48,9 @@ const ModernOverview: React.FC = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await fetch(`${import.meta.env.VITE_BASE_URL}/invoice/${id}`);
-                if (!response.ok) throw new Error('Invoice not found');
-                const data = await response.json();
+                const response = await axiosInstance.get(`/invoice/${id}`);
+                if (response.status !== 200) throw new Error('Invoice not found');
+                const data = response.data;
                 setInvoice({ ...data, id: data._id });
             } catch (err: any) {
                 setError(err.message || 'Failed to load invoice');

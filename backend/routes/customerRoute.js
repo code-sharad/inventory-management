@@ -4,20 +4,20 @@ const router = express.Router();
 
 router.post("/", async (req, res) => {
   try {
-    let { name, email, address } = req.body;
+    let { name, gstNumber, address, panNumber } = req.body;
 
-    if (!name || !email || !address) {
+    if (!name || !gstNumber || !address || !panNumber) {
       return res.status(400).json({ error: "fields is required" });
     }
 
     name = name.trim().toLowerCase();
 
-    const existingCustomer = await customerModel.findOne({ email });
+    const existingCustomer = await customerModel.findOne({ gstNumber });
     if (existingCustomer) {
       return res.status(400).json({ error: "Customer already exists" });
     }
 
-    const customer = new customerModel({ name, email, address });
+    const customer = new customerModel({ name, gstNumber, address, panNumber });
     const savedCustomer = await customer.save();
     res.status(201).json(savedCustomer);
   } catch (error) {

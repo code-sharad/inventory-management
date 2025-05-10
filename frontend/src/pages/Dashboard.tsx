@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '@/api';
 import { Bar, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { BarChart, Receipt, IndianRupee } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
-
+import { useUser } from '@/contexts/UserContext';
 // Register Chart.js components
 ChartJS.register(
   CategoryScale,
@@ -88,6 +88,7 @@ const Dashboard: React.FC = () => {
   const [filter, setFilter] = useState<string>('All');
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [search, setSearch] = useState('');
+  const { user } = useUser();
 
   // Function to filter invoices based on the selected time period
   const filterInvoices = (invoices: Invoice[], period: string): Invoice[] => {
@@ -119,14 +120,14 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     // Fetch invoices
-    axios.get<Invoice[]>(`${import.meta.env.VITE_BASE_URL}/invoice`)
+    axiosInstance.get<Invoice[]>(`/invoice`)
       .then(response => {
         setInvoices(response.data);
       })
       .catch(error => console.error('Error fetching invoices:', error));
 
     // Fetch low stock items
-    axios.get<Item[]>(`${import.meta.env.VITE_BASE_URL}/item`)
+    axiosInstance.get<Item[]>(`/item`)
       .then(response => {
         const lowStock = response.data.filter(item => item.quantity < 10);
         setLowStockItems(lowStock);
@@ -210,128 +211,130 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen dark:bg-black bg-gray-50">
-      <div className="container mx-auto p-6">
-        {/* Filter Dropdown */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-          <div className="flex-1" />
-          <div className="flex items-center gap-2">
-            <Label htmlFor="filter">Filter by:</Label>
-            <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-32" id="filter">
-                <SelectValue placeholder="All" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All</SelectItem>
-                <SelectItem value="Month">Month</SelectItem>
-                <SelectItem value="Year">Year</SelectItem>
-                <SelectItem value="Week">Week</SelectItem>
-              </SelectContent>
-            </Select>
+      {user?.user.role === "admin" && (
+        <div className="container mx-auto p-6">
+          {/* Filter Dropdown */}
+          <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <div className="flex-1" />
+            <div className="flex items-center gap-2">
+              <Label htmlFor="filter">Filter by:</Label>
+              <Select value={filter} onValueChange={setFilter}>
+                <SelectTrigger className="w-32" id="filter">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All</SelectItem>
+                  <SelectItem value="Month">Month</SelectItem>
+                  <SelectItem value="Year">Year</SelectItem>
+                  <SelectItem value="Week">Week</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-4">
-              <div className="bg-blue-100 p-3 rounded-full">
-                <Receipt className="w-8 h-8 text-blue-600" />
-              </div>
-              <div>
-                <CardTitle>Total Bills</CardTitle>
-                <CardDescription>Number of bills generated in the selected period</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <span className="text-3xl font-bold text-blue-700">{stats.totalBills}</span>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-4">
-              <div className="bg-green-100 p-3 rounded-full">
-                <IndianRupee className="w-8 h-8 text-green-600" />
-              </div>
-              <div>
-                <CardTitle>Total Amount</CardTitle>
-                <CardDescription>Total revenue in the selected period</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <span className="text-3xl font-bold text-green-700">Rs.{formatCurrency(stats.totalAmount)}/-</span>
-            </CardContent>
-          </Card>
-        </div>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center gap-4">
+                <div className="bg-blue-100 p-3 rounded-full">
+                  <Receipt className="w-8 h-8 text-blue-600" />
+                </div>
+                <div>
+                  <CardTitle>Total Bills</CardTitle>
+                  <CardDescription>Number of bills generated in the selected period</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <span className="text-3xl font-bold text-blue-700">{stats.totalBills}</span>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center gap-4">
+                <div className="bg-green-100 p-3 rounded-full">
+                  <IndianRupee className="w-8 h-8 text-green-600" />
+                </div>
+                <div>
+                  <CardTitle>Total Amount</CardTitle>
+                  <CardDescription>Total revenue in the selected period</CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <span className="text-3xl font-bold text-green-700 ">Rs.{formatCurrency(stats.totalAmount)}/-</span>
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Charts */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><BarChart className="w-5 h-5 text-blue-500" /> Monthly Bills</CardTitle>
+                <CardDescription>Bills generated per month</CardDescription>
+              </CardHeader>
+              <CardContent className="min-h-64">
+                <Bar
+                  data={barChartData}
+                  options={{
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                  }}
+                />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Category Sales</CardTitle>
+                <CardDescription>Sales distribution by category</CardDescription>
+              </CardHeader>
+              <CardContent className="h-72 w-full">
+                <Pie data={pieChartData} />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Low Stock Table */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><BarChart className="w-5 h-5 text-blue-500" /> Monthly Bills</CardTitle>
-              <CardDescription>Bills generated per month</CardDescription>
-            </CardHeader>
-            <CardContent className="min-h-64">
-              <Bar
-                data={barChartData}
-                options={{
-                  plugins: { legend: { display: false } },
-                  scales: { y: { beginAtZero: true } }
-                }}
+            <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <CardTitle>Low Stock Items (Quantity &lt; 10)</CardTitle>
+              <Input
+                type="text"
+                placeholder="Search by name or category..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full md:w-64"
               />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Category Sales</CardTitle>
-              <CardDescription>Sales distribution by category</CardDescription>
             </CardHeader>
-            <CardContent className="h-72 w-full">
-              <Pie data={pieChartData} />
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Quantity</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredLowStockItems.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center text-gray-400">No items found.</TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredLowStockItems.map(item => (
+                      <TableRow key={item._id}>
+                        <TableCell>{item.name}</TableCell>
+                        <TableCell>{item.category?.name || 'N/A'}</TableCell>
+                        <TableCell>
+                          <Badge variant="destructive">{item.quantity}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </div>
-
-        {/* Low Stock Table */}
-        <Card>
-          <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-            <CardTitle>Low Stock Items (Quantity &lt; 10)</CardTitle>
-            <Input
-              type="text"
-              placeholder="Search by name or category..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full md:w-64"
-            />
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Quantity</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLowStockItems.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center text-gray-400">No items found.</TableCell>
-                  </TableRow>
-                ) : (
-                  filteredLowStockItems.map(item => (
-                    <TableRow key={item._id}>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>{item.category?.name || 'N/A'}</TableCell>
-                      <TableCell>
-                        <Badge variant="destructive">{item.quantity}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
+      )}
     </div>
   );
 };

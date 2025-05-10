@@ -5,6 +5,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
 import { formatCurrency } from '@/lib/formatCurrency';
 import QRCode from 'react-qr-code';
+import { toast } from 'sonner';
 
 interface InvoiceData {
   id: string;
@@ -15,6 +16,8 @@ interface InvoiceData {
     name: string;
     email: string;
     address: string;
+    gstNumber?: string;
+    panNumber?: string;
   };
   companyDetails: {
     name: string;
@@ -30,6 +33,7 @@ interface InvoiceData {
     price: number;
     quantity: number;
     category: string;
+    hsnCode?: string;
   }[];
   subtotal: number;
   gstAmount: number;
@@ -130,7 +134,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
       }
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("Failed to generate PDF. Please try again.");
+      toast.error("Failed to generate PDF. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -167,6 +171,12 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
               <p className="font-semibold text-gray-900">{customer.name}</p>
               <p className="text-gray-700 text-sm">{customer.address}</p>
               <p className="text-gray-700 text-sm">{customer.email}</p>
+              {customer.gstNumber && (
+                <p className="text-gray-700 text-sm">GSTIN: {customer.gstNumber}</p>
+              )}
+              {customer.panNumber && (
+                <p className="text-gray-700 text-sm">PAN: {customer.panNumber}</p>
+              )}
             </div>
           </div>
 
@@ -177,7 +187,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
                 <TableHeader>
                   <TableRow className="bg-gray-100">
                     <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">Item</TableHead>
-                    <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">Category</TableHead>
+                    <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">HSN Code</TableHead>
                     <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">Qty</TableHead>
                     <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">Price</TableHead>
                     <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">Total</TableHead>
@@ -188,10 +198,8 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
                     items.map((item, index) => (
                       <TableRow key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                         <TableCell className="p-4 font-semibold text-gray-900">{item.name}</TableCell>
-                        <TableCell className="p-4">
-                          {/* @ts-ignore */}
-                          <Badge className="bg-gray-200 text-gray-800 font-semibold border border-gray-300">{item.category?.name}</Badge>
-                        </TableCell>
+                      
+                        <TableCell className="p-4 text-gray-900">{item.hsnCode || '-'}</TableCell>
                         <TableCell className="p-4 text-gray-900">{item.quantity}</TableCell>
                         <TableCell className="p-4 text-gray-900">₹{formatCurrency(item.price)}</TableCell>
                         <TableCell className="p-4 text-gray-900 font-bold">₹{formatCurrency(item.price * item.quantity)}</TableCell>

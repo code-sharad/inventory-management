@@ -8,7 +8,7 @@ const customerSchema = new mongoose.Schema({
     lowercase: true,
     minlenght: [1, "Customer name must be at least 1 character"],
   },
-  email: {
+  gstNumber: {
     type: String,
     unique: true,
     required: true,
@@ -16,6 +16,11 @@ const customerSchema = new mongoose.Schema({
   address: {
     type: String,
     required: true,
+  },
+  panNumber: {
+    type: String,
+    required: true,
+    unique: true,
   },
 });
 

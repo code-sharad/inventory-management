@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
 import QRCode from 'react-qr-code';
+import { toast } from 'sonner';
 
 interface InvoiceData {
   id: string;
@@ -14,6 +15,8 @@ interface InvoiceData {
     name: string;
     email: string;
     address: string;
+    gstNumber?: string;
+    panNumber?: string;
   };
   companyDetails: {
     name: string;
@@ -29,6 +32,7 @@ interface InvoiceData {
     price: number;
     quantity: number;
     category: string;
+    hsnCode?: string;
   }[];
   subtotal: number;
   gstAmount: number;
@@ -96,7 +100,7 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
       }
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("Failed to generate PDF. Please try again.");
+      toast.error("Failed to generate PDF. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -127,6 +131,12 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
             <p className="text-gray-700"><span className="font-medium">Name:</span> {customer.name}</p>
             <p className="text-gray-700"><span className="font-medium">Email:</span> {customer.email}</p>
             <p className="text-gray-700"><span className="font-medium">Address:</span> {customer.address}</p>
+            {customer.gstNumber && (
+              <p className="text-gray-700"><span className="font-medium">GST Number:</span> {customer.gstNumber}</p>
+            )}
+            {customer.panNumber && (
+              <p className="text-gray-700"><span className="font-medium">PAN Number:</span> {customer.panNumber}</p>
+            )}
           </div>
           <div className="text-right">
             <p className="text-gray-700"><span className="font-medium">Invoice #:</span> {invoiceNumber}</p>
@@ -140,7 +150,7 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
             <TableHeader>
               <TableRow className="bg-gray-100">
                 <TableHead className="p-2 text-gray-700 font-semibold border-b border-gray-200">Item</TableHead>
-                <TableHead className="p-2 text-gray-700 font-semibold border-b border-gray-200">Category</TableHead>
+                <TableHead className="p-2 text-gray-700 font-semibold border-b border-gray-200">HSN Code</TableHead>
                 <TableHead className="p-2 text-gray-700 font-semibold border-b border-gray-200">Qty</TableHead>
                 <TableHead className="p-2 text-gray-700 font-semibold border-b border-gray-200">Price</TableHead>
                 <TableHead className="p-2 text-gray-700 font-semibold border-b border-gray-200">Total</TableHead>
@@ -148,11 +158,10 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
             </TableHeader>
             <TableBody>
               {items.map((item, index) => (
-                <TableRow key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                <TableRow key={index} className={index % 2 === 0 ? "bg-white text-black" : "bg-gray-50 text-black"}>
                   <TableCell className="p-2 font-medium text-gray-900 border-b border-gray-100">{item.name}</TableCell>
-                  <TableCell className="p-2 border-b border-gray-100">
-                    <Badge className="bg-gray-200 text-gray-700 font-normal">{item.category || "Uncategorized"}</Badge>
-                  </TableCell>
+                
+                  <TableCell className="p-2 border-b border-gray-100">{item.hsnCode || '-'}</TableCell>
                   <TableCell className="p-2 border-b border-gray-100">{item.quantity}</TableCell>
                   <TableCell className="p-2 border-b border-gray-100">₹{item.price.toFixed(2)}</TableCell>
                   <TableCell className="p-2 border-b border-gray-100">₹{(item.price * item.quantity).toFixed(2)}</TableCell>

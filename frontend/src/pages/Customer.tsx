@@ -19,11 +19,13 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Edit, Plus, Trash2 } from "lucide-react"
+import axiosInstance from "@/api";
 type Customer = {
     _id: string;
     name: string;
-    email: string;
+    gstNumber: string;
     address: string;
+    panNumber: string;
 };
 
 type Category = {
@@ -44,8 +46,9 @@ export default function CustoemrPage() {
     const [currentCustomer, setCurrentCustomer] = useState<Customer | null>(null)
     const [newCustomer, setNewCustomer] = useState({
         name: "",
-        email: '',
         address: '',
+        gstNumber: '',
+        panNumber: '',
     })
     // @ts-expect-error
     const [newCategory, setNewCategory] = useState("")
@@ -61,9 +64,9 @@ export default function CustoemrPage() {
     const fetchCustomers = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/customer`);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const data = await response.json();
+            const response = await axiosInstance.get(`/customer`);
+            if (response.status !== 200) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = response.data;
             console.log("Products fetched:", data); // Debug log
             setCustomer(data);
         } catch (err) {
@@ -91,18 +94,14 @@ export default function CustoemrPage() {
     // Add new product
     const handleAddProduct = async () => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/customer`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newCustomer)
-            })
-            if (!response.ok) throw new Error("Failed to add product")
-            const addedProduct = await response.json()
+            const response = await axiosInstance.post(`/customer`, newCustomer)
+            if (response.status !== 200) throw new Error("Failed to add product")
+            const addedProduct = response.data
 
 
 
             setCustomer([...customer, addedProduct])
-            setNewCustomer({ name: "", email: '', address: '' })
+            setNewCustomer({ name: "", gstNumber: '', address: '', panNumber: '' })
             setisAddCustomerDialogOpen(false)
         } catch (err) {
             setError("Failed to add product")
@@ -149,10 +148,8 @@ export default function CustoemrPage() {
     // Delete product
     const handleDeleteCustomer = async (id: string) => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/customer/${id}`, {
-                method: "DELETE"
-            })
-            if (!response.ok) throw new Error("Failed to delete product")
+            const response = await axiosInstance.delete(`/customer/${id}`)
+            if (response.status !== 200) throw new Error("Failed to delete product")
             setCustomer(customer.filter(p => p._id !== id))
         } catch (err) {
             setError("Failed to delete product")
@@ -213,8 +210,8 @@ export default function CustoemrPage() {
                                         maxLength={15}
                                         minLength={15}
                                         required
-                                        value={newCustomer.email}
-                                        onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value || '' })}
+                                        value={newCustomer.gstNumber}
+                                        onChange={(e) => setNewCustomer({ ...newCustomer, gstNumber: e.target.value || '' })}
                                     />
                                 </div>
                                 <div className="grid gap-2">
@@ -224,6 +221,15 @@ export default function CustoemrPage() {
                                         type="text"
                                         value={newCustomer.address}
                                         onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value || '' })}
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="price">Pan Number</Label>
+                                    <Input
+                                        id="pan_number"
+                                        type="text"
+                                        value={newCustomer.panNumber}
+                                        onChange={(e) => setNewCustomer({ ...newCustomer, panNumber: e.target.value || '' })}
                                     />
                                 </div>
                                 {/* <div className="grid gap-2">
@@ -324,8 +330,9 @@ export default function CustoemrPage() {
                                             : product.category?.name || "Uncategorized"}
                                     </Badge>
                                 </TableCell> */}
-                                <TableCell className="text-left">{product.email}</TableCell>
+                                <TableCell className="text-left">{product.gstNumber}</TableCell>
                                 <TableCell className="text-left">{product.address}</TableCell>
+                                <TableCell className="text-left">{product.panNumber}</TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
                                         {/* <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>

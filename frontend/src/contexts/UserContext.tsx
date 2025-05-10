@@ -1,10 +1,14 @@
+import axiosInstance from "@/api";
 import { createContext, useContext, useState, ReactNode } from "react";
 
 interface User {
   id: string;
-  name: string;
-  email: string;
-  role: string;
+  token: string;
+  user: {
+    username: string;
+    email: string;
+    role: string;
+  }
 }
 
 interface UserContextType {
@@ -28,6 +32,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUser(null);
+    axiosInstance.post("/auth/logout", { withCredentials: true }).then((res) => {
+      console.log(res);
+    });
     localStorage.removeItem("user");
   };
 

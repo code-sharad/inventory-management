@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas-pro';
 import { formatCurrency } from '@/lib/formatCurrency';
 import QRCode from "react-qr-code"
 import { QrCode } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface InvoiceData {
   id: string;
@@ -30,7 +31,8 @@ interface InvoiceData {
     name: string;
     price: number;
     quantity: number;
-    category: string;
+    hsnCode: string;
+    // category: string;
   }[];
   subtotal: number;
   gstAmount: number;
@@ -47,7 +49,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
   const contentRef = useRef<HTMLDivElement>(null);
   const url = window.location.href;
   const [loading, setLoading] = useState(false);
-
+  console.log(invoiceData)
   const handleDownloadPDF = async () => {
     setLoading(true);
     try {
@@ -126,7 +128,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
       }
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("Failed to generate PDF. Please try again.");
+      toast.error("Failed to generate PDF. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -172,7 +174,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
             <TableHeader>
               <TableRow className="bg-gray-100">
                 <TableHead className="p-4 text-gray-900 font-semibold">Item</TableHead>
-                <TableHead className="p-4 text-gray-900 font-semibold">Category</TableHead>
+                <TableHead className="p-4 text-gray-900 font-semibold">HSN Code</TableHead>
                 <TableHead className="p-4 text-gray-900 font-semibold">Quantity</TableHead>
                 <TableHead className="p-4 text-gray-900 font-semibold">Unit Price</TableHead>
                 <TableHead className="p-4 text-gray-900 font-semibold">Total</TableHead>
@@ -184,7 +186,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
                   <TableCell className="p-4 font-medium text-gray-900">{item.name}</TableCell>
                   <TableCell className="p-4">
                     {/* @ts-ignore */}
-                    <Badge className="bg-gray-200 text-gray-800 font-semibold">{item.category?.name}</Badge>
+                    <Badge className="bg-gray-200 text-gray-800 font-semibold">{item.hsnCode}</Badge>
                   </TableCell>
                   <TableCell className="p-4 text-gray-800">{item.quantity}</TableCell>
                   <TableCell className="p-4 text-gray-800">₹{formatCurrency(item.price)}</TableCell>

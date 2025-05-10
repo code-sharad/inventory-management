@@ -11,10 +11,15 @@ import Dashboard from "./pages/Dashboard";
 import CustoemrPage from "./pages/Customer";
 import { ThemeProvider } from "./ThemeProvider";
 import ModernOverview from "./components/invoice-templates/overview/modern-overview";
+import AdminAccess from "./pages/AdminAccess";
+import { Toaster } from 'sonner'
+
+
 
 function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <Toaster richColors closeButton/>
       <UserProvider>
         <BrowserRouter>
           <Routes>
@@ -28,7 +33,7 @@ function App() {
               }
             />
 
-              <Route path="/invoice/:id" element={<ModernOverview />} />
+            <Route path="/invoice/:id" element={<ModernOverview />} />
             {/* Protected routes */}
             <Route
               element={
@@ -42,6 +47,7 @@ function App() {
               <Route path="/billing" element={<BillingHistoryPage />} />
               <Route path="/invoice" element={<Invoice />} />
               <Route path="/customer" element={<CustoemrPage />} />
+              <Route path="/admin" element={<AdminAccess />} />
             </Route>
           </Routes>
         </BrowserRouter>

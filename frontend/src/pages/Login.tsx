@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import axiosInstance from "@/api";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -20,15 +21,20 @@ export default function Login() {
     try {
       // Here you would typically make an API call to your backend
       // For now, we'll simulate a successful login
-      const mockUser = {
-        id: "1",
-        name: "John Doe",
-        email: email,
-        role: "admin",
-      };
-
-      login(mockUser);
-      navigate("/");
+      axiosInstance.post(`/auth/login`, {
+        email,
+        password,
+      }).then((res) => {
+        console.log(res);
+        if (res.status === 200) {
+          login(res.data);
+          navigate("/");
+        } else {
+          setError("Invalid email or password");
+        }
+      }).catch((err) => {
+        setError("Invalid email or password");
+      });
     } catch (err) {
       setError("Invalid email or password");
     }

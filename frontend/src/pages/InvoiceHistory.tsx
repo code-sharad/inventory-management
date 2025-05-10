@@ -24,7 +24,8 @@ import ModernInvoiceTemplate from "@/components/invoice-templates/template-Moder
 import PremiumMinimalInvoice from "@/components/invoice-templates/template-minimal";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { format, parseISO } from "date-fns";
-
+import axiosInstance from "@/api";
+import { toast } from "sonner";
 // Define invoice type
 type Invoice = {
   id: string;
@@ -50,6 +51,7 @@ type Invoice = {
     price: number;
     quantity: number;
     category: string;
+    hsnCode: string;
   }[];
   subtotal: number;
   gstAmount: number;
@@ -76,15 +78,17 @@ export default function BillingHistoryPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
 
+
+
   useEffect(() => {
     // Fetch invoices from the server
     const fetchInvoices = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/invoice`);
-        if (!response.ok) {
+        const response = await axiosInstance.get(`/invoice`);
+        if (response.status !== 200) {
           throw new Error("Failed to fetch invoices");
         }
-        const data = await response.json();
+        const data = response.data;
         const invoicesWithIds = data.map((invoice: any) => ({
           ...invoice,
           id: invoice._id
@@ -121,7 +125,7 @@ export default function BillingHistoryPage() {
     currentPage * itemsPerPage
   );
 
-  
+
 
   // Preview invoice
   const previewInvoice = (invoice: Invoice) => {
@@ -143,7 +147,7 @@ export default function BillingHistoryPage() {
       setDeleteDialogOpen(false);
       setInvoiceToDelete(null);
     } catch (error) {
-      alert("Error deleting invoice");
+      toast.error("Error deleting invoice");
       setDeleteDialogOpen(false);
       setInvoiceToDelete(null);
     }
@@ -298,7 +302,7 @@ export default function BillingHistoryPage() {
 
       {/* Invoice Preview Dialog */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent 
+        <DialogContent
           className="w-full max-w-[95vw] sm:min-w-[600px] sm:max-w-[1000px] mt-4 sm:mt-20 max-h-[90vh] sm:max-h-[900px] overflow-y-auto p-2 sm:p-6"
         >
           <DialogHeader>

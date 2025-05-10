@@ -33,7 +33,9 @@ import InvoiceClassic from "@/components/invoice-templates/template-classic";
 import ModernInvoiceTemplate from "@/components/invoice-templates/template-Modern";
 import PremiumMinimalInvoice from "@/components/invoice-templates/template-minimal";
 import TemplateCarousel from "@/components/invoice-templates/TemplateCarousel";
-import axios from "axios";
+import axiosInstance from "@/api";
+import { toast } from "sonner";
+
 
 
 
@@ -45,12 +47,14 @@ function Invoice() {
     quantity: number;
     price: number;
     category: string;
+    hsnCode: string;
   }>({
     id: "",
     name: "",
     quantity: 0,
     price: 0,
     category: "",
+    hsnCode: "",
   });
   const [gstRate, setGstRate] = useState(0.18);
   const [inventoryItems, setInventoryItems] = useState<
@@ -60,6 +64,7 @@ function Invoice() {
       quantity: number;
       price: number;
       category: string;
+      hsnCode: string;
       categoryId: string;
     }[]
   >([]);
@@ -70,6 +75,7 @@ function Invoice() {
       quantity: number;
       price: number;
       category: string;
+      hsnCode: string;
     }[]
   >([]);
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -88,18 +94,21 @@ function Invoice() {
   const [customers, setCustomers] = useState<{
     id: string;
     name: string;
-    email: string;
+    gstNumber: string;
+    panNumber: string;
     address: string;
   }[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<{
     id: string;
     name: string;
-    email: string;
+    gstNumber: string;
+    panNumber: string;
     address: string;
   }>({
     id: "",
     name: "",
-    email: "",
+    gstNumber: "",
+    panNumber: "",
     address: "",
   });
   const [quantity, setQuantity] = useState(0);
@@ -112,7 +121,7 @@ function Invoice() {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/item`);
+        const response = await axiosInstance.get(`/item`, { withCredentials: true });
         const items = response.data.map((item: any) => {
           let categoryName = "Uncategorized";
           let categoryId = "";
@@ -134,6 +143,7 @@ function Invoice() {
             price: Number(item.price) || 0,
             category: categoryName,
             categoryId: categoryId,
+            hsnCode: item.hsnCode || "",
           };
         });
         console.log("Mapped inventory items:", JSON.stringify(items, null, 2));
@@ -144,12 +154,13 @@ function Invoice() {
     };
     const fetchCustomers = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/customer`);
+        const response = await axiosInstance.get(`/customer`, { withCredentials: true });
         console.log("Raw /api/customers response:", JSON.stringify(response.data, null, 2));
         const customers = response.data.map((customer: any) => ({
           id: customer._id?.toString() || "",
           name: customer.name || "Unknown Customer",
-          email: customer.email || "Unknown Email",
+          gstNumber: customer.gstNumber || "Unknown GST Number",
+          panNumber: customer.panNumber || "Unknown Pan Number",
           address: customer.address || "Unknown Address",
         }));
         setCustomers(customers);
@@ -197,7 +208,7 @@ function Invoice() {
       selectedProduct.price <= 0 ||
       !selectedProduct.category
     ) {
-      alert(
+      toast.error(
         "Please select a valid product with quantity >= 1, price > 0, and a valid category."
       );
       return;
@@ -206,7 +217,7 @@ function Invoice() {
     const inventoryItem = inventoryItems.find((inv) => inv.id === selectedProduct.id);
     if (!inventoryItem) {
       console.error("No matching inventory item found for:", selectedProduct);
-      alert("Error: Invalid product. Please try again.");
+      toast.error("Error: Invalid product. Please try again.");
       return;
     }
     if (!inventoryItem.category || inventoryItem.category === "Uncategorized") {
@@ -220,6 +231,7 @@ function Invoice() {
       quantity: Math.floor(Number(selectedProduct.quantity)),
       price: Number(selectedProduct.price),
       category,
+      hsnCode: selectedProduct.hsnCode,
     };
 
     console.log("Adding product:", JSON.stringify(newProduct, null, 2));
@@ -233,7 +245,7 @@ function Invoice() {
       setInvoiceItems((prevItems) =>
         prevItems.map((item, index) =>
           index === existingProductIndex
-            ? { ...item, quantity: item.quantity + newProduct.quantity }
+            ? { ...item, quantity: item.quantity + newProduct.quantity, hsnCode: newProduct.hsnCode }
             : item
         )
       );
@@ -247,6 +259,7 @@ function Invoice() {
       quantity: 0,
       price: 0,
       category: "",
+      hsnCode: "",
     });
 
     setOpen(false);
@@ -262,20 +275,20 @@ function Invoice() {
 
   const handleSaveInvoice = async () => {
     if (!customers || !invoiceNumber || invoiceItems.length === 0) {
-      alert("Please provide customer name, email, address, invoice number, and at least one item.");
+      toast.error("Please provide customer name, email, address, invoice number, and at least one item.");
       return;
     }
 
     if (invoiceItems.some(item => !item.category || item.category === "Uncategorized")) {
-      alert("All items must have a valid category (not 'Uncategorized').");
+      toast.error("All items must have a valid category (not 'Uncategorized').");
       return;
     }
 
     try {
       console.log("Saving invoice with data:", JSON.stringify(invoiceData, null, 2));
-      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/invoice`, invoiceData);
+      const response = await axiosInstance.post(`/invoice`, invoiceData, { withCredentials: true });
       console.log("Invoice saved successfully:", response.data);
-      alert('Invoice saved successfully!');
+      toast.success('Invoice saved successfully!');
     } catch (error: any) {
       console.error('Error saving invoice:', {
         message: error.message,
@@ -284,7 +297,7 @@ function Invoice() {
         config: error.config,
       });
       const errorMessage = error.response?.data?.message || error.message || 'Unknown server error';
-      alert(`Failed to save invoice: ${errorMessage}`);
+      toast.error(`Failed to save invoice: ${errorMessage}`);
     }
   };
 
@@ -416,14 +429,15 @@ function Invoice() {
                                       setSelectedCustomer({
                                         id: c.id,
                                         name: c.name,
-                                        email: c.email,
+                                        gstNumber: c.gstNumber,
+                                        panNumber: c.panNumber,
                                         address: c.address
                                       });
                                     }}
                                   >
                                     <div className="flex flex-col gap-1">
                                       <span className="font-medium">{c.name}</span>
-                                      <span className="text-sm text-muted-foreground">{c.email}</span>
+                                      {/* <span className="text-sm text-muted-foreground">{c.email}</span> */}
                                       <span className="text-sm text-muted-foreground">{c.address}</span>
                                     </div>
                                   </CommandItem>
@@ -443,8 +457,12 @@ function Invoice() {
                         <span>{selectedCustomer.name}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm font-medium">Email:</span>
-                        <span>{selectedCustomer.email}</span>
+                        <span className="text-sm font-medium">GST:</span>
+                        <span>{selectedCustomer.gstNumber}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium">Pan Number:</span>
+                        <span>{selectedCustomer.panNumber}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm font-medium">Address:</span>
@@ -561,7 +579,9 @@ function Invoice() {
                                         quantity: product.quantity,
                                         price: product.price,
                                         category: product.category,
+                                        hsnCode: product.hsnCode,
                                       });
+                                      console.log(product)
                                       setOpen(false);
                                     }}
                                   >
@@ -670,7 +690,7 @@ function Invoice() {
                             {product.name}
                           </TableCell>
                           <TableCell>
-                            <span className="border rounded-2xl text-black font-medium text-sm px-2 py-1">
+                            <span className="border dark:border-gray-700 dark:text-white rounded-2xl text-black text-sm px-2 py-1">
                               {product.category}
                             </span>
                           </TableCell>
@@ -719,8 +739,11 @@ function Invoice() {
         <SelectedTemplate invoiceData={invoiceData} />
       </div>
 
-      <div className="container mt-4 w-full">
-        <Button onClick={handleSaveInvoice} className="w-full sm:w-32 py-4">
+      <div className="container mt-12 w-full flex justify-center">
+        <Button
+          onClick={handleSaveInvoice}
+          className="w-full max-w-md h-16  p-5 px-12 text-lg font-bold bg-neutral-900 text-white shadow-lg rounded-xl hover:scale-[1.02] hover:bg-neutral-800 transition-all duration-200 focus:ring-4 cursor-pointer focus:outline-none"
+        >
           Save Invoice
         </Button>
       </div>
