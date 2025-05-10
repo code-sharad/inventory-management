@@ -40,6 +40,7 @@ const itemRoute = require("./routes/itemRoute");
 const invoiceRoute = require("./routes/invoiceRoute");
 const customerRoute = require("./routes/customerRoute");
 const User = require("./models/user");
+const invoiceModel = require("./models/invoiceModel");
 
 app.use("/auth", authenticate, authRoutes);
 app.use("/login", async (req, res) => {
