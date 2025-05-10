@@ -23,7 +23,6 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-
   const login = (userData: User) => {
     setUser(userData);
     // You can also store the user in localStorage for persistence
@@ -36,6 +35,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       console.log(res);
     });
     localStorage.removeItem("user");
+    // window.location.href = "/login";
   };
 
   const updateUser = (userData: Partial<User>) => {

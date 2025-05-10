@@ -42,7 +42,6 @@ const AdminAccess: React.FC = () => {
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState<any>(null);
-
     // Fetch users
     const fetchUsers = async () => {
         setLoadingUsers(true);
@@ -58,7 +57,7 @@ const AdminAccess: React.FC = () => {
 
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [setUsers]);
 
     // Delete user
     const handleDeleteUser = async () => {
@@ -418,7 +417,7 @@ const AdminAccess: React.FC = () => {
             {/* Users Table Section */}
             <div className="mt-8">
                 <h3 className="text-xl font-semibold mb-4">Users</h3>
-                <div className="rounded-md border overflow-x-auto">
+                <div className="rounded-md border">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -426,6 +425,7 @@ const AdminAccess: React.FC = () => {
                                 <TableHead>Email</TableHead>
                                 <TableHead>Role</TableHead>
                                 <TableHead>Created At</TableHead>
+                                <TableHead>Last Login</TableHead>
                                 <TableHead>Action</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -441,6 +441,7 @@ const AdminAccess: React.FC = () => {
                                         <TableCell>{u.email}</TableCell>
                                         <TableCell>{u.role}</TableCell>
                                         <TableCell>{u.createdAt ? new Date(u.createdAt).toLocaleString() : ''}</TableCell>
+                                        <TableCell>{u.lastLogin ? new Date(u.lastLogin).toLocaleString() : ''}</TableCell>
                                         <TableCell>
                                             <Button variant="destructive" size="icon" onClick={() => { setUserToDelete(u); setDeleteDialogOpen(true); }}>
                                                 <Trash2 className="w-4 h-4" />

@@ -3,7 +3,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const authRoutes = require("./routes/authRoute");
 const { authenticate, restrictTo } = require("./middleware/auth");
-
+require("dotenv").config();
 const app = express();
 
 // app.use(
@@ -13,6 +13,9 @@ const app = express();
 //     allowedHeaders: ["Content-Type"],
 //   })
 // );
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const JWT_SECRET = process.env.JWT_SECRET;
 
 app.use(
   cors({
@@ -36,12 +39,75 @@ const categoryRoute = require("./routes/categoryRoute");
 const itemRoute = require("./routes/itemRoute");
 const invoiceRoute = require("./routes/invoiceRoute");
 const customerRoute = require("./routes/customerRoute");
+const User = require("./models/user");
 
-app.use("/auth", authRoutes);
+app.use("/auth", authenticate, authRoutes);
+app.use("/login", async (req, res) => {
+  const { email, password } = req.body;
+  //   console.log("Received login request:", { username });
+
+  try {
+    if (!email || !password) {
+      console.log("Missing fields in request:", { email, password });
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log("User not found:", email);
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      console.log("Password mismatch for user:", email);
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+    user.lastLogin = Date.now();
+    await user.save();
+    // if (user.role !== "admin") {
+    //   console.log("Role mismatch:", { expected: user.role, received: "admin" });
+    //   return res.status(403).json({ message: `Role must be admin` });
+    // }
+
+    const token = jwt.sign(
+      { userId: user._id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.header("Authorization", `Bearer ${token}`);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== "development",
+      maxAge: 3600000 * 24, // 1 hour
+      sameSite: "none",
+    });
+    console.log("Login successful for user:", email);
+    res
+      .status(200)
+      .json({ token, user: { email: user.email, role: user.role } });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+app.use("/customer", authenticate, customerRoute);
 app.use("/category", authenticate, categoryRoute);
 app.use("/item", authenticate, itemRoute);
 app.use("/invoice", authenticate, invoiceRoute);
-app.use("/customer", authenticate, customerRoute);
+app.use("/invoice-view/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    const invoice = await invoiceModel.findById(id);
+    if (!invoice) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+    res.json(invoice);
+  } catch (err) {
+    console.log(err);
+  }
+});
 
 app.listen(3000, () => {
   console.log("server is running on port 3000");

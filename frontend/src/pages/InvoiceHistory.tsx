@@ -26,6 +26,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 import { format, parseISO } from "date-fns";
 import axiosInstance from "@/api";
 import { toast } from "sonner";
+import InvoiceClassic from "@/components/invoice-templates/template-classic";
 // Define invoice type
 type Invoice = {
   id: string;
@@ -85,6 +86,7 @@ export default function BillingHistoryPage() {
     const fetchInvoices = async () => {
       try {
         const response = await axiosInstance.get(`/invoice`);
+        
         if (response.status !== 200) {
           throw new Error("Failed to fetch invoices");
         }
@@ -137,12 +139,12 @@ export default function BillingHistoryPage() {
   const handleDeleteInvoice = async () => {
     if (!invoiceToDelete) return;
     try {
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/invoice/${invoiceToDelete.id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
+      const response = await axiosInstance.delete(`/invoice/${invoiceToDelete.id}`);
+      if (response.status !== 200) {
         throw new Error("Failed to delete invoice");
       }
+      setInvoices((prev) => prev.filter((inv) => inv.id !== invoiceToDelete.id));
+
       setInvoices((prev) => prev.filter((inv) => inv.id !== invoiceToDelete.id));
       setDeleteDialogOpen(false);
       setInvoiceToDelete(null);
@@ -319,6 +321,11 @@ export default function BillingHistoryPage() {
             )}
             {selectedInvoice?.template === "minimal" && (
               <PremiumMinimalInvoice
+                invoiceData={selectedInvoice}
+              />
+            )}
+            {selectedInvoice?.template === "classic" && (
+              <InvoiceClassic
                 invoiceData={selectedInvoice}
               />
             )}

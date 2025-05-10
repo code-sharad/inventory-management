@@ -5,6 +5,7 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import axiosInstance from '@/api';
+import { useUser } from '@/contexts/UserContext';
 interface InvoiceData {
     id: string;
     invoiceNumber: string;
@@ -29,6 +30,7 @@ interface InvoiceData {
         price: number;
         quantity: number;
         category: string;
+        hsnCode?: string;
     }[];
     subtotal: number;
     gstAmount: number;
@@ -49,6 +51,7 @@ const ModernOverview: React.FC = () => {
             setError(null);
             try {
                 const response = await axiosInstance.get(`/invoice/${id}`);
+               
                 if (response.status !== 200) throw new Error('Invoice not found');
                 const data = response.data;
                 setInvoice({ ...data, id: data._id });
@@ -105,6 +108,7 @@ const ModernOverview: React.FC = () => {
                             <TableHeader>
                                 <TableRow className="bg-gray-100">
                                     <TableHead className="p-3 text-black font-semibold">Item</TableHead>
+                                    <TableHead className="p-3 text-black font-semibold">HSN Code</TableHead>
                                     <TableHead className="p-3 text-black font-semibold">Qty</TableHead>
                                     <TableHead className="p-3 text-black font-semibold">Unit Price</TableHead>
                                     <TableHead className="p-3 text-black font-semibold">Total</TableHead>
@@ -114,6 +118,7 @@ const ModernOverview: React.FC = () => {
                                 {invoice.items.map((item) => (
                                     <TableRow key={item.id} className="hover:bg-gray-50">
                                         <TableCell className="p-3 font-medium text-gray-900">{item.name}</TableCell>
+                                        <TableCell className="p-3 text-gray-800">{item.hsnCode || '-'}</TableCell>
                                         <TableCell className="p-3 text-gray-800">{item.quantity}</TableCell>
                                         <TableCell className="p-3 text-gray-800">₹{formatCurrency(item.price)}</TableCell>
                                         <TableCell className="p-3 text-gray-900 font-semibold">₹{formatCurrency(item.price * item.quantity)}</TableCell>

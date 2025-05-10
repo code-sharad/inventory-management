@@ -40,6 +40,8 @@ interface InvoiceData {
   gstRate: number;
   total: number;
   template: "modern" | "minimal" | "classic";
+  packaging?: number;
+  transportationAndOthers?: number;
 };
 
 const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }) => {
@@ -155,11 +157,14 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
               </div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-gray-900 mb-1 tracking-widest">INVOICE</div>
-              <div className="text-xs text-gray-700 space-y-0.5">
-                <p>Invoice #: <span className="font-semibold">{invoiceNumber}</span></p>
-                <p>Date: <span className="font-semibold">{invoiceDate}</span></p>
-                <p className="text-gray-600 font-bold">Due: {new Date(new Date(invoiceDate).setDate(new Date(invoiceDate).getDate() + 30)).toLocaleDateString()}</p>
+
+              <div className="text-xs text-gray-700 space-y-0.5 flex flex-col items-end justify-center gap-3">
+                <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice-view/${invoiceData.id}`} size={64} />
+                <div>
+                  <p>Invoice #: <span className="font-semibold">{invoiceNumber}</span></p>
+                  <p>Date: <span className="font-semibold">{invoiceDate}</span></p>
+                  <p className="text-gray-600 font-bold">Due: {new Date(new Date(invoiceDate).setDate(new Date(invoiceDate).getDate() + 30)).toLocaleDateString()}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -198,7 +203,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
                     items.map((item, index) => (
                       <TableRow key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                         <TableCell className="p-4 font-semibold text-gray-900">{item.name}</TableCell>
-                      
+
                         <TableCell className="p-4 text-gray-900">{item.hsnCode || '-'}</TableCell>
                         <TableCell className="p-4 text-gray-900">{item.quantity}</TableCell>
                         <TableCell className="p-4 text-gray-900">₹{formatCurrency(item.price)}</TableCell>
@@ -219,6 +224,18 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
                     <span>Subtotal</span>
                     <span>₹{formatCurrency(subtotal)}</span>
                   </div>
+                  {invoiceData.transportationAndOthers !== undefined && (
+                    <div className="flex justify-between text-gray-700 text-base">
+                      <span>Transportation & Others</span>
+                      <span>₹{formatCurrency(invoiceData.transportationAndOthers)}</span>
+                    </div>
+                  )}
+                  {invoiceData.packaging !== undefined && (
+                    <div className="flex justify-between text-gray-700 text-base">
+                      <span>Packaging</span>
+                      <span>₹{formatCurrency(invoiceData.packaging)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-gray-700 text-base font-semibold">
                     <span>GST (18%)</span>
                     <span>₹{formatCurrency(gstAmount)}</span>
@@ -230,9 +247,6 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
                 </div>
               </div>
             </div>
-          </div>
-          <div className='flex flex-col items-end justify-center'>
-            <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} width={60} height={60} />
           </div>
         </div>
 

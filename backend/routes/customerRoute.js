@@ -13,7 +13,8 @@ router.post("/", async (req, res) => {
     name = name.trim().toLowerCase();
 
     const existingCustomer = await customerModel.findOne({ gstNumber });
-    if (existingCustomer) {
+    console.log(existingCustomer);
+    if (existingCustomer ) {
       return res.status(400).json({ error: "Customer already exists" });
     }
 
@@ -25,6 +26,7 @@ router.post("/", async (req, res) => {
     // res.status(500).json({error:"Internal server error"})
 
     if (error.name === "MongoServerError" && error.code === 11000) {
+      console.log(error);
       return res.status(400).json({ error: "Customer already exists" });
     }
     console.error("Error in POST /customer:", error);

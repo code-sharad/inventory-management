@@ -17,6 +17,8 @@ interface InvoiceData {
     name: string;
     email: string;
     address: string;
+    gstNumber?: string;
+    panNumber?: string;
   };
   companyDetails: {
     name: string;
@@ -133,6 +135,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
       setLoading(false);
     }
   };
+  console.log(items.map((item) => item.hsnCode))
 
   return (
     <div id="modern-invoice" className="w-[794px] min-h-[1123px] mx-auto flex flex-col items-center">
@@ -140,14 +143,15 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
 
 
       {/* Main Content Card */}
-      <div ref={contentRef} className="w-[794px] min-h-[1123px] bg-white rounded-b-lg shadow border border-gray-200 px-8 py-8 flex flex-col gap-8">
+      <div ref={contentRef} className="w-[794px] min-h-[1123px] bg-white rounded-b-lg shadow border border-gray-200 px-8 pb-8 flex flex-col gap-8">
         <div className="w-full rounded-t-lg bg-white border-b border-gray-300 px-0 py-6 flex flex-row justify-between items-center">
           <div className="flex flex-col items-start">
             <h1 className="text-2xl font-bold text-gray-900 tracking-wide">{companyDetails.name}</h1>
             <span className="text-gray-600 text-sm mt-1">{companyDetails.address}, {companyDetails.cityState}</span>
           </div>
           <div className="flex flex-col items-end">
-            <span className="text-lg font-semibold text-gray-900 tracking-widest">INVOICE</span>
+            <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice-view/${invoiceData.id}`} size={64} />
+            {/* <span className="text-lg font-semibold text-gray-900 tracking-widest">INVOICE</span> */}
             <span className="text-gray-600 text-xs mt-1">Invoice #: {invoiceNumber}</span>
             <span className="text-gray-600 text-xs">Date: {invoiceDate}</span>
           </div>
@@ -159,6 +163,12 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
             <p className="font-medium text-gray-900">{customer.name}</p>
             <p className="text-gray-700 text-sm">{customer.address}</p>
             <p className="text-gray-700 text-sm">{customer.email}</p>
+            {customer.gstNumber && (
+              <p className="text-gray-700 text-sm">GSTIN: {customer.gstNumber}</p>
+            )}
+            {customer.panNumber && (
+              <p className="text-gray-700 text-sm">PAN: {customer.panNumber}</p>
+            )}
           </div>
           <div className="bg-gray-50 rounded-lg p-4 flex-1 min-w-[220px] border border-gray-200">
             <h3 className="text-base font-semibold text-gray-800 mb-2">Company Info</h3>
@@ -226,9 +236,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
             </div>
           </div>
         </div>
-        <div className='flex flex-col items-end justify-center'>
-          <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} width={60} height={60} />
-        </div>
+
       </div>
 
       {/* Download Button */}

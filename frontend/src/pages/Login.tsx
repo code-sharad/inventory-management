@@ -21,7 +21,7 @@ export default function Login() {
     try {
       // Here you would typically make an API call to your backend
       // For now, we'll simulate a successful login
-      axiosInstance.post(`/auth/login`, {
+      axiosInstance.post(`/login`, {
         email,
         password,
       }).then((res) => {

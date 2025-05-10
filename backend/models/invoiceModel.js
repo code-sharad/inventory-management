@@ -6,11 +6,15 @@ const invoiceSchema = mongoose.Schema({
       type: String,
       required: true,
     },
-    email: {
+    gstNumber: {
       type: String,
       required: true,
     },
     address: {
+      type: String,
+      required: true,
+    },
+    panNumber: {
       type: String,
       required: true,
     },
@@ -27,13 +31,13 @@ const invoiceSchema = mongoose.Schema({
     type: Number,
     required: true,
   },
-  gstAmount:{
+  gstAmount: {
     type: Number,
-    required:true
+    required: true,
   },
-  gstRate:{
+  gstRate: {
     type: Number,
-    required:true
+    required: true,
   },
   total: {
     type: Number,
@@ -62,6 +66,7 @@ const invoiceSchema = mongoose.Schema({
       name: String,
       quantity: Number,
       price: Number,
+      hsnCode: String,
       category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "categoryModel",

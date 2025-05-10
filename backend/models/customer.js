@@ -24,7 +24,7 @@ const customerSchema = new mongoose.Schema({
   },
 });
 
-// customerSchema.index({ name: 1, email: 1 });
+customerSchema.index({ gstNumber: 1 }, { unique: true });
 const customerModel = mongoose.model("Customer", customerSchema);
 
 module.exports = customerModel;

@@ -24,6 +24,7 @@ import { Edit, Plus, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import axiosInstance from "@/api";
+
 type Product = {
     _id: string;
     name: string;
@@ -57,7 +58,6 @@ export default function InventoryPage() {
     const [error, setError] = useState<string | null>(null)
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
-
     // Fetch initial data
     useEffect(() => {
         fetchProducts();
@@ -68,6 +68,7 @@ export default function InventoryPage() {
         try {
             setLoading(true);
             const response = await axiosInstance.get(`/item`);
+           
             if (response.status !== 200) throw new Error(`HTTP error! status: ${response.status}`);
             const data = response.data;
             console.log("Products fetched:", data); // Debug log

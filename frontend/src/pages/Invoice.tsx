@@ -76,6 +76,7 @@ function Invoice() {
       price: number;
       category: string;
       hsnCode: string;
+      categoryId: string;
     }[]
   >([]);
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -113,15 +114,14 @@ function Invoice() {
   });
   const [quantity, setQuantity] = useState(0);
 
-  const [includeTransportation, setIncludeTransportation] = useState(false);
   const [transportationValue, setTransportationValue] = useState(0);
-  const [includePackaging, setIncludePackaging] = useState(false);
   const [packagingValue, setPackagingValue] = useState(0);
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
         const response = await axiosInstance.get(`/item`, { withCredentials: true });
+
         const items = response.data.map((item: any) => {
           let categoryName = "Uncategorized";
           let categoryId = "";
@@ -136,6 +136,7 @@ function Invoice() {
           } else {
             console.error(`No category data for item: ${item.name}`);
           }
+
           return {
             id: item._id?.toString() || "",
             name: item.name || "Unknown Product",
@@ -169,8 +170,18 @@ function Invoice() {
         console.error('Error fetching customers:', error);
       }
     }
+    const fetchInvoiceNumber = async () => {
+      try {
+        const response = await axiosInstance.get("/invoice/get-invoice-number", { withCredentials: true });
+        setInvoiceNumber(response.data.invoiceNumber);
+      } catch (error) {
+        console.error('Error fetching invoice number:', error);
+      }
+    }
+
     fetchCustomers();
     fetchItems();
+    fetchInvoiceNumber();
   }, []);
 
   const templates = [
@@ -232,6 +243,7 @@ function Invoice() {
       price: Number(selectedProduct.price),
       category,
       hsnCode: selectedProduct.hsnCode,
+      categoryId: inventoryItem.categoryId,
     };
 
     console.log("Adding product:", JSON.stringify(newProduct, null, 2));
@@ -274,7 +286,7 @@ function Invoice() {
   };
 
   const handleSaveInvoice = async () => {
-    if (!customers || !invoiceNumber || invoiceItems.length === 0) {
+    if (!customers || invoiceItems.length === 0) {
       toast.error("Please provide customer name, email, address, invoice number, and at least one item.");
       return;
     }
@@ -296,7 +308,7 @@ function Invoice() {
         status: error.response?.status,
         config: error.config,
       });
-      const errorMessage = error.response?.data?.message || error.message || 'Unknown server error';
+      const errorMessage = error.response?.data?.error || error.message || 'Unknown server error';
       toast.error(`Failed to save invoice: ${errorMessage}`);
     }
   };
@@ -313,13 +325,17 @@ function Invoice() {
     customer: selectedCustomer,
     invoiceNumber,
     invoiceDate,
-    items: invoiceItems,
+    items: invoiceItems.map(item => ({
+      ...item,
+      category: item.categoryId,
+    })),
     companyDetails,
     subtotal,
     gstAmount,
     total,
     transportationAndOthers: transportationValue,
     packaging: packagingValue,
+    template: selectedTemplate,
   };
 
   return (
@@ -670,12 +686,13 @@ function Invoice() {
                   />
                 </div>
               </div>
-              <ScrollArea className="overflow-x-auto max-h-[800px] mt-4 w-full">
-                <div className="w-full min-w-[600px]">
+              <ScrollArea className="mt-6">
+                <div className="">
+
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="pl-6 p-6">Name</TableHead>
+                        <TableHead className="p-6">Name</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead>Quantity</TableHead>
                         <TableHead>Price</TableHead>

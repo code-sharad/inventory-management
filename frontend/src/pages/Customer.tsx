@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { Edit, Plus, Trash2 } from "lucide-react"
 import axiosInstance from "@/api";
+import { useUser } from "@/contexts/UserContext";
 type Customer = {
     _id: string;
     name: string;
@@ -65,6 +66,7 @@ export default function CustoemrPage() {
         try {
             setLoading(true);
             const response = await axiosInstance.get(`/customer`);
+
             if (response.status !== 200) throw new Error(`HTTP error! status: ${response.status}`);
             const data = response.data;
             console.log("Products fetched:", data); // Debug log
@@ -95,7 +97,7 @@ export default function CustoemrPage() {
     const handleAddProduct = async () => {
         try {
             const response = await axiosInstance.post(`/customer`, newCustomer)
-            if (response.status !== 200) throw new Error("Failed to add product")
+            if (response.status !== 200 && response.status !== 201) throw new Error("Failed to add product")
             const addedProduct = response.data
 
 
@@ -103,6 +105,7 @@ export default function CustoemrPage() {
             setCustomer([...customer, addedProduct])
             setNewCustomer({ name: "", gstNumber: '', address: '', panNumber: '' })
             setisAddCustomerDialogOpen(false)
+            fetchCustomers()
         } catch (err) {
             setError("Failed to add product")
         }
@@ -219,6 +222,7 @@ export default function CustoemrPage() {
                                     <Input
                                         id="address"
                                         type="text"
+                                        maxLength={100}
                                         value={newCustomer.address}
                                         onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value || '' })}
                                     />
@@ -228,6 +232,7 @@ export default function CustoemrPage() {
                                     <Input
                                         id="pan_number"
                                         type="text"
+                                        maxLength={10}
                                         value={newCustomer.panNumber}
                                         onChange={(e) => setNewCustomer({ ...newCustomer, panNumber: e.target.value || '' })}
                                     />

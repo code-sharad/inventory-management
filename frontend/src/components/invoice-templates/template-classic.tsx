@@ -5,6 +5,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
 import QRCode from 'react-qr-code';
 import { toast } from 'sonner';
+import { formatCurrency } from '@/lib/formatCurrency';
 
 interface InvoiceData {
   id: string;
@@ -13,7 +14,6 @@ interface InvoiceData {
   invoiceDate: string;
   customer: {
     name: string;
-    email: string;
     address: string;
     gstNumber?: string;
     panNumber?: string;
@@ -21,13 +21,11 @@ interface InvoiceData {
   companyDetails: {
     name: string;
     address: string;
-    cityState: string;
     phone: string;
     email: string;
   };
   items: {
     id: string;
-    productId: string;
     name: string;
     price: number;
     quantity: number;
@@ -39,6 +37,8 @@ interface InvoiceData {
   gstRate: number;
   total: number;
   template: "modern" | "minimal" | "classic";
+  packaging?: number;
+  transportationAndOthers?: number;
 };
 
 const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }) => {
@@ -112,16 +112,16 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
         {/* Header */}
         <div className="px-8 py-6 flex items-center justify-between border-b border-gray-200 bg-white">
           <div className="flex items-center space-x-4">
-            {/* Logo Placeholder */}
             <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-700 font-bold text-xl">
-              {/* You can replace this with an <img src=... /> for a real logo */}
               <span>{companyDetails.name[0]}</span>
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 tracking-wide">{companyDetails.name}</h1>
-              <p className="text-sm text-gray-500">{companyDetails.cityState}</p>
+              <p className="text-sm text-gray-500">{companyDetails.address}</p>
             </div>
           </div>
+
+          <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice-view/${invoiceData.id}`} size={64} />
         </div>
 
         {/* Invoice Info */}
@@ -129,7 +129,6 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
           <div className="mb-4 md:mb-0">
             <h3 className="text-lg font-semibold text-gray-800 mb-1">Bill To:</h3>
             <p className="text-gray-700"><span className="font-medium">Name:</span> {customer.name}</p>
-            <p className="text-gray-700"><span className="font-medium">Email:</span> {customer.email}</p>
             <p className="text-gray-700"><span className="font-medium">Address:</span> {customer.address}</p>
             {customer.gstNumber && (
               <p className="text-gray-700"><span className="font-medium">GST Number:</span> {customer.gstNumber}</p>
@@ -160,7 +159,7 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
               {items.map((item, index) => (
                 <TableRow key={index} className={index % 2 === 0 ? "bg-white text-black" : "bg-gray-50 text-black"}>
                   <TableCell className="p-2 font-medium text-gray-900 border-b border-gray-100">{item.name}</TableCell>
-                
+
                   <TableCell className="p-2 border-b border-gray-100">{item.hsnCode || '-'}</TableCell>
                   <TableCell className="p-2 border-b border-gray-100">{item.quantity}</TableCell>
                   <TableCell className="p-2 border-b border-gray-100">₹{item.price.toFixed(2)}</TableCell>
@@ -177,6 +176,18 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
                 <span>Subtotal</span>
                 <span>₹{subtotal.toFixed(2)}</span>
               </div>
+              {invoiceData.transportationAndOthers !== undefined && (
+                <div className="flex justify-between text-gray-700 text-base">
+                  <span>Transportation & Others</span>
+                  <span>₹{formatCurrency(invoiceData.transportationAndOthers)}</span>
+                </div>
+              )}
+              {invoiceData.packaging !== undefined && (
+                <div className="flex justify-between text-gray-700 text-base">
+                  <span>Packaging</span>
+                  <span>₹{formatCurrency(invoiceData.packaging)}</span>
+                </div>
+              )}
               <div className="flex justify-between py-2 text-gray-700 border-b border-gray-200">
                 <span>GST (18%)</span>
                 <span>₹{gstAmount.toFixed(2)}</span>
@@ -189,7 +200,6 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
           </div>
         </div>
         <div className="flex flex-col items-end justify-center px-8 pb-6">
-          <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} width={60} height={60} />
         </div>
       </div>
       {
