@@ -150,7 +150,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
             <span className="text-gray-600 text-sm mt-1">{companyDetails.address}, {companyDetails.cityState}</span>
           </div>
           <div className="flex flex-col items-end">
-            <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice-view/${invoiceData.id}`} size={64} />
+            <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} size={64} />
             {/* <span className="text-lg font-semibold text-gray-900 tracking-widest">INVOICE</span> */}
             <span className="text-gray-600 text-xs mt-1">Invoice #: {invoiceNumber}</span>
             <span className="text-gray-600 text-xs">Date: {invoiceDate}</span>

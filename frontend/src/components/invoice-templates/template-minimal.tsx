@@ -159,7 +159,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
             <div className="text-right">
 
               <div className="text-xs text-gray-700 space-y-0.5 flex flex-col items-end justify-center gap-3">
-                <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice-view/${invoiceData.id}`} size={64} />
+                <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} size={64} />
                 <div>
                   <p>Invoice #: <span className="font-semibold">{invoiceNumber}</span></p>
                   <p>Date: <span className="font-semibold">{invoiceDate}</span></p>

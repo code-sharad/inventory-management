@@ -50,7 +50,7 @@ const ModernOverview: React.FC = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await axiosInstance.get(`/invoice/${id}`);
+                const response = await axiosInstance.get(`/invoice-view/${id}`);
                
                 if (response.status !== 200) throw new Error('Invoice not found');
                 const data = response.data;
