@@ -37,6 +37,8 @@ interface InvoiceData {
     gstRate: number;
     total: number;
     template: 'modern' | 'minimal' | 'classic';
+    transportationAndOthers?: number;
+    packaging?: number;
 }
 
 const ModernOverview: React.FC = () => {
@@ -51,7 +53,7 @@ const ModernOverview: React.FC = () => {
             setError(null);
             try {
                 const response = await axiosInstance.get(`/invoice-view/${id}`);
-               
+
                 if (response.status !== 200) throw new Error('Invoice not found');
                 const data = response.data;
                 setInvoice({ ...data, id: data._id });
@@ -132,6 +134,18 @@ const ModernOverview: React.FC = () => {
                             <span>Subtotal</span>
                             <span>₹{formatCurrency(invoice.subtotal)}</span>
                         </div>
+                        {invoice.transportationAndOthers !== undefined && (
+                            <div className="flex justify-between text-gray-700 text-base">
+                                <span>Transportation & Others</span>
+                                <span>₹{formatCurrency(invoice.transportationAndOthers)}</span>
+                            </div>
+                        )}
+                        {invoice.packaging !== undefined && (
+                            <div className="flex justify-between text-gray-700 text-base">
+                                <span>Packaging</span>
+                                <span>₹{formatCurrency(invoice.packaging)}</span>
+                            </div>
+                        )}
                         <div className="flex justify-between w-full max-w-xs text-gray-700 text-base">
                             <span>GST ({invoice.gstRate}%)</span>
                             <span>₹{formatCurrency(invoice.gstAmount)}</span>
