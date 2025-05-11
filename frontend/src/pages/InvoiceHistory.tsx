@@ -62,15 +62,30 @@ type Invoice = {
 };
 
 function normalize(str: string | undefined | null) {
-  return (str ?? "").toLowerCase();
+  return (str ?? "")
+    .toLowerCase()
+    .normalize("NFD") // Remove accents/diacritics
+    .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
+    .replace(/[^a-z0-9]+/g, " ") // Replace non-alphanumerics with space
+    .trim();
 }
 
-function matchesPrefixWord(field: string | undefined | null, query: string) {
+function tokenize(str: string | undefined | null) {
+  return normalize(str).split(/\s+/).filter(Boolean);
+}
+
+function matchesSearchFields(fields: (string | undefined | null)[], query: string) {
   if (!query) return true;
-  const words = normalize(field)
-    .split(/[\s\-_.@]+/)
-    .filter(Boolean); // Remove empty strings
-  return words.some(word => word.startsWith(query));
+  const queryTokens = tokenize(query);
+
+  // For each field, tokenize and check if all query tokens are present in any field tokens
+  return fields.some(field => {
+    const fieldTokens = tokenize(field);
+    // For each query token, check if it matches the start of any field token
+    return queryTokens.every(qt =>
+      fieldTokens.some(ft => ft.startsWith(qt))
+    );
+  });
 }
 
 export default function BillingHistoryPage() {
@@ -117,16 +132,19 @@ export default function BillingHistoryPage() {
     fetchInvoices();
   }, [])
 
-  const searchNormalized = normalize(searchQuery);
+  const filteredInvoices = invoices.filter(invoice =>
+    matchesSearchFields(
+      [
+        invoice.invoiceNumber,
+        invoice.customer.name,
+        invoice.customer.email
+      ],
+      searchQuery
+    )
+  );
+  console.log(filteredInvoices)
 
-  const filteredInvoices = invoices.filter((invoice) => {
-    return (
-      searchQuery === "" ||
-      matchesPrefixWord(invoice.invoiceNumber, searchNormalized) ||
-      matchesPrefixWord(invoice.customer.name, searchNormalized) ||
-      matchesPrefixWord(invoice.customer.email, searchNormalized)
-    );
-  });
+
 
   // Pagination
   const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
@@ -156,6 +174,7 @@ export default function BillingHistoryPage() {
       setInvoices((prev) => prev.filter((inv) => inv.id !== invoiceToDelete.id));
       setDeleteDialogOpen(false);
       setInvoiceToDelete(null);
+      toast.success("Invoice deleted successfully");
     } catch (error) {
       toast.error("Error deleting invoice");
       setDeleteDialogOpen(false);
@@ -200,7 +219,7 @@ export default function BillingHistoryPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedInvoices.length > 1 ? (
+                {paginatedInvoices.length > 0 ? (
                   paginatedInvoices.map((invoice, index) => (
                     <TableRow key={index}>
                       <TableCell className="font-medium">

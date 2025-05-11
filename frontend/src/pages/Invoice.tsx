@@ -35,6 +35,7 @@ import PremiumMinimalInvoice from "@/components/invoice-templates/template-minim
 import TemplateCarousel from "@/components/invoice-templates/TemplateCarousel";
 import axiosInstance from "@/api";
 import { toast } from "sonner";
+import { useNavigate } from "react-router";
 
 
 
@@ -116,7 +117,7 @@ function Invoice() {
 
   const [transportationValue, setTransportationValue] = useState(0);
   const [packagingValue, setPackagingValue] = useState(0);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -301,6 +302,7 @@ function Invoice() {
       const response = await axiosInstance.post(`/invoice`, invoiceData, { withCredentials: true });
       console.log("Invoice saved successfully:", response.data);
       toast.success('Invoice saved successfully!');
+      navigate("/billing");
     } catch (error: any) {
       console.error('Error saving invoice:', {
         message: error.message,
