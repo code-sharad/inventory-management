@@ -630,7 +630,7 @@ function Invoice() {
                 </div>
                 <div className="w-full sm:w-auto min-w-0">
                   <h2 className="font-semibold mb-2">Quantity</h2>
-                  <div className="flex border rounded-md w-full max-w-xs">
+                  <div className="flex border rounded-md w-fit max-w-xs">
                     <Button
                       variant="secondary"
                       className="max-w-8 rounded-r-none rounded-l-md "
@@ -688,55 +688,52 @@ function Invoice() {
                   />
                 </div>
               </div>
-              <ScrollArea className="mt-6">
-                <div className="">
-
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="p-6">Name</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Item Price</TableHead>
-                        <TableHead>Action</TableHead>
+              <div className="mt-6 w-full overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="p-6">Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Quantity</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Item Price</TableHead>
+                      <TableHead>Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {invoiceItems.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell className="font-medium pl-6 p-6 text-[16px]">
+                          {product.name}
+                        </TableCell>
+                        <TableCell>
+                          <span className="border dark:border-gray-700 dark:text-white rounded-2xl text-black text-sm px-2 py-1">
+                            {product.category}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-[16px]">
+                          {product.quantity}
+                        </TableCell>
+                        <TableCell className="text-start text-[16px]">
+                          ₹{product.price * product.quantity}
+                        </TableCell>
+                        <TableCell className="text-start text-[16px]">
+                          ₹{product.price}
+                        </TableCell>
+                        <TableCell className="flex gap-2">
+                          <button
+                            onClick={() => handleProductDelete(product.id)}
+                            className="hover:rounded-md hover:bg-red-100 px-4 py-2"
+                            title="Delete item"
+                          >
+                            <Trash2 width={16} />
+                          </button>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {invoiceItems.map((product) => (
-                        <TableRow key={product.id}>
-                          <TableCell className="font-medium pl-6 p-6 text-[16px]">
-                            {product.name}
-                          </TableCell>
-                          <TableCell>
-                            <span className="border dark:border-gray-700 dark:text-white rounded-2xl text-black text-sm px-2 py-1">
-                              {product.category}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-[16px]">
-                            {product.quantity}
-                          </TableCell>
-                          <TableCell className="text-start text-[16px]">
-                            ₹{product.price * product.quantity}
-                          </TableCell>
-                          <TableCell className="text-start text-[16px]">
-                            ₹{product.price}
-                          </TableCell>
-                          <TableCell className="flex gap-2">
-                            <button
-                              onClick={() => handleProductDelete(product.id)}
-                              className="hover:rounded-md hover:bg-red-100 px-4 py-2"
-                              title="Delete item"
-                            >
-                              <Trash2 width={16} />
-                            </button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </ScrollArea>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           </CardContent>
         </Card>

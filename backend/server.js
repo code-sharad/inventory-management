@@ -24,6 +24,14 @@ app.use(
   })
 );
 
+app.options(
+  "*",
+  cors({
+    origin: process.env.VITE_FRONTEND_URL,
+    credentials: true,
+  })
+);
+
 app.use(bodyParser.json());
 
 const db = require("./db");
@@ -85,12 +93,10 @@ app.use("/login", async (req, res) => {
       sameSite: "none",
     });
     console.log("Login successful for user:", email);
-    res
-      .status(200)
-      .json({
-        token,
-        user: { email: user.email, role: user.role, _id: user._id },
-      });
+    res.status(200).json({
+      token,
+      user: { email: user.email, role: user.role, _id: user._id },
+    });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
