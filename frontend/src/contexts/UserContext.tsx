@@ -1,5 +1,5 @@
 import axiosInstance from "@/api";
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
 interface User {
   id: string;
@@ -45,12 +45,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   // Check for stored user data on mount
-  useState(() => {
+  useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
-  });
+  }, []);
 
   const value = {
     user,

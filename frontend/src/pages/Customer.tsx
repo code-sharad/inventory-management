@@ -21,6 +21,7 @@ import {
 import { Edit, Plus, Trash2 } from "lucide-react"
 import axiosInstance from "@/api";
 import { useUser } from "@/contexts/UserContext";
+import { toast } from "sonner";
 type Customer = {
     _id: string;
     name: string;
@@ -97,7 +98,7 @@ export default function CustoemrPage() {
     const handleAddProduct = async () => {
         try {
             const response = await axiosInstance.post(`/customer`, newCustomer)
-            if (response.status !== 200 && response.status !== 201) throw new Error("Failed to add product")
+            if (response.status !== 201 ) throw new Error("Failed to add product")
             const addedProduct = response.data
 
 
@@ -106,6 +107,7 @@ export default function CustoemrPage() {
             setNewCustomer({ name: "", gstNumber: '', address: '', panNumber: '' })
             setisAddCustomerDialogOpen(false)
             fetchCustomers()
+            toast.success("Customer added successfully")
         } catch (err) {
             setError("Failed to add product")
         }
@@ -154,6 +156,7 @@ export default function CustoemrPage() {
             const response = await axiosInstance.delete(`/customer/${id}`)
             if (response.status !== 200) throw new Error("Failed to delete product")
             setCustomer(customer.filter(p => p._id !== id))
+            toast.success("Customer deleted successfully")
         } catch (err) {
             setError("Failed to delete product")
         }
@@ -201,6 +204,7 @@ export default function CustoemrPage() {
                                     <Label htmlFor="name">Name</Label>
                                     <Input
                                         id="name"
+                                        required
                                         value={newCustomer.name}
                                         onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
                                     />
@@ -223,12 +227,13 @@ export default function CustoemrPage() {
                                         id="address"
                                         type="text"
                                         maxLength={100}
+                                        required
                                         value={newCustomer.address}
                                         onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value || '' })}
                                     />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="price">Pan Number</Label>
+                                    <Label htmlFor="price">Pan Number (optional)</Label>
                                     <Input
                                         id="pan_number"
                                         type="text"
@@ -320,6 +325,7 @@ export default function CustoemrPage() {
                             <TableHead>Name</TableHead>
                             <TableHead>GST Number</TableHead>
                             <TableHead className="text-left">Address</TableHead>
+                            <TableHead className="text-left">PAN Number</TableHead>
                             {/* <TableHead className="text-right">Price</TableHead>
                             <TableHead className="text-right">Actions</TableHead> */}
                         </TableRow>

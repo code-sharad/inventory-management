@@ -19,7 +19,6 @@ const customerSchema = new mongoose.Schema({
   },
   panNumber: {
     type: String,
-    required: true,
     unique: true,
   },
 });

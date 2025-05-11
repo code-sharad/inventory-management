@@ -18,7 +18,7 @@ import { Toaster } from 'sonner'
 
 function App() {
   return (
-    <ThemeProvider attribute="class"  enableSystem defaultTheme="system">
+    <ThemeProvider attribute="class" enableSystem defaultTheme="system">
       <Toaster richColors closeButton />
       <UserProvider>
         <BrowserRouter>
@@ -42,12 +42,20 @@ function App() {
                 </ProtectedRoute>
               }
             >
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/" element={
+                <ProtectedRoute requiredRole="admin">
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/billing" element={<BillingHistoryPage />} />
               <Route path="/invoice" element={<Invoice />} />
               <Route path="/customer" element={<CustoemrPage />} />
-              <Route path="/admin" element={<AdminAccess />} />
+              <Route path="/admin" element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminAccess />
+                </ProtectedRoute>
+              } />
             </Route>
           </Routes>
         </BrowserRouter>

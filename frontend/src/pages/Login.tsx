@@ -27,7 +27,12 @@ export default function Login() {
       }).then((res) => {
         if (res.status === 200) {
           login(res.data);
-          navigate("/");
+          if(res.data.role === "admin") {
+            navigate("/");
+          }
+          if(res.data.role === "user") {
+            navigate("/inventory");
+          }
         } else {
           setError("Invalid email or password");
         }

@@ -61,8 +61,17 @@ type Invoice = {
   template: "modern" | "minimal" | "classic";
 };
 
+function normalize(str: string | undefined | null) {
+  return (str ?? "").toLowerCase();
+}
 
-
+function matchesPrefixWord(field: string | undefined | null, query: string) {
+  if (!query) return true;
+  const words = normalize(field)
+    .split(/[\s\-_.@]+/)
+    .filter(Boolean); // Remove empty strings
+  return words.some(word => word.startsWith(query));
+}
 
 export default function BillingHistoryPage() {
   // @ts-ignore
@@ -86,7 +95,7 @@ export default function BillingHistoryPage() {
     const fetchInvoices = async () => {
       try {
         const response = await axiosInstance.get(`/invoice`);
-        
+
         if (response.status !== 200) {
           throw new Error("Failed to fetch invoices");
         }
@@ -96,8 +105,10 @@ export default function BillingHistoryPage() {
           id: invoice._id
         }));
         const invoiceRemove_id = invoicesWithIds.filter((invoice: any) => delete invoice._id);
-        setInvoices(invoiceRemove_id);
-        console.log(invoiceRemove_id)
+
+        const sortedInvoices = invoiceRemove_id.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setInvoices(sortedInvoices);
+        console.log(sortedInvoices)
       } catch (error) {
         console.error("Error fetching invoices:", error);
       }
@@ -106,18 +117,15 @@ export default function BillingHistoryPage() {
     fetchInvoices();
   }, [])
 
+  const searchNormalized = normalize(searchQuery);
+
   const filteredInvoices = invoices.filter((invoice) => {
-    // Search filter
-    const searchLower = searchQuery.toLowerCase();
-    const matchesSearch =
+    return (
       searchQuery === "" ||
-      invoice.invoiceNumber.toLocaleUpperCase().includes(searchLower.toLocaleUpperCase()) ||
-      invoice.customer.name.toLocaleUpperCase().includes(searchLower.toLocaleUpperCase()) ||
-      invoice.customer.email.toLocaleUpperCase().includes(searchLower.toLocaleUpperCase());
-
-    // Date range filter
-
-    return matchesSearch;
+      matchesPrefixWord(invoice.invoiceNumber, searchNormalized) ||
+      matchesPrefixWord(invoice.customer.name, searchNormalized) ||
+      matchesPrefixWord(invoice.customer.email, searchNormalized)
+    );
   });
 
   // Pagination

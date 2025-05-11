@@ -6,7 +6,7 @@ router.post("/", async (req, res) => {
   try {
     let { name, gstNumber, address, panNumber } = req.body;
 
-    if (!name || !gstNumber || !address || !panNumber) {
+    if (!name || !gstNumber || !address ) {
       return res.status(400).json({ error: "fields is required" });
     }
 
