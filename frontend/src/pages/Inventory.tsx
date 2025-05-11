@@ -112,7 +112,8 @@ export default function InventoryPage() {
     const handleAddProduct = async () => {
         try {
             const response = await axiosInstance.post(`/item`, newProduct)
-            if (response.status !== 201) throw new Error("Failed to add product")
+            if (response.status !== 200) throw new Error("Failed to add product")
+            
 
             fetchProducts();
             fetchCategories();
