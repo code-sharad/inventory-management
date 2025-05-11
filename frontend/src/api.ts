@@ -12,7 +12,6 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.log(error.response.status === 401 ? "--------------------------------------------------------------" : "")
 
     if (error.response && error.response.status === 401) {
       localStorage.removeItem("token");

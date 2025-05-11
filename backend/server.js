@@ -80,14 +80,17 @@ app.use("/login", async (req, res) => {
     res.header("Authorization", `Bearer ${token}`);
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV !== "development",
+      secure: true,
       maxAge: 3600000 * 24, // 1 day
       sameSite: "none",
     });
     console.log("Login successful for user:", email);
     res
       .status(200)
-      .json({ token, user: { email: user.email, role: user.role } });
+      .json({
+        token,
+        user: { email: user.email, role: user.role, _id: user._id },
+      });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
