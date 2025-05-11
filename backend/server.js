@@ -5,6 +5,7 @@ const authRoutes = require("./routes/authRoute");
 const { authenticate, restrictTo } = require("./middleware/auth");
 require("dotenv").config();
 const app = express();
+app.set("trust proxy", 1);
 
 // app.use(
 //   cors({
@@ -24,13 +25,7 @@ app.use(
   })
 );
 
-app.options(
-  "*",
-  cors({
-    origin: process.env.VITE_FRONTEND_URL,
-    credentials: true,
-  })
-);
+
 
 app.use(bodyParser.json());
 
@@ -84,6 +79,7 @@ app.use("/login", async (req, res) => {
       JWT_SECRET,
       { expiresIn: "1d" }
     );
+    console.log(token);
 
     res.header("Authorization", `Bearer ${token}`);
     res.cookie("token", token, {
