@@ -74,14 +74,14 @@ app.use("/login", async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
       JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "1d" }
     );
 
     res.header("Authorization", `Bearer ${token}`);
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV !== "development",
-      maxAge: 3600000 * 24, // 1 hour
+      maxAge: 3600000 * 24, // 1 day
       sameSite: "none",
     });
     console.log("Login successful for user:", email);
