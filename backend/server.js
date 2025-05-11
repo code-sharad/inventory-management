@@ -59,13 +59,13 @@ app.use("/login", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       console.log("User not found:", email);
-      return res.status(401).json({ message: "Invalid username or password" });
+      return res.status(404).json({ message: "Invalid username or password" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       console.log("Password mismatch for user:", email);
-      return res.status(401).json({ message: "Invalid username or password" });
+      return res.status(404).json({ message: "Invalid username or password" });
     }
     user.lastLogin = Date.now();
     await user.save();
