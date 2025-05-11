@@ -5,7 +5,7 @@ export default function Navbar() {
     const location = useLocation()
     const { user } = useUser();
     return (
-        <div className="flex gap-1 overflow-x-hidden w-full">
+        <div className="flex gap-1 z-10 overflow-x-hidden w-full">
             <div className="hidden md:block inset-y-0 z-[1000] left-0 w-52 max-w-full border-r dark:bg-zinc-900 bg-zinc-50">
                 {/* <Header /> */}
                 <div>

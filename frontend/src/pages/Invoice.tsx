@@ -493,61 +493,63 @@ function Invoice() {
 
               <div>
                 <h3 className="text-lg font-semibold mb-4 flex flex-col gap-4">Invoice Details</h3>
-                <div className="flex flex-col sm:flex-row gap-4 ">
-                  <div className="min-w-0 flex-1">
-                    <Label className="mb-2"># Invoice Number</Label>
-                    <Input
-                      className="w-full"
-                      value={invoiceNumber}
-                      onChange={(e) => setInvoiceNumber(e.target.value)}
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1 mb-4">
-                    <Label className="mb-2">GST Rate</Label>
-                    <Input
-                      className="w-full"
-                      value={gstRate}
-                      onChange={(e) => setGstRate(Number(e.target.value))}
-                      type="number"
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                  <div className="flex flex-col flex-1 gap-2">
-                    <Label className="mb-0">Transportation & Others</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">₹</span>
+               <div className="flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row gap-4    ">
+                    <div className="min-w-0 flex-2">
+                      <Label className="mb-2"># Invoice Number</Label>
                       <Input
-                        className="w-full ml-0"
-                        value={transportationValue}
-                        onChange={(e) => setTransportationValue(Number(e.target.value) || 0)}
-                        type="number"
-                        min="0"
-                        placeholder="Enter amount"
+                        className="w-full"
+                        value={invoiceNumber}
+                        onChange={(e) => setInvoiceNumber(e.target.value)}
                       />
                     </div>
-                    <span className="text-xs text-muted-foreground mt-1">Enter extra transportation or miscellaneous charges</span>
-                  </div>
-                  <div className="flex flex-col flex-1 gap-2">
-                    <Label className="mb-0">Packaging</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">₹</span>
+                    <div className="min-w-0 flex-1 mb-4">
+                      <Label className="mb-2">GST Rate</Label>
                       <Input
-                        className="w-full ml-0"
-                        value={packagingValue}
-                        onChange={(e) => setPackagingValue(Number(e.target.value) || 0)}
+                        className="w-full"
+                        value={gstRate}
+                        onChange={(e) => setGstRate(Number(e.target.value))}
                         type="number"
-                        min="0"
-                        placeholder="Enter amount"
                       />
                     </div>
-                    <span className="text-xs text-muted-foreground mt-1">Enter packaging charges</span>
                   </div>
-                </div>
-                <div className="w-full">
-                  <Label className="mb-2">Invoice Date</Label>
-                  <DatePicker value={invoiceDate} onChange={setInvoiceDate} />
-                </div>
+                  <div className="flex flex-col md:flex-col lg:md:flex-row sm:flex-row gap-4 mb-4">
+                    <div className="flex flex-col flex-1 gap-2">
+                      <Label className="mb-0">Transportation & Others</Label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">₹</span>
+                        <Input
+                          className="w-full ml-0"
+                          value={transportationValue}
+                          onChange={(e) => setTransportationValue(Number(e.target.value) || 0)}
+                          type="number"
+                          min="0"
+                          placeholder="Enter amount"
+                        />
+                      </div>
+                      <span className="text-xs text-muted-foreground mt-1">Enter extra transportation or miscellaneous charges</span>
+                    </div>
+                    <div className="flex flex-col flex-1 gap-2">
+                      <Label className="mb-0">Packaging</Label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">₹</span>
+                        <Input
+                          className="w-full ml-0"
+                          value={packagingValue}
+                          onChange={(e) => setPackagingValue(Number(e.target.value) || 0)}
+                          type="number"
+                          min="0"
+                          placeholder="Enter amount"
+                        />
+                      </div>
+                      <span className="text-xs text-muted-foreground mt-1">Enter packaging charges</span>
+                    </div>
+                  </div>
+                  <div className="">
+                    <Label className="mb-2">Invoice Date</Label>
+                    <DatePicker value={invoiceDate} onChange={setInvoiceDate} />
+                  </div>
+               </div>
               </div>
             </div>
           </CardContent>

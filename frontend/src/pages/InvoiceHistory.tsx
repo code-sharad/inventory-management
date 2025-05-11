@@ -185,7 +185,7 @@ export default function BillingHistoryPage() {
   // Get status badge color
 
   return (
-    <div className="flex-1 p-4 pt-6 md:p-8">
+    <div className="flex-1 p-4 z-0 pt-6 md:p-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <h2 className="text-3xl font-serif font-bold tracking-tight">Billing History</h2>
         <div className="flex flex-col sm:flex-row gap-2">
@@ -332,7 +332,19 @@ export default function BillingHistoryPage() {
       {/* Invoice Preview Dialog */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
         <DialogContent
-          className="w-full max-w-[95vw] sm:min-w-[600px] sm:max-w-[1000px] mt-4 sm:mt-20 max-h-[90vh] sm:max-h-[900px] overflow-y-auto"
+          className="
+            dialog-top-align
+            z-[1000]
+            w-full
+            min-h-[30vh] sm:min-h-[400px]
+            max-h-[80vh] sm:max-h-[900px]
+            md:max-h-[700px]
+            md:max-w-[700px]
+            lg:max-h-[700px]
+            lg:max-w-[700px]
+            overflow-y-auto
+            sm:min-w-[600px] sm:max-w-[1000px]
+          "
         >
           <DialogHeader>
             <DialogTitle>Invoice Preview</DialogTitle>
@@ -340,7 +352,7 @@ export default function BillingHistoryPage() {
               {selectedInvoice?.invoiceNumber} - {selectedInvoice?.customer.name}
             </DialogDescription>
           </DialogHeader>
-          <div className="bg-white overflow-y-auto w-full max-w-full min-h-[60vh] sm:min-h-[400px] rounded-md shadow-sm">
+          <div className="bg-neutral-900 overflow-y-auto w-full max-w-full min-h-[60vh] sm:min-h-[400px] rounded-md shadow-sm">
             {selectedInvoice?.template === "modern" && (
               <ModernInvoiceTemplate
                 invoiceData={selectedInvoice}

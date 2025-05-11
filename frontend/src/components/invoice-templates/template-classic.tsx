@@ -58,43 +58,72 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
         await html2canvas(contentRef.current, { scale: 2 }).then((canvas) => {
           const imgWidth = 210; // A4 width in mm
           const pageHeight = 297; // A4 height in mm
-          const pageCanvasHeight = (pageHeight * canvas.width) / imgWidth;
-          const pageCount = Math.ceil(canvas.height / pageCanvasHeight);
+          const margin = 10; // 10mm margin
+          const usableWidth = imgWidth - 2 * margin;
+          const usablePageHeight = pageHeight - 2 * margin;
           const pdf = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
             format: 'a4',
           });
 
-          for (let i = 0; i < pageCount; i++) {
-            let thisPageHeight = Math.min(pageCanvasHeight, canvas.height - i * pageCanvasHeight);
-            const pageCanvas = document.createElement('canvas');
-            pageCanvas.width = canvas.width;
-            if (i < pageCount - 1) {
-              pageCanvas.height = pageCanvasHeight;
-            } else {
-              pageCanvas.height = thisPageHeight;
+          const imgData = canvas.toDataURL('image/png');
+          const imgProps = {
+            width: canvas.width,
+            height: canvas.height,
+          };
+          const pdfHeight = (imgProps.height * usableWidth) / imgProps.width;
+
+          if (pdfHeight <= usablePageHeight) {
+            // Single page
+            pdf.addImage(imgData, 'PNG', margin, margin, usableWidth, pdfHeight);
+          } else {
+            // Multi-page
+            let position = 0;
+            let remainingHeight = imgProps.height;
+            while (remainingHeight > 0) {
+              const sliceHeight = Math.min(canvas.height - position, (usablePageHeight * canvas.width) / usableWidth);
+              if (sliceHeight <= 0 || canvas.width <= 0) break; // Prevents extra blank page and corrupt PNG
+
+              const pageCanvas = document.createElement('canvas');
+              pageCanvas.width = canvas.width;
+              pageCanvas.height = sliceHeight;
+
+              const ctx = pageCanvas.getContext('2d');
+              if (ctx) {
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+                ctx.drawImage(
+                  canvas,
+                  0,
+                  position,
+                  canvas.width,
+                  sliceHeight,
+                  0,
+                  0,
+                  canvas.width,
+                  sliceHeight
+                );
+              }
+
+              // Only add the page if the canvas is not empty and image data is valid
+              if (pageCanvas.width > 0 && pageCanvas.height > 0) {
+                const pageImgData = pageCanvas.toDataURL('image/png');
+                if (
+                  pageImgData &&
+                  pageImgData.startsWith('data:image/png;base64,') &&
+                  pageImgData.length > 'data:image/png;base64,'.length
+                ) {
+                  if (position > 0) pdf.addPage();
+                  pdf.addImage(pageImgData, 'PNG', margin, margin, usableWidth, (sliceHeight * usableWidth) / canvas.width);
+                }
+              }
+
+              position += sliceHeight;
+              remainingHeight -= sliceHeight;
             }
-            const ctx = pageCanvas.getContext('2d');
-            if (ctx) {
-              ctx.fillStyle = "#fff";
-              ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-              ctx.drawImage(
-                canvas,
-                0,
-                i * pageCanvasHeight,
-                canvas.width,
-                thisPageHeight,
-                0,
-                0,
-                canvas.width,
-                thisPageHeight
-              );
-            }
-            const imgData = pageCanvas.toDataURL('image/png');
-            if (i > 0) pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, (thisPageHeight * imgWidth) / canvas.width);
           }
+
           pdf.save(`invoice_${invoiceNumber}.pdf`);
         });
       }
@@ -132,7 +161,7 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
           </div>)
       }
       <div ref={contentRef}
-        className="w-[210mm] min-h-[297mm] bg-white rounded-lg shadow border border-gray-200 flex flex-col mx-auto print:w-[210mm] print:min-h-[297mm]"
+        className="w-[210mm] min-h-[297mm] bg-white rounded-lg shadow  flex flex-col mx-auto print:w-[210mm] print:min-h-[297mm]"
       >
         {/* Header */}
         <div className="px-8 py-6 flex items-center justify-between border-b border-gray-200 bg-white">
