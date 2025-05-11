@@ -143,7 +143,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
 
 
       {/* Main Content Card */}
-      <div ref={contentRef} className="w-[794px] min-h-[1123px] bg-white rounded-b-lg shadow border border-gray-200 px-8 pb-8 flex flex-col gap-8">
+      <div ref={contentRef} className="w-[794px] min-h-[1123px] bg-white rounded-b-lg   px-8 pb-8 flex flex-col gap-8">
         <div className="w-full rounded-t-lg bg-white border-b border-gray-300 px-0 py-6 flex flex-row justify-between items-center">
           <div className="flex flex-col items-start">
             <h1 className="text-2xl font-bold text-gray-900 tracking-wide">{companyDetails.name}</h1>

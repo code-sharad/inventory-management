@@ -332,7 +332,7 @@ export default function BillingHistoryPage() {
       {/* Invoice Preview Dialog */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
         <DialogContent
-          className="w-full max-w-[95vw] sm:min-w-[600px] sm:max-w-[1000px] mt-4 sm:mt-20 max-h-[90vh] sm:max-h-[900px] overflow-y-auto p-2 sm:p-6"
+          className="w-full max-w-[95vw] sm:min-w-[600px] sm:max-w-[1000px] mt-4 sm:mt-20 max-h-[90vh] sm:max-h-[900px] overflow-y-auto"
         >
           <DialogHeader>
             <DialogTitle>Invoice Preview</DialogTitle>
@@ -340,7 +340,7 @@ export default function BillingHistoryPage() {
               {selectedInvoice?.invoiceNumber} - {selectedInvoice?.customer.name}
             </DialogDescription>
           </DialogHeader>
-          <div className="bg-white overflow-y-auto w-full max-w-full min-h-[60vh] sm:min-h-[400px] rounded-md shadow-sm p-2 sm:p-6">
+          <div className="bg-white overflow-y-auto w-full max-w-full min-h-[60vh] sm:min-h-[400px] rounded-md shadow-sm">
             {selectedInvoice?.template === "modern" && (
               <ModernInvoiceTemplate
                 invoiceData={selectedInvoice}

@@ -135,13 +135,13 @@ const ModernOverview: React.FC = () => {
                             <span>₹{formatCurrency(invoice.subtotal)}</span>
                         </div>
                         {invoice.transportationAndOthers !== undefined && (
-                            <div className="flex justify-between text-gray-700 text-base">
+                            <div className="flex justify-between w-full max-w-xs text-gray-700 text-base">
                                 <span>Transportation & Others</span>
                                 <span>₹{formatCurrency(invoice.transportationAndOthers)}</span>
                             </div>
                         )}
                         {invoice.packaging !== undefined && (
-                            <div className="flex justify-between text-gray-700 text-base">
+                            <div className="flex justify-between w-full max-w-xs text-gray-700 text-base">
                                 <span>Packaging</span>
                                 <span>₹{formatCurrency(invoice.packaging)}</span>
                             </div>

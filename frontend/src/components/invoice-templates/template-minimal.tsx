@@ -146,7 +146,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
       <div className="w-[210mm] min-h-[297mm] bg-white rounded-lg shadow border border-gray-200 flex flex-col mx-auto print:w-[210mm] print:min-h-[297mm]">
         <div ref={contentRef} className="flex-1 flex flex-col px-10 py-8 gap-8">
           {/* Header */}
-          <div className="border-b border-gray-200 pb-6 mb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="border-b border-gray-200 pb-6 mb-2 flex justify-between sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-1 uppercase">{companyDetails.name}</h1>
               <div className="text-sm text-gray-500 space-y-0.5">

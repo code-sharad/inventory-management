@@ -107,8 +107,10 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
   };
 
   return (
-    <div className="p-0 bg-gray-50 dark:bg-neutral-900 min-h-screen flex flex-col items-center justify-center">
-      <div ref={contentRef} className="bg-white shadow-md rounded-lg max-w-2xl w-full overflow-hidden border border-gray-200">
+    <div className="min-h-screen bg-[#fafafa] dark:bg-neutral-900 flex flex-col items-center py-8 px-2 font-sans">
+      <div ref={contentRef}
+        className="w-[210mm] min-h-[297mm] bg-white rounded-lg shadow border border-gray-200 flex flex-col mx-auto print:w-[210mm] print:min-h-[297mm]"
+      >
         {/* Header */}
         <div className="px-8 py-6 flex items-center justify-between border-b border-gray-200 bg-white">
           <div className="flex items-center space-x-4">
@@ -225,6 +227,7 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
           </div>
         )
       }
+    
     </div>
   );
 };
