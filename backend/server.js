@@ -5,7 +5,7 @@ const authRoutes = require("./routes/authRoute");
 const { authenticate, restrictTo } = require("./middleware/auth");
 require("dotenv").config();
 const app = express();
-app.set("trust proxy", 1);
+// app.set("trust proxy", 1);
 
 // app.use(
 //   cors({
