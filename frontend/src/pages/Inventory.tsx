@@ -137,7 +137,7 @@ export default function InventoryPage() {
             fetchProducts();
             fetchCategories();
             setNewCategory("")
-            setIsAddCategoryDialogOpen(false)
+            // setIsAddCategoryDialogOpen(false)
             toast.success("Category added successfully")
         } catch (err) {
             setError("Failed to add category")
@@ -275,20 +275,23 @@ export default function InventoryPage() {
                                 <DialogDescription>Add a new category to your inventory.</DialogDescription>
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
-                                <div className="grid gap-2">
+                                <div className="grid gap-2 ">
                                     <Label htmlFor="name">Name</Label>
-                                    <Input
-                                        id="name"
-                                        value={newCategory}
-                                        onChange={(e) => setNewCategory(e.target.value)}
-                                    />
+                                    <div className="flex gap-2">
+                                        <Input
+                                            id="name"
+                                            value={newCategory}
+                                            onChange={(e) => setNewCategory(e.target.value)}
+                                        />
+                                        <Button onClick={handleAddCategory}>Add Category</Button>
+                                    </div>
                                 </div>
                             </div>
                             <ScrollArea className="h-72 rounded-md border">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>ID</TableHead>
+                                            <TableHead className="">Sr.No</TableHead>
                                             <TableHead>Name</TableHead>
                                             <TableHead>Delete</TableHead>
                                         </TableRow>
@@ -296,8 +299,9 @@ export default function InventoryPage() {
                                     <TableBody>
                                         {categories.map((c) => (
                                             <TableRow key={c._id}>
-                                                <TableCell>{c._id}</TableCell>
-                                                <TableCell><Badge>{c.name}</Badge></TableCell>
+                                                <TableCell className="">{categories.indexOf(c) + 1}</TableCell>
+                                                {/* <TableCell className="hidden md:block">{c._id}</TableCell> */}
+                                                <TableCell>{c.name}</TableCell>
                                                 <TableCell>
                                                     <Trash2
                                                         onClick={() => handleDeleteCategory(c._id)}
@@ -311,7 +315,7 @@ export default function InventoryPage() {
                             </ScrollArea>
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setIsAddCategoryDialogOpen(false)}>Cancel</Button>
-                                <Button onClick={handleAddCategory}>Add Category</Button>
+                                
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
