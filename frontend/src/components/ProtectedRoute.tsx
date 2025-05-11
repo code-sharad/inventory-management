@@ -27,7 +27,7 @@ export function ProtectedRoute({
   // If user is authenticated and tries to access login, redirect based on role
   if (!requireAuth && isAuthenticated) {
     if (user?.user?.role === "admin") {
-      return <Navigate to="/dashboard" replace />;
+      return <Navigate to="/" replace />;
     } else {
       return <Navigate to="/inventory" replace />;
     }
