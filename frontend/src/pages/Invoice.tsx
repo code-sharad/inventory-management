@@ -760,7 +760,7 @@ function Invoice() {
       <div className="container mt-12 w-full flex justify-center">
         <Button
           onClick={handleSaveInvoice}
-          className="w-full max-w-md h-16  p-5 px-12 text-lg font-bold bg-neutral-900 text-white shadow-lg rounded-xl hover:scale-[1.02] hover:bg-neutral-800 transition-all duration-200 focus:ring-4 cursor-pointer focus:outline-none"
+          className="w-full max-w-md h-16  p-5 px-12 text-lg font-bold bg-gray-800 border border-gray-700 text-white shadow-lg rounded-xl hover:scale-[1.02] hover:bg-black transition-all duration-200 focus:ring-4 cursor-pointer focus:outline-none"
         >
           Save Invoice
         </Button>

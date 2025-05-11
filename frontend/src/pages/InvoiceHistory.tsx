@@ -352,7 +352,7 @@ export default function BillingHistoryPage() {
               {selectedInvoice?.invoiceNumber} - {selectedInvoice?.customer.name}
             </DialogDescription>
           </DialogHeader>
-          <div className="bg-neutral-900 overflow-y-auto w-full max-w-full min-h-[60vh] sm:min-h-[400px] rounded-md shadow-sm">
+          <div className="dark:bg-neutral-900 overflow-y-auto w-full max-w-full min-h-[60vh] sm:min-h-[400px] rounded-md shadow-sm">
             {selectedInvoice?.template === "modern" && (
               <ModernInvoiceTemplate
                 invoiceData={selectedInvoice}
