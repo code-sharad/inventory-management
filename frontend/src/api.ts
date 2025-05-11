@@ -7,12 +7,19 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.response.use(
   (response) => {
+
+
     return response;
   },
   (error) => {
-    if (error.response.status === 401) {
+    console.log(error.response.status === 401 ? "--------------------------------------------------------------" : "")
+
+    if (error.response && error.response.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      window.dispatchEvent(new Event("logout"));
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }

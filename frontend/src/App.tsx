@@ -1,6 +1,6 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { UserProvider } from "./contexts/UserContext";
+import { UserProvider} from "./contexts/UserContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Inventory from "./pages/Inventory";
 import Navbar from "./components/Navbar";
@@ -17,6 +17,8 @@ import { Toaster } from 'sonner'
 
 
 function App() {
+
+  
   return (
     <ThemeProvider attribute="class" enableSystem defaultTheme="system">
       <Toaster richColors closeButton />

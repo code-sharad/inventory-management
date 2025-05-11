@@ -44,6 +44,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  useEffect(() => {
+    const handleLogout = () => logout();
+    window.addEventListener("logout", handleLogout);
+    return () => window.removeEventListener("logout", handleLogout);
+  }, []);
+
   // Check for stored user data on mount
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
