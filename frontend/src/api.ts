@@ -26,6 +26,8 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   async (error) => {
+    const originalRequest = error.config;
+
     if (error.response && error.response.status === 401) {
       localStorage.removeItem("token");
       window.dispatchEvent(new Event("logout"));
@@ -33,7 +35,8 @@ axiosInstance.interceptors.response.use(
         window.location.href = "/login";
       }
     }
-    if (error.response && error.response.status === 403) {
+    if (error.response && error.response.status === 403 && !originalRequest._retry) {
+      originalRequest._retry = true;
       csrfToken = await fetchCsrfToken();
       error.config.headers["X-CSRF-Token"] = csrfToken;
       return axiosInstance.request(error.config);
