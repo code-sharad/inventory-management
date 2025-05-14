@@ -341,7 +341,7 @@ export default function BillingHistoryPage() {
             md:max-h-[700px]
             md:max-w-[700px]
             lg:max-h-[700px]
-            lg:max-w-[700px]
+            lg:max-w-[900px]
             overflow-y-auto
             sm:min-w-[600px] sm:max-w-[1000px]
           "
