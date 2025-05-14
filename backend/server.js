@@ -8,7 +8,7 @@ const rateLimit = require("express-rate-limit");
 
 require("dotenv").config();
 const app = express();
-// app.set("trust proxy", 1);
+app.set("trust proxy", 1);
 
 // app.use(
 //   cors({
@@ -37,8 +37,8 @@ app.use(
   csurf({
     cookie: {
       httpOnly: true,
-      sameSite: "lax",
-      secure: true, // set to false if testing on localhost without HTTPS
+      sameSite: "none",
+      secure: true,
     },
   })
 );
