@@ -4,6 +4,7 @@ import { createContext, useContext, useState, ReactNode, useEffect } from "react
 interface User {
   id: string;
   token: string;
+  csrfToken: string;
   user: {
     username: string;
     email: string;

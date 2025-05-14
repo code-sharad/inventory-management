@@ -4,8 +4,14 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const { restrictTo, authenticate } = require("../middleware/auth");
 
 const JWT_SECRET = process.env.JWT_SECRET;
+
+function isStrongPassword(password) {
+  // At least 8 chars, 1 uppercase, 1 lowercase, 1 number
+  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
+}
 
 // router.post("/login", async (req, res) => {
 //   const { email, password } = req.body;
@@ -69,33 +75,60 @@ router.post("/logout", (req, res) => {
   res.status(200).json({ message: "Logout successful" });
 });
 
-router.post("/create-user", async (req, res) => {
-  const { username, email, password, role } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const user = await User.create({
-    username,
-    email, password:hashedPassword, role });
-  res.status(200).json({ message: "User created successfully" });
-});
+router.post(
+  "/create-user",
+  authenticate,
+  restrictTo(["admin"]),
+  async (req, res) => {
+    const { username, email, password, role } = req.body;
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({ message: "Password is too weak." });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      role,
+    });
+    res.status(200).json({ message: "User created successfully" });
+  }
+);
 
-router.post("/change-admin-email", async (req, res) => {
-  const { email, newEmail } = req.body;
-  const user = await User.findOneAndUpdate({ email }, { email: newEmail });
-  res.status(200).json({ message: "Email changed successfully" });
-});
+router.post(
+  "/change-admin-email",
+  authenticate,
+  restrictTo(["admin"]),
+  async (req, res) => {
+    const { email, newEmail } = req.body;
+    const user = await User.findOneAndUpdate({ email }, { email: newEmail });
+    res.status(200).json({ message: "Email changed successfully" });
+  }
+);
 
-router.post("/change-admin-password", async (req, res) => {
+router.post(
+  "/change-admin-password",
+  authenticate,
+  restrictTo(["admin"]),
+  async (req, res) => {
+    const { email, newPassword } = req.body;
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({ message: "Password is too weak." });
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const user = await User.findOneAndUpdate(
+      { email },
+      { password: hashedPassword }
+    );
+    res.status(200).json({ message: "Password changed successfully" });
+  }
+);
+
+router.post("/change-user-password", authenticate, async (req, res) => {
   const { email, newPassword } = req.body;
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
-  const user = await User.findOneAndUpdate(
-    { email },
-    { password: hashedPassword }
-  );
-  res.status(200).json({ message: "Password changed successfully" });
-});
-
-router.post("/change-user-password", async (req, res) => {
-  const { email, newPassword } = req.body;
+  if (!isStrongPassword(newPassword)) {
+    return res.status(400).json({ message: "Password is too weak." });
+  }
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   const user = await User.findOneAndUpdate(
     { email },
@@ -105,7 +138,7 @@ router.post("/change-user-password", async (req, res) => {
 });
 
 // Get all users (admin only)
-router.get("/users", async (req, res) => {
+router.get("/users", restrictTo("admin"), async (req, res) => {
   try {
     const users = await User.find(
       {},
@@ -131,12 +164,5 @@ router.delete("/delete-user/:id", async (req, res) => {
       .json({ message: "Failed to delete user", error: error.message });
   }
 });
-
-
-
-
-
-
-
 
 module.exports = router;

@@ -6,7 +6,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const authenticate = (req, res, next) => {
   try {
     const token = getTokenFromCookies(req);
-    // const token = req.cookies.token;
 
     if (!token) {
       return res.status(401).json({ message: "No token provided" });
@@ -28,15 +27,7 @@ const restrictTo = (roles) => (req, res, next) => {
 };
 
 function getTokenFromCookies(req) {
-  const cookieHeader = req.headers.cookie;
-  if (!cookieHeader) return null;
-  const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
-  for (const cookie of cookies) {
-    if (cookie.startsWith("token=")) {
-      return cookie.substring("token=".length);
-    }
-  }
-  return null;
+  return req.cookies && req.cookies.token ? req.cookies.token : null;
 }
 
 module.exports = { authenticate, restrictTo };

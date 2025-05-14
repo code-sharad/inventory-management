@@ -27,20 +27,21 @@ export default function Login() {
       }).then((res) => {
         if (res.status === 200) {
           login(res.data);
-          if(res.data.role === "admin") {
+          if (res.data.role === "admin") {
             navigate("/");
           }
-          if(res.data.role === "user") {
+          if (res.data.role === "user") {
             navigate("/inventory");
           }
         } else {
           setError("Invalid email or password");
         }
-      }).catch((err) => {
-        setError("Invalid email or password");
-      });
-    } catch (err) {
-      setError("Invalid email or password");
+      })
+        .catch((err) => {
+          setError(err.response.data || "Invalid email or password");
+        });
+    } catch (err: any) {
+      setError(err.response.data || "Invalid email or password");
     }
   };
 

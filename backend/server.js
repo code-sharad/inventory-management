@@ -3,6 +3,9 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const authRoutes = require("./routes/authRoute");
 const { authenticate, restrictTo } = require("./middleware/auth");
+
+const rateLimit = require("express-rate-limit");
+
 require("dotenv").config();
 const app = express();
 // app.set("trust proxy", 1);
@@ -16,7 +19,13 @@ const app = express();
 // );
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const csurf = require("csurf");
 const JWT_SECRET = process.env.JWT_SECRET;
+
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
+
+app.use(bodyParser.json());
 
 app.use(
   cors({
@@ -24,10 +33,15 @@ app.use(
     credentials: true,
   })
 );
-
-
-
-app.use(bodyParser.json());
+app.use(
+  csurf({
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: true, // set to false if testing on localhost without HTTPS
+    },
+  })
+);
 
 const db = require("./db");
 db().then((res) => {
@@ -46,7 +60,14 @@ const User = require("./models/user");
 const invoiceModel = require("./models/invoiceModel");
 
 app.use("/auth", authenticate, authRoutes);
-app.use("/login", async (req, res) => {
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // limit each IP to 10 requests per windowMs
+  message: "Too many login attempts, please try again later.",
+});
+
+app.use("/login", loginLimiter, async (req, res) => {
   const { email, password } = req.body;
   //   console.log("Received login request:", { username });
 
@@ -98,6 +119,12 @@ app.use("/login", async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
+app.get("/csrf-token", (req, res) => {
+  console.log(req.csrfToken());
+  res.json({ csrfToken: req.csrfToken() });
+});
+
 app.use("/customer", authenticate, customerRoute);
 app.use("/category", authenticate, categoryRoute);
 app.use("/item", authenticate, itemRoute);
