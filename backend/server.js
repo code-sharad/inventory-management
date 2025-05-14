@@ -8,7 +8,6 @@ const rateLimit = require("express-rate-limit");
 
 require("dotenv").config();
 const app = express();
-app.set("trust proxy", 1);
 
 // app.use(
 //   cors({
@@ -19,8 +18,9 @@ app.set("trust proxy", 1);
 // );
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const csurf = require("csurf");
+
 const JWT_SECRET = process.env.JWT_SECRET;
+
 
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
@@ -33,15 +33,8 @@ app.use(
     credentials: true,
   })
 );
-app.use(
-  csurf({
-    cookie: {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-    },
-  })
-);
+
+
 
 const db = require("./db");
 db().then((res) => {
@@ -120,10 +113,10 @@ app.use("/login", loginLimiter, async (req, res) => {
   }
 });
 
-app.get("/csrf-token", (req, res) => {
-  console.log(req.csrfToken());
-  res.json({ csrfToken: req.csrfToken() });
-});
+// app.get("/csrf-token", (req, res) => {
+//   console.log(req.csrfToken());
+//   res.json({ csrfToken: req.csrfToken() });
+// });
 
 app.use("/customer", authenticate, customerRoute);
 app.use("/category", authenticate, categoryRoute);
