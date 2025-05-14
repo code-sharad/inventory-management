@@ -38,10 +38,10 @@ export default function Login() {
         }
       })
         .catch((err) => {
-          setError(err.response.data || "Invalid email or password");
-        });
+          setError(err.response.data.message || "Invalid email or password");
+        }); 
     } catch (err: any) {
-      setError(err.response.data || "Invalid email or password");
+      setError(err.response.data.message || "Invalid email or password");
     }
   };
 
