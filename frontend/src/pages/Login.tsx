@@ -37,11 +37,11 @@ export default function Login() {
           setError("Invalid email or password");
         }
       })
-        .catch((err) => {
-          setError(err.response.data.message || "Invalid email or password");
-        }); 
+        .catch(() => {
+          setError("Too many requests, please try again later");
+        });
     } catch (err: any) {
-      setError(err.response.data.message || "Invalid email or password");
+      setError(err.response.data || "Invalid email or password");
     }
   };
 
