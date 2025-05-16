@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import axiosInstance from "@/api";
+import axios from "axios";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -24,7 +25,8 @@ export default function Login() {
       axiosInstance.post(`/login`, {
         email,
         password,
-      }).then((res) => {
+      }).then((res: any) => {
+        console.log(res)
         if (res.status === 200) {
           login(res.data);
           if (res.data.role === "admin") {
@@ -34,12 +36,15 @@ export default function Login() {
             navigate("/inventory");
           }
         } else {
-          setError("Invalid email or password");
+          setError(res.data.message);
         }
       })
-        .catch(() => {
-          setError("Too many requests, please try again later");
+        .catch((err: any) => {
+          console.log(err.response.data)
+          setError(err.response.data.message || err.response.data);
         });
+
+     
     } catch (err: any) {
       setError(err.response.data || "Invalid email or password");
     }

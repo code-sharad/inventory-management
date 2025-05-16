@@ -1,4 +1,5 @@
 import axios from "axios";
+import { error } from "console";
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL, // or your API base URL
@@ -21,8 +22,6 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.response.use(
   (response) => {
-
-
     return response;
   },
   async (error) => {
@@ -35,6 +34,7 @@ axiosInstance.interceptors.response.use(
         window.location.href = "/login";
       }
     }
+    return Promise.reject(error);
     // if (error.response && error.response.status === 403 && !originalRequest._retry) {
     //   originalRequest._retry = true;
     //   csrfToken = await fetchCsrfToken();
@@ -42,7 +42,6 @@ axiosInstance.interceptors.response.use(
     //   return axiosInstance.request(error.config);
 
     // }
-    // return Promise.reject(error);
   }
 );
 
