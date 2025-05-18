@@ -85,12 +85,13 @@ function Invoice() {
     new Date().toISOString().split("T")[0]
   );
   const [companyDetails, setCompanyDetails] = useState({
-    name: "Your Company Name",
-    address: "123 Business Street",
-    cityState: "City, State 12345",
-    phone: "(555) 123-4567",
-    email: "billing@company.com",
+    name: "Dynamic Enterprises",
+    address: "Gogalwadi Phata, Jijabai Nagar, Near Katraj Tunnel NH4, Shindewadi, Tal- Bhor",
+    cityState: "Pune, Maharashtra 412205",
+    phone: "9820132560, 9637831717",
+    email: "dyn.enterprises@gmail.com",
   });
+  
   const [selectedTemplate, setSelectedTemplate] = useState("modern");
 
   const [customers, setCustomers] = useState<{

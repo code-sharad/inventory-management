@@ -1,32 +1,23 @@
-const mongoose = require("mongoose");
+const mongoose = require("mongoose")
 const bcrypt = require("bcryptjs");
 const User = require("./models/user");
 require("dotenv").config();
 
-const mongoURL = process.env.MONGOURL;
+const mongoURL = process.env.MONGOURL_VARUN;
 const seedUsers = async () => {
   try {
-    await mongoose.connect(mongoURL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    console.log(mongoURL)
+    await mongoose.connect(mongoURL);
 
-    // Clear existing users
-    await User.deleteMany({});
+
 
     // Hardcoded users
     const users = [
       {
-        username: "admin",
-        email: "admin@gmail.com",
+        username: "Varun",
+        email: "kalevarun54@gmail.com",
         password: await bcrypt.hash("admin123", 10),
         role: "admin",
-      },
-      {
-        username: "user",
-        email: "user@gmail.com",
-        password: await bcrypt.hash("user123", 10),
-        role: "user",
       },
     ];
 
@@ -40,4 +31,6 @@ const seedUsers = async () => {
   }
 };
 
-seedUsers();
+seedUsers().then(() => {
+  console.log('connected')
+})
