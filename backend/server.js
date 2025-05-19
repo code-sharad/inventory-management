@@ -9,13 +9,6 @@ const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 const app = express();
 
-// app.use(
-//   cors({
-//     origin: "http://localhost:5173", // Your frontend URL (Vite default port)
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//     allowedHeaders: ["Content-Type"],
-//   })
-// );
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
@@ -53,6 +46,7 @@ const invoiceRoute = require("./routes/invoiceRoute");
 const customerRoute = require("./routes/customerRoute");
 const User = require("./models/user");
 const invoiceModel = require("./models/invoiceModel");
+app.set("trust proxy", 1);
 
 app.use("/auth", authenticate, authRoutes);
 
@@ -61,6 +55,7 @@ const loginLimiter = rateLimit({
   max: 10, // limit each IP to 10 requests per windowMs
   message: "Too many login attempts, please try again later.",
 });
+
 
 app.use("/login", loginLimiter, async (req, res) => {
   const { email, password } = req.body;
