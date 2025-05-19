@@ -141,11 +141,15 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
       setLoading(false);
     }
   };
+
+  console.log(url)
+
+
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-neutral-900 flex flex-col items-center py-8 px-2 font-sans">
       {/* Download Button */}
       {
-        url.includes('billing') ? '' : (
+        !url.includes('billing') ? '' : (
           <div className=" my-4 border-gray-200 flex w-full justify-start ml-6 rounded-b-lg">
             <button
               onClick={handleDownloadPDF}

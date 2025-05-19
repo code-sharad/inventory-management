@@ -142,7 +142,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
       {/* Header Bar */}
       {/* Download Button */}
       {
-        url.includes('billing') ? '' : (
+        !url.includes('billing') ? '' : (
           <div className=" my-4 border-gray-200 flex w-full justify-start ml-6 rounded-b-lg">
             <button
               onClick={handleDownloadPDF}

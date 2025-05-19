@@ -142,7 +142,7 @@ export default function BillingHistoryPage() {
       searchQuery
     )
   );
-  console.log(filteredInvoices)
+  // console.log(filteredInvoices)
 
 
 
