@@ -73,15 +73,19 @@ router.post("/", async (req, res) => {
 router.get("/get-invoice-number", async (req, res) => {
   const lastInvoice = await invoiceModel.find();
   if (lastInvoice.length === 0) {
-    const currentYear = new Date().getFullYear();
-    const nextInvoiceNumber = `DE-1-${currentYear}`;
+    const currentYear = new Date().getFullYear().toString().slice(2);
+    const nextYear = Number(currentYear) + 1;
+    const nextInvoiceNumber = `DE/1/${currentYear}-${nextYear}`;
     return res.json({ invoiceNumber: nextInvoiceNumber });
   }
   const lastInvoiceNumber = lastInvoice[lastInvoice.length - 1].invoiceNumber;
   const lastInvoiceParts = lastInvoiceNumber.split("-");
   const lastInvoiceYear = lastInvoiceParts[1];
-  const currentYear = new Date().getFullYear();
-  const nextInvoiceNumber = `DE-${Number(lastInvoiceYear) + 1}-${currentYear}`;
+  const currentYear = new Date().getFullYear().toString().slice(2); // 25
+  const nextYear = Number(currentYear) + 1;
+  const nextInvoiceNumber = `DE/${
+    Number(lastInvoiceYear) + 1
+  }/${currentYear}-${nextYear}`;
   res.json({ invoiceNumber: nextInvoiceNumber });
 });
 
