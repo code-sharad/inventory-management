@@ -23,6 +23,7 @@ interface InvoiceData {
     address: string;
     phone: string;
     email: string;
+    cityState: string;
   };
   items: {
     id: string;
@@ -171,7 +172,7 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 tracking-wide">{companyDetails.name}</h1>
-              <p className="text-sm text-gray-500">{companyDetails.address}</p>
+              <p className="text-sm text-gray-500 max-w-[400px]">{companyDetails.address} {companyDetails.cityState}</p>
             </div>
           </div>
 

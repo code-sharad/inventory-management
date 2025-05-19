@@ -169,7 +169,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
         <div className="w-full rounded-t-lg bg-white border-b border-gray-300 px-0 py-6 flex flex-row justify-between items-center">
           <div className="flex flex-col items-start">
             <h1 className="text-2xl font-bold text-gray-900 tracking-wide">{companyDetails.name}</h1>
-            <span className="text-gray-600 text-sm mt-1">{companyDetails.address}, {companyDetails.cityState}</span>
+            <span className="text-gray-600 text-sm mt-1 text-left  max-w-[200px]">{companyDetails.address}, {companyDetails.cityState}</span>
           </div>
           <div className="flex flex-col items-end">
             <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} size={64} />

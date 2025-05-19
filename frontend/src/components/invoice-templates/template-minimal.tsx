@@ -174,7 +174,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
         <div ref={contentRef} className="flex-1 flex flex-col px-10 py-8 gap-8">
           {/* Header */}
           <div className="border-b border-gray-200 pb-6 mb-2 flex justify-between sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
+            <div className=''>
               <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-1 uppercase">{companyDetails.name}</h1>
               <div className="text-sm text-gray-500 space-y-0.5">
                 <p>{companyDetails.address}</p>
@@ -199,7 +199,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
           {/* Bill To only */}
           <div className="flex flex-col sm:flex-row justify-between gap-8">
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 flex-1 min-w-[220px]">
-              <h3 className="text-lg font-bold text-gray-800 mb-2 uppercase tracking-wide">Bill To</h3>
+              <h3 className="text-lg font-bold text-gray-800 mb-2 uppercase tracking-wide text-left">Bill To</h3>
               <p className="font-semibold text-gray-900">{customer.name}</p>
               <p className="text-gray-700 text-sm">{customer.address}</p>
               <p className="text-gray-700 text-sm">{customer.email}</p>
