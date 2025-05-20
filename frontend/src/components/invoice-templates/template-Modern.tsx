@@ -6,6 +6,8 @@ import html2canvas from 'html2canvas-pro';
 import { formatCurrency } from '@/lib/formatCurrency';
 import QRCode from "react-qr-code"
 import { QrCode } from 'lucide-react';
+import { useReactToPrint } from 'react-to-print';
+
 import { toast } from 'sonner';
 
 interface InvoiceData {
@@ -51,81 +53,89 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
   const contentRef = useRef<HTMLDivElement>(null);
   const url = window.location.href;
   const [loading, setLoading] = useState(false);
+
   console.log(invoiceData)
+  const handlePrint = useReactToPrint({
+    contentRef: contentRef,
+    documentTitle: `Invoice ${invoiceNumber}`,
+  });
+  const getPageMargins = () => {
+    return `@page { margin: ${0.79} ${0.79} ${0.79} ${0.79} !important; }`;
+  };
   const handleDownloadPDF = async () => {
     setLoading(true);
     try {
       if (contentRef.current) {
         await html2canvas(contentRef.current, { scale: 2 }).then((canvas) => {
-          const imgWidth = 210; // A4 width in mm
-          const pageHeight = 297; // A4 height in mm
-          const margin = 10; // 10mm margin
-          const usableWidth = imgWidth - 2 * margin;
-          const usablePageHeight = pageHeight - 2 * margin;
-          const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4',
-          });
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 297; // A4 height in mm
+        const margin = 10; // 10mm margin
+        const usableWidth = imgWidth - 2 * margin;
+        const usablePageHeight = pageHeight - 2 * margin;
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4',
+        });
 
-          const imgData = canvas.toDataURL('image/png');
-          const imgProps = {
-            width: canvas.width,
-            height: canvas.height,
-          };
-          const pdfHeight = (imgProps.height * usableWidth) / imgProps.width;
+        const imgData = canvas.toDataURL('image/png');
+        const imgProps = {
+          width: canvas.width,
+          height: canvas.height,
+        };
+        const pdfHeight = (imgProps.height * usableWidth) / imgProps.width;
 
-          if (pdfHeight <= usablePageHeight) {
-            // Single page
-            pdf.addImage(imgData, 'PNG', margin, margin, usableWidth, pdfHeight);
-          } else {
-            // Multi-page
-            let position = 0;
-            let remainingHeight = imgProps.height;
-            while (remainingHeight > 0) {
-              const sliceHeight = Math.min(canvas.height - position, (usablePageHeight * canvas.width) / usableWidth);
-              if (sliceHeight <= 0 || canvas.width <= 0) break; // Prevents extra blank page and corrupt PNG
+        if (pdfHeight <= usablePageHeight) {
+          // Single page
+          pdf.addImage(imgData, 'PNG', margin, margin, usableWidth, pdfHeight);
+        } else {
+          // Multi-page
+          let position = 0;
+          let remainingHeight = imgProps.height;
+          while (remainingHeight > 0) {
+            const sliceHeight = Math.min(canvas.height - position, (usablePageHeight * canvas.width) / usableWidth);
+            if (sliceHeight <= 0 || canvas.width <= 0) break; // Prevents extra blank page and corrupt PNG
 
-              const pageCanvas = document.createElement('canvas');
-              pageCanvas.width = canvas.width;
-              pageCanvas.height = sliceHeight;
+            const pageCanvas = document.createElement('canvas');
+            pageCanvas.width = canvas.width;
+            pageCanvas.height = sliceHeight;
 
-              const ctx = pageCanvas.getContext('2d');
-              if (ctx) {
-                ctx.fillStyle = "#fff";
-                ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-                ctx.drawImage(
-                  canvas,
-                  0,
-                  position,
-                  canvas.width,
-                  sliceHeight,
-                  0,
-                  0,
-                  canvas.width,
-                  sliceHeight
-                );
-              }
-
-              // Only add the page if the canvas is not empty and image data is valid
-              if (pageCanvas.width > 0 && pageCanvas.height > 0) {
-                const pageImgData = pageCanvas.toDataURL('image/png');
-                if (
-                  pageImgData &&
-                  pageImgData.startsWith('data:image/png;base64,') &&
-                  pageImgData.length > 'data:image/png;base64,'.length
-                ) {
-                  if (position > 0) pdf.addPage();
-                  pdf.addImage(pageImgData, 'PNG', margin, margin, usableWidth, (sliceHeight * usableWidth) / canvas.width);
-                }
-              }
-
-              position += sliceHeight;
-              remainingHeight -= sliceHeight;
+            const ctx = pageCanvas.getContext('2d');
+            if (ctx) {
+              ctx.fillStyle = "#fff";
+              ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+              ctx.drawImage(
+                canvas,
+                0,
+                position,
+                canvas.width,
+                sliceHeight,
+                0,
+                0,
+                canvas.width,
+                sliceHeight
+              );
             }
-          }
 
-          pdf.save(`invoice_${invoiceNumber}.pdf`);
+            // Only add the page if the canvas is not empty and image data is valid
+            if (pageCanvas.width > 0 && pageCanvas.height > 0) {
+              const pageImgData = pageCanvas.toDataURL('image/png');
+              if (
+                pageImgData &&
+                pageImgData.startsWith('data:image/png;base64,') &&
+                pageImgData.length > 'data:image/png;base64,'.length
+              ) {
+                if (position > 0) pdf.addPage();
+                pdf.addImage(pageImgData, 'PNG', margin, margin, usableWidth, (sliceHeight * usableWidth) / canvas.width);
+              }
+            }
+
+            position += sliceHeight;
+            remainingHeight -= sliceHeight;
+          }
+        }
+
+        pdf.save(`invoice_${invoiceNumber}.pdf`);
         });
       }
     } catch (error) {
@@ -145,7 +155,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
         !url.includes('billing') ? '' : (
           <div className=" my-4 border-gray-200 flex w-full justify-start ml-6 rounded-b-lg">
             <button
-              onClick={handleDownloadPDF}
+              onClick={handlePrint}
               className="px-7 py-3 bg-gray-800 text-white font-bold rounded shadow hover:bg-black transition-colors text-lg border border-gray-700"
               disabled={loading}
             >
@@ -165,7 +175,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
       }
 
       {/* Main Content Card */}
-      <div ref={contentRef} className="w-[794px] min-h-[1123px] bg-white rounded-b-lg   px-8 pb-8 flex flex-col gap-8">
+      <div ref={contentRef} id="printable-content" className={`w-[794px] min-h-[1123px] bg-white rounded-b-lg   px-8 pb-8 flex flex-col gap-8 ${getPageMargins()}`}>
         <div className="w-full rounded-t-lg bg-white border-b border-gray-300 px-0 py-6 flex flex-row justify-between items-center">
           <div className="flex flex-col items-start">
             <h1 className="text-2xl font-bold text-gray-900 tracking-wide">{companyDetails.name}</h1>
