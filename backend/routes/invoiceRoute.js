@@ -3,6 +3,17 @@ const router = express.Router();
 const invoiceModel = require("../models/invoiceModel");
 const itemModel = require("../models/item");
 const mongoose = require("mongoose");
+const QRCode = require("qrcode");
+// const  generateQRCode = require("../qr.js");
+require("dotenv").config();
+
+async function generateQRCode(invoiceId) {
+  const url = await QRCode.toDataURL(
+    `${process.env.VITE_FRONTEND_URL}/invoice/${invoiceId}`,
+    { width: 64 }
+  );
+  return url;
+}
 
 router.post("/", async (req, res) => {
   const session = await mongoose.startSession();
@@ -10,44 +21,40 @@ router.post("/", async (req, res) => {
 
   try {
     const invoiceData = req.body;
-    console.log(invoiceData);
+    console.log(invoiceData, "invoiceData");
+    // const url = await QRCode.toDataURL(
+    //   `${process.env.VITE_FRONTEND_URL}/invoice/${newInvoice._id}`,
+    //   { width: 64 }
+    // );
+    const url = await generateQRCode(invoiceData._id);
+    invoiceData.qrCode = url;
+    console.log(url, "url");
+
     // Update quantities for all items in the invoice
     for (const invoiceItem of invoiceData.items) {
       const item = await itemModel.findById(invoiceItem.id);
-      // item.category = invoiceItem.categoryId;
-      // console.log(item);
       if (!item) {
         throw new Error(`Item not found: ${invoiceItem.name}`);
       }
-
       if (item.quantity < invoiceItem.quantity) {
         throw new Error(`Insufficient quantity for item: ${invoiceItem.name}`);
       }
-
-      // Decrement the quantity
       await itemModel.findByIdAndUpdate(
         invoiceItem.id,
         {
           $inc: { quantity: -invoiceItem.quantity },
-          $set: {
-            updatedAt: new Date(),
-          },
+          $set: { updatedAt: new Date() },
         },
         { session }
       );
     }
-    // const totalInvoices = await invoiceModel.find({});
-    // const lastInvoice = totalInvoices[totalInvoices.length - 1];
-    // const lastInvoiceNumber = lastInvoice.invoiceNumber;
-    // const lastInvoiceNumberParts = lastInvoiceNumber.split("-");
-    // const lastInvoiceNumberYear = lastInvoiceNumberParts[1];
-    // console.log(lastInvoiceNumberYear);
-    // const currentYear = new Date().getFullYear();
-    // const invoiceNumber = `DE-${Number(lastInvoiceNumberYear) + 1}-${currentYear}`;
 
-    // // Create and save the invoice
-    // invoiceData.invoiceNumber = invoiceNumber;
+    // Create and save the invoice first (without QR code)
     const newInvoice = new invoiceModel(invoiceData);
+    await newInvoice.save({ session });
+
+    // Now generate the QR code using the saved invoice's ID
+
     await newInvoice.save({ session });
 
     // Commit the transaction
@@ -56,22 +63,22 @@ router.post("/", async (req, res) => {
     res.status(201).json({
       message: "Invoice saved successfully and quantities updated",
       invoice: newInvoice,
+      url: url,
     });
   } catch (error) {
-    // If any error occurs, abort the transaction
     await session.abortTransaction();
     res.status(500).json({
       message: "Error saving invoice",
       error: error.message,
     });
   } finally {
-    // End the session
     session.endSession();
   }
 });
 
 router.get("/get-invoice-number", async (req, res) => {
   const lastInvoice = await invoiceModel.find();
+
   if (lastInvoice.length === 0) {
     const currentYear = new Date().getFullYear().toString().slice(2);
     const nextYear = Number(currentYear) + 1;

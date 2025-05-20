@@ -33,7 +33,7 @@ app.use(
 
 const db = require("./db");
 db().then((res) => {
-  console.log(res);
+  console.log(res,'------------------------');
 });
 
 app.get("/", (req, res) => {

@@ -62,6 +62,7 @@ type Invoice = {
   gstAmount: number;
   gstRate: number;
   total: number;
+  qrCode: string;
   template: "modern" | "minimal" | "classic";
 };
 
@@ -270,9 +271,9 @@ export default function BillingHistoryPage() {
                         <div className="flex justify-end items-center gap-2">
 
                           <PDFDownloadLink
-                            document={<ModernInvoicePDF invoiceData={invoice} qrCode={qrCodePreview} />}
+                            document={<ModernInvoicePDF invoiceData={invoice} qrCode={invoice.qrCode} />}
                             fileName={`${invoice.invoiceNumber}.pdf`}
-                            onClick={() => handleDownloadPDF(invoice)}
+                          // onClick={() => handleDownloadPDF(invoice)}
                           >
                             <Download className="h-4 w-4" />
                           </PDFDownloadLink>

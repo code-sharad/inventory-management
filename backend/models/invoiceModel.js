@@ -80,6 +80,11 @@ const invoiceSchema = mongoose.Schema({
     phone: String,
     email: String,
   },
+  qrCode: {
+    type: String,
+    required: true,
+    default: "",
+  },
   createdAt: {
     type: Date,
     default: Date.now,
