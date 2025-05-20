@@ -10,7 +10,7 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "fields is required" });
     }
 
-    name = name.trim().toLowerCase();
+    name = name.trim().toUpperCase();
 
     const existingCustomer = await customerModel.findOne({ gstNumber });
     console.log(existingCustomer);

@@ -333,7 +333,7 @@ export default function CustoemrPage() {
                     <TableBody>
                         {customer.map((product) => (
                             <TableRow key={product._id}>
-                                <TableCell>{product.name}</TableCell>
+                                <TableCell>{product.name.toUpperCase()}</TableCell>
                                 {/* <TableCell>
                                     <Badge variant="outline">
                                         {typeof product.category === 'string'

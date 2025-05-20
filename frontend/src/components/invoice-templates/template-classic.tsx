@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas-pro';
 import QRCode from 'react-qr-code';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/formatCurrency';
+import { useReactToPrint } from 'react-to-print';
 
 interface InvoiceData {
   id: string;
@@ -136,12 +137,17 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
     }
   };
 
+  const handlePrint = useReactToPrint({
+    contentRef: contentRef,
+    documentTitle: `Invoice ${invoiceNumber}`,
+  });
+
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-neutral-900 flex flex-col items-center py-8 px-2 font-sans">
       {/* Download Button */}
       {
         !url.includes('billing') ? '' : (
-          <div className=" my-4 border-gray-200 flex w-full justify-start ml-6 rounded-b-lg">
+          <div className="my-4 border-gray-200 flex w-full justify-start ml-6 rounded-b-lg gap-2">
             <button
               onClick={handleDownloadPDF}
               className="px-7 py-3 bg-gray-800 text-white font-bold rounded shadow hover:bg-black transition-colors text-lg border border-gray-700"
@@ -159,10 +165,17 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
                 'Download PDF'
               )}
             </button>
+            <button
+              onClick={handlePrint}
+              className="px-7 py-3 bg-blue-700 text-white font-bold rounded shadow hover:bg-blue-900 transition-colors text-lg border border-blue-700"
+              disabled={loading}
+            >
+              Print
+            </button>
           </div>)
       }
       <div ref={contentRef}
-        className="w-[210mm] min-h-[297mm] bg-white rounded-lg shadow  flex flex-col mx-auto print:w-[210mm] print:min-h-[297mm]"
+        className="w-[210mm] min-h-[297mm] bg-white rounded-lg shadow flex flex-col mx-auto print:w-[210mm] print:min-h-[297mm]"
       >
         {/* Header */}
         <div className="px-8 py-6 flex items-center justify-between border-b border-gray-200 bg-white">
@@ -225,9 +238,9 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
           </Table>
 
           {/* Totals Section */}
-          <div className="mt-8 flex flex-col items-end">
-            <div className="w-full max-w-xs">
-              <div className="flex justify-between py-2 text-gray-700 border-b border-gray-200">
+          <div className="flex flex-col items-end mt-8">
+            <div className="w-full bg-white rounded-lg p-6 border border-gray-200 flex flex-col gap-2 max-w-xs">
+              <div className="flex justify-between text-gray-700 text-base">
                 <span>Subtotal</span>
                 <span>₹{subtotal.toFixed(2)}</span>
               </div>
@@ -243,11 +256,11 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
                   <span>₹{formatCurrency(invoiceData.packaging)}</span>
                 </div>
               )}
-              <div className="flex justify-between py-2 text-gray-700 border-b border-gray-200">
+              <div className="flex justify-between text-gray-700 text-base">
                 <span>GST (18%)</span>
                 <span>₹{gstAmount.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between py-3 text-xl font-bold text-gray-900">
+              <div className="flex justify-between text-gray-900 text-lg font-bold mt-2 border-t pt-2">
                 <span>Total</span>
                 <span>₹{total.toFixed(2)}</span>
               </div>
@@ -257,8 +270,8 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
         <div className="flex flex-col items-end justify-center px-8 pb-6">
         </div>
       </div>
-     
-    
+
+
     </div>
   );
 };

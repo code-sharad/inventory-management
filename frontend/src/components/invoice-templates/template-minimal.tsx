@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas-pro';
 import { formatCurrency } from '@/lib/formatCurrency';
 import QRCode from 'react-qr-code';
 import { toast } from 'sonner';
+import { useReactToPrint } from 'react-to-print';
 
 interface InvoiceData {
   id: string;
@@ -56,6 +57,11 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
 
   const contentRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
+
+  const handlePrint = useReactToPrint({
+    contentRef: contentRef,
+    documentTitle: `Invoice ${invoiceNumber}`,
+  });
 
   // PDF Download (A4, scale=2)
   const handleDownloadPDF = async () => {
@@ -150,7 +156,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
       {/* Download Button */}
       {
         !url.includes('billing') ? '' : (
-          <div className=" my-4 border-gray-200 flex w-full justify-start ml-6 rounded-b-lg">
+          <div className=" my-4 border-gray-200 flex w-full justify-start ml-6 rounded-b-lg gap-2">
             <button
               onClick={handleDownloadPDF}
               className="px-7 py-3 bg-gray-800 text-white font-bold rounded shadow hover:bg-black transition-colors text-lg border border-gray-700"
@@ -167,6 +173,13 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
               ) : (
                 'Download PDF'
               )}
+            </button>
+            <button
+              onClick={handlePrint}
+              className="px-7 py-3 bg-blue-700 text-white font-bold rounded shadow hover:bg-blue-900 transition-colors text-lg border border-blue-700"
+              disabled={loading}
+            >
+              Print
             </button>
           </div>)
       }
@@ -277,7 +290,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
           </div>
         </div>
 
-        
+
       </div>
     </div>
   );

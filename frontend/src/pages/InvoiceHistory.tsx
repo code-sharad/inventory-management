@@ -15,6 +15,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   ChevronLeft,
   ChevronRight,
+  Download,
   Eye,
   Search,
   Trash2,
@@ -27,6 +28,9 @@ import { format, parseISO } from "date-fns";
 import axiosInstance from "@/api";
 import { toast } from "sonner";
 import InvoiceClassic from "@/components/invoice-templates/template-classic";
+import ModernInvoicePDF from "@/components/invoice-templates/ModernInvoicePDF";
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import QRCode from 'qrcode';
 // Define invoice type
 type Invoice = {
   id: string;
@@ -102,6 +106,7 @@ export default function BillingHistoryPage() {
   // @ts-ignore
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
+  const [qrCodePreview, setQRCodePreview] = useState<string>('');
 
 
 
@@ -128,6 +133,7 @@ export default function BillingHistoryPage() {
         console.error("Error fetching invoices:", error);
       }
     };
+
 
     fetchInvoices();
   }, [])
@@ -158,6 +164,11 @@ export default function BillingHistoryPage() {
   // Preview invoice
   const previewInvoice = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
+
+    QRCode.toDataURL(`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoice.id}`, { width: 120 }, (err: any, url: string) => {
+      setQRCodePreview(url);
+      console.log(url)
+    });
     setIsPreviewOpen(true);
   };
 
@@ -181,6 +192,19 @@ export default function BillingHistoryPage() {
       setInvoiceToDelete(null);
     }
   };
+
+  const handleDownloadPDF = (invoice: Invoice) => {
+    QRCode.toDataURL(`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoice.id}`, { width: 120 }, (err: any, url: string) => {
+      setQRCodePreview(url);
+      console.log(url)
+    });
+    return <PDFDownloadLink
+      document={<ModernInvoicePDF invoiceData={invoice} qrCode={qrCodePreview} />}
+      fileName={`${invoice.invoiceNumber}.pdf`}
+    >
+      Download PDF
+    </PDFDownloadLink>
+  }
 
   // Get status badge color
 
@@ -214,8 +238,9 @@ export default function BillingHistoryPage() {
                   <TableHead>Invoice #</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Customer</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-left">Amount</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right">Delete</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -238,11 +263,19 @@ export default function BillingHistoryPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-left font-medium">
                         ₹{formatCurrency(invoice.total)}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                      <TableCell>
+                        <div className="flex justify-end items-center gap-2">
+
+                          <PDFDownloadLink
+                            document={<ModernInvoicePDF invoiceData={invoice} qrCode={qrCodePreview} />}
+                            fileName={`${invoice.invoiceNumber}.pdf`}
+                            onClick={() => handleDownloadPDF(invoice)}
+                          >
+                            <Download className="h-4 w-4" />
+                          </PDFDownloadLink>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -252,6 +285,11 @@ export default function BillingHistoryPage() {
                             <Eye className="h-4 w-4" />
                             <span className="sr-only">Preview</span>
                           </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+
                           <Button
                             variant="ghost"
                             size="icon"
@@ -353,11 +391,12 @@ export default function BillingHistoryPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="dark:bg-neutral-900 overflow-y-auto w-full max-w-full min-h-[60vh] sm:min-h-[400px] rounded-md shadow-sm">
-            {selectedInvoice?.template === "modern" && (
+            {selectedInvoice?.template === "modern" &&
               <ModernInvoiceTemplate
                 invoiceData={selectedInvoice}
               />
-            )}
+
+            }
             {selectedInvoice?.template === "minimal" && (
               <PremiumMinimalInvoice
                 invoiceData={selectedInvoice}
