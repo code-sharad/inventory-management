@@ -37,10 +37,17 @@ type Invoice = {
   invoiceNumber: string;
   createdAt: string;
   invoiceDate: string;
-  customer: {
+  customerBillTo: {
     name: string;
-    email: string;
     address: string;
+    gstNumber?: string;
+    panNumber?: string;
+  };
+  customerShipTo: {
+    name: string;
+    address: string;
+    gstNumber?: string;
+    panNumber?: string;
   };
   companyDetails: {
     name: string;
@@ -143,8 +150,8 @@ export default function BillingHistoryPage() {
     matchesSearchFields(
       [
         invoice.invoiceNumber,
-        invoice.customer.name,
-        invoice.customer.email
+        invoice.customerBillTo.name,
+        invoice.customerShipTo.name
       ],
       searchQuery
     )
@@ -257,10 +264,10 @@ export default function BillingHistoryPage() {
                       <TableCell>
                         <div>
                           <div className="font-medium">
-                            {invoice.customer.name}
+                            {invoice.customerBillTo.name}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {invoice.customer.email}
+                            {/* {invoice.customerBillTo.address} */}
                           </div>
                         </div>
                       </TableCell>
@@ -388,7 +395,7 @@ export default function BillingHistoryPage() {
           <DialogHeader>
             <DialogTitle>Invoice Preview</DialogTitle>
             <DialogDescription>
-              {selectedInvoice?.invoiceNumber} - {selectedInvoice?.customer.name}
+              {selectedInvoice?.invoiceNumber} - {selectedInvoice?.customerBillTo.name}
             </DialogDescription>
           </DialogHeader>
           <div className="dark:bg-neutral-900 overflow-y-auto w-full max-w-full min-h-[60vh] sm:min-h-[400px] rounded-md shadow-sm">

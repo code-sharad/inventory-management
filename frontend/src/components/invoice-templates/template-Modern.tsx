@@ -15,9 +15,14 @@ interface InvoiceData {
   invoiceNumber: string;
   createdAt: string;
   invoiceDate: string;
-  customer: {
+  customerBillTo: {
     name: string;
-    email: string;
+    address: string;
+    gstNumber?: string;
+    panNumber?: string;
+  };
+  customerShipTo: {
+    name: string;
     address: string;
     gstNumber?: string;
     panNumber?: string;
@@ -49,7 +54,7 @@ interface InvoiceData {
 
 
 const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }) => {
-  const { customer, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
+  const { customerBillTo, customerShipTo, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
   const contentRef = useRef<HTMLDivElement>(null);
   const url = window.location.href;
   const [loading, setLoading] = useState(false);
@@ -201,17 +206,32 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
         </div>
         {/* Bill To & Company Details */}
         <div className="flex flex-row justify-between gap-8">
-          <div className="bg-gray-50 rounded-lg p-4 flex-1 min-w-[220px] border border-gray-200">
-            <h3 className="text-base font-semibold text-gray-800 mb-2">Bill To</h3>
-            <p className="font-medium text-gray-900">{customer.name}</p>
-            <p className="text-gray-700 text-sm">{customer.address}</p>
-            <p className="text-gray-700 text-sm">{customer.email}</p>
-            {customer.gstNumber && (
-              <p className="text-gray-700 text-sm">GSTIN: {customer.gstNumber}</p>
-            )}
-            {customer.panNumber && (
-              <p className="text-gray-700 text-sm">PAN: {customer.panNumber}</p>
-            )}
+          <div className="bg-gray-50 flex flex-wrap justify-between gap-2 rounded-lg p-4 flex-1 min-w-[220px] border border-gray-200">
+           <div>
+              <h3 className="text-base font-semibold text-gray-800 mb-2 ">Bill To :</h3>
+              <p className="font-medium text-gray-900">{customerBillTo.name}</p>
+              <p className="text-gray-700 text-sm">{customerBillTo.address}</p>
+              {/* <p className="text-gray-700 text-sm">{customerBillTo.email}</p> */}
+              {customerBillTo.gstNumber && (
+                <p className="text-gray-700 text-sm">GSTIN: {customerBillTo.gstNumber}</p>
+              )}
+              {customerBillTo.panNumber && (
+                <p className="text-gray-700 text-sm">PAN: {customerBillTo.panNumber}</p>
+              )}
+           </div>
+           <div className='h-[1px] bg-gray-700 w-full'></div>
+            <div>
+              <h3 className="text-base font-semibold text-gray-800 mb-2">Ship To :</h3>
+              <p className="font-medium text-gray-900">{customerShipTo.name}</p>
+              <p className="text-gray-700 text-sm">{customerShipTo.address}</p>
+              {/* <p className="text-gray-700 text-sm">{customerBillTo.email}</p> */}
+              {customerShipTo.gstNumber && (
+                <p className="text-gray-700 text-sm">GSTIN: {customerShipTo.gstNumber}</p>
+              )}
+              {customerShipTo.panNumber && (
+                <p className="text-gray-700 text-sm">PAN: {customerShipTo.panNumber}</p>
+              )}
+            </div>
           </div>
           <div className="bg-gray-50 rounded-lg p-4 flex-1 min-w-[220px] border border-gray-200">
             <h3 className="text-base font-semibold text-gray-800 mb-2">Company Info</h3>

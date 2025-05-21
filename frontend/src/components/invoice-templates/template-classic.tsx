@@ -13,7 +13,13 @@ interface InvoiceData {
   invoiceNumber: string;
   createdAt: string;
   invoiceDate: string;
-  customer: {
+  customerBillTo: {
+    name: string;
+    address: string;
+    gstNumber?: string;
+    panNumber?: string;
+  };
+  customerShipTo: {
     name: string;
     address: string;
     gstNumber?: string;
@@ -44,7 +50,7 @@ interface InvoiceData {
 };
 
 const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }) => {
-  const { customer, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
+  const { customerBillTo, customerShipTo, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
   const gstRate = 0.18; // 18% GST
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const gstAmount = subtotal * gstRate;
@@ -185,30 +191,47 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 tracking-wide">{companyDetails.name}</h1>
+              <p className="text-sm text-gray-500">{companyDetails.phone}</p>
               <p className="text-sm text-gray-500 max-w-[400px]">{companyDetails.address} {companyDetails.cityState}</p>
             </div>
           </div>
 
-          <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} size={64} />
+          <div className='flex flex-col items-end'>
+            <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} size={64} />
+            <div className="text-right">
+              <p className="text-gray-700"><span className="font-medium">Invoice #:</span> {invoiceNumber}</p>
+              <p className="text-gray-700"><span className="font-medium">Date:</span> {invoiceDate}</p>
+            </div>
+          </div>
         </div>
 
         {/* Invoice Info */}
         <div className="px-8 py-6 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row md:justify-between md:items-center">
-          <div className="mb-4 md:mb-0">
-            <h3 className="text-lg font-semibold text-gray-800 mb-1">Bill To:</h3>
-            <p className="text-gray-700"><span className="font-medium">Name:</span> {customer.name}</p>
-            <p className="text-gray-700"><span className="font-medium">Address:</span> {customer.address}</p>
-            {customer.gstNumber && (
-              <p className="text-gray-700"><span className="font-medium">GST Number:</span> {customer.gstNumber}</p>
-            )}
-            {customer.panNumber && (
-              <p className="text-gray-700"><span className="font-medium">PAN Number:</span> {customer.panNumber}</p>
-            )}
+          <div className="mb-4 md:mb-0 grid grid-cols-2 gap-2">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-1">Bill To:</h3>
+              <p className="text-gray-700"><span className="font-medium">Name:</span> {customerBillTo.name}</p>
+              <p className="text-gray-700"><span className="font-medium">Address:</span> {customerBillTo.address}</p>
+              {customerBillTo.gstNumber && (
+                <p className="text-gray-700"><span className="font-medium">GST Number:</span> {customerBillTo.gstNumber}</p>
+              )}
+              {customerBillTo.panNumber && (
+                <p className="text-gray-700"><span className="font-medium">PAN Number:</span> {customerBillTo.panNumber}</p>
+              )}
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-1">Ship To:</h3>
+              <p className="text-gray-700"><span className="font-medium">Name:</span> {customerShipTo.name}</p>
+              <p className="text-gray-700"><span className="font-medium">Address:</span> {customerShipTo.address}</p>
+              {customerShipTo.gstNumber && (
+                <p className="text-gray-700"><span className="font-medium">GST Number:</span> {customerShipTo.gstNumber}</p>
+              )}
+              {customerShipTo.panNumber && (
+                <p className="text-gray-700"><span className="font-medium">PAN Number:</span> {customerShipTo.panNumber}</p>
+              )}
+            </div>
           </div>
-          <div className="text-right">
-            <p className="text-gray-700"><span className="font-medium">Invoice #:</span> {invoiceNumber}</p>
-            <p className="text-gray-700"><span className="font-medium">Date:</span> {invoiceDate}</p>
-          </div>
+          
         </div>
 
         {/* Table Section */}

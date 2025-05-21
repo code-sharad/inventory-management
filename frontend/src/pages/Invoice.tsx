@@ -101,7 +101,20 @@ function Invoice() {
     panNumber: string;
     address: string;
   }[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<{
+  const [selectedCustomerBillTo, setSelectedCustomerBillTo] = useState<{
+    id: string;
+    name: string;
+    gstNumber: string;
+    panNumber: string;
+    address: string;
+  }>({
+    id: "",
+    name: "",
+    gstNumber: "",
+    panNumber: "",
+    address: "",
+  });
+  const [selectedCustomerShopTo, setSelectedCustomerShopTo] = useState<{
     id: string;
     name: string;
     gstNumber: string;
@@ -325,7 +338,8 @@ function Invoice() {
 
   const invoiceData = {
     gstRate,
-    customer: selectedCustomer,
+    customerBillTo: selectedCustomerBillTo,
+    customerShipTo: selectedCustomerShopTo,
     invoiceNumber,
     invoiceDate,
     items: invoiceItems.map(item => ({
@@ -424,72 +438,146 @@ function Invoice() {
 
               <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold mb-4">Customer Details</h3>
-                <div className="space-y-4">
-                  <div>
-                    <Popover>
-                      <PopoverTrigger className="w-full border p-2 rounded-md text-left pl-4 font-medium flex justify-between items-center">
-                        {selectedCustomer.name !== "" ? selectedCustomer.name : "Select customer..."} {" "}
-                        <div className="inline-flex h-6 flex-col">
-                          <ChevronUpIcon /> <ChevronDown />
-                        </div>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[90vw] max-w-[300px]">
-                        <Command>
-                          <CommandInput placeholder="Search customer..." />
-                          <CommandList>
-                            <CommandEmpty>No customers found.</CommandEmpty>
-                            <CommandGroup heading="Customers">
-                              <ScrollArea className="h-[200px]">
-                                {customers.map((c) => (
-                                  <CommandItem
-                                    key={c.id}
-                                    value={c.name}
-                                    onSelect={() => {
-                                      setSelectedCustomer({
-                                        id: c.id,
-                                        name: c.name,
-                                        gstNumber: c.gstNumber,
-                                        panNumber: c.panNumber,
-                                        address: c.address
-                                      });
-                                    }}
-                                  >
-                                    <div className="flex flex-col gap-1">
-                                      <span className="font-medium">{c.name}</span>
-                                      {/* <span className="text-sm text-muted-foreground">{c.email}</span> */}
-                                      <span className="text-sm text-muted-foreground">{c.address}</span>
-                                    </div>
-                                  </CommandItem>
-                                ))}
-                              </ScrollArea>
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+               <div className="flex gap-8 flex-wrap">
+                  <div id="bill-to ">
+                    <h3 className="mb-1">Bill To : </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <Popover>
+                          <PopoverTrigger className="w-full border p-2 rounded-md text-left pl-4 font-medium flex justify-between items-center">
+                            {selectedCustomerBillTo.name !== "" ? selectedCustomerBillTo.name : "Select customer..."} {" "}
+                            <div className="inline-flex h-6 flex-col">
+                              <ChevronUpIcon /> <ChevronDown />
+                            </div>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[90vw] max-w-[300px]">
+                            <Command>
+                              <CommandInput placeholder="Search customer..." />
+                              <CommandList>
+                                <CommandEmpty>No customers found.</CommandEmpty>
+                                <CommandGroup heading="Customers">
+                                  <ScrollArea className="h-[200px]">
+                                    {customers.map((c) => (
+                                      <CommandItem
+                                        key={c.id}
+                                        value={c.name}
+                                        onSelect={() => {
+                                          setSelectedCustomerBillTo({
+                                            id: c.id,
+                                            name: c.name,
+                                            gstNumber: c.gstNumber,
+                                            panNumber: c.panNumber,
+                                            address: c.address
+                                          });
+                                        }}
+                                      >
+                                        <div className="flex flex-col gap-1">
+                                          <span className="font-medium">{c.name}</span>
+                                          {/* <span className="text-sm text-muted-foreground">{c.email}</span> */}
+                                          <span className="text-sm text-muted-foreground">{c.address}</span>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                  </ScrollArea>
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
 
-                  {selectedCustomer.id && (
-                    <div className="space-y-2 p-4 border rounded-md bg-muted/50">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Name:</span>
-                        <span>{selectedCustomer.name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">GST:</span>
-                        <span>{selectedCustomer.gstNumber}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Pan Number:</span>
-                        <span>{selectedCustomer.panNumber}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Address:</span>
-                        <span>{selectedCustomer.address}</span>
-                      </div>
+                      {selectedCustomerBillTo.id && (
+                        <div className="space-y-2 p-4 border rounded-md bg-muted/50">
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium">Name:</span>
+                            <span>{selectedCustomerBillTo.name}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium">GST:</span>
+                            <span>{selectedCustomerBillTo.gstNumber}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium">Pan Number:</span>
+                            <span>{selectedCustomerBillTo.panNumber}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium">Address:</span>
+                            <span>{selectedCustomerBillTo.address}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                  <div id="ship-to">
+                    <h3 className="mb-1">Ship To :</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <Popover>
+                          <PopoverTrigger className="w-full border p-2 rounded-md text-left pl-4 font-medium flex justify-between items-center">
+                            {selectedCustomerShopTo.name !== "" ? selectedCustomerShopTo.name : "Select customer..."} {" "}
+                            <div className="inline-flex h-6 flex-col">
+                              <ChevronUpIcon /> <ChevronDown />
+                            </div>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[90vw] max-w-[300px]">
+                            <Command>
+                              <CommandInput placeholder="Search customer..." />
+                              <CommandList>
+                                <CommandEmpty>No customers found.</CommandEmpty>
+                                <CommandGroup heading="Customers ">
+                                  <ScrollArea className="h-[200px]">
+                                    {customers.map((c) => (
+                                      <CommandItem
+                                        key={c.id}
+                                        value={c.name}
+                                        onSelect={() => {
+                                          setSelectedCustomerShopTo({
+                                            id: c.id,
+                                            name: c.name,
+                                            gstNumber: c.gstNumber,
+                                            panNumber: c.panNumber,
+                                            address: c.address
+                                          });
+                                        }}
+                                      >
+                                        <div className="flex flex-col gap-1">
+                                          <span className="font-medium">{c.name}</span>
+                                          {/* <span className="text-sm text-muted-foreground">{c.email}</span> */}
+                                          <span className="text-sm text-muted-foreground">{c.address}</span>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                  </ScrollArea>
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      {selectedCustomerBillTo.id && (
+                        <div className="space-y-2 p-4 border rounded-md bg-muted/50">
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium">Name:</span>
+                            <span>{selectedCustomerBillTo.name}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium">GST:</span>
+                            <span>{selectedCustomerBillTo.gstNumber}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium">Pan Number:</span>
+                            <span>{selectedCustomerBillTo.panNumber}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium">Address:</span>
+                            <span>{selectedCustomerBillTo.address}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+               </div>
               </div>
 
               <div>

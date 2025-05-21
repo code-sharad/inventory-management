@@ -18,13 +18,18 @@ interface InvoiceData {
     invoiceNumber: string;
     createdAt: string;
     invoiceDate: string;
-    customer: {
+    customerBillTo: {
         name: string;
-        email: string;
         address: string;
         gstNumber?: string;
         panNumber?: string;
     };
+    customerShipTo: {
+        name: string;
+        address: string;
+        gstNumber?: string;
+        panNumber?: string;
+      };
     companyDetails: {
         name: string;
         address: string;
@@ -256,7 +261,7 @@ const styles = StyleSheet.create({
 });
 
 const ModernInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> = ({ invoiceData, qrCode }) => {
-    const { customer, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
+    const { customerBillTo,customerShipTo, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
 
     return (
         <Document>
@@ -265,6 +270,8 @@ const ModernInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> =
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 24, marginBottom: 16 }}>
                     <View style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
                         <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#1a237e' }}>{companyDetails.name}</Text>
+                        {companyDetails.phone && <Text style={{ fontSize: 11, color: '#555' }}>{companyDetails.phone}</Text>}
+                        {companyDetails.email && <Text style={{ fontSize: 11, color: '#555' }}>{companyDetails.email}</Text>}
                         <Text style={{ color: '#555', fontSize: 11, marginTop: 4, maxWidth: 200 }}>{companyDetails.address}, {companyDetails.cityState}</Text>
                     </View>
                     <View style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
@@ -276,19 +283,29 @@ const ModernInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> =
                 {/* Bill To & Company Info */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 16, marginBottom: 16 }}>
                     <View style={{ backgroundColor: '#fff', borderRadius: 10, padding: 16, flex: 1, marginRight: 8, borderWidth: 1, borderColor: '#e5e7eb', minHeight: 90 }}>
-                        <Text style={{ fontWeight: 'bold', fontSize: 13, color: '#1a237e', marginBottom: 6 }}>Bill To</Text>
-                        <Text style={{ fontSize: 12, color: '#222', fontWeight: 500 }}>{customer.name}</Text>
-                        {customer.address && <Text style={{ fontSize: 11, color: '#555' }}>{customer.address}</Text>}
-                        {customer.email && <Text style={{ fontSize: 11, color: '#555' }}>{customer.email}</Text>}
-                        {customer.gstNumber && <Text style={{ fontSize: 11, color: '#555' }}>GSTIN: {customer.gstNumber}</Text>}
-                        {customer.panNumber && <Text style={{ fontSize: 11, color: '#555' }}>PAN: {customer.panNumber}</Text>}
+                        <View style={{ flexDirection: 'row', gap: 16 }}>
+                            <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: '#e5e7eb', paddingRight: 16 }}>
+                                <Text style={{ fontWeight: 'bold', fontSize: 13, color: '#1a237e', marginBottom: 6 }}>Bill To</Text>
+                                <Text style={{ fontSize: 12, color: '#222', fontWeight: 500 }}>{customerBillTo.name}</Text>
+                                {customerBillTo.address && <Text style={{ fontSize: 11, color: '#555' }}>{customerBillTo.address}</Text>}
+                                {customerBillTo.gstNumber && <Text style={{ fontSize: 11, color: '#555' }}>GSTIN: {customerBillTo.gstNumber}</Text>}
+                                {customerBillTo.panNumber && <Text style={{ fontSize: 11, color: '#555' }}>PAN: {customerBillTo.panNumber}</Text>}
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={{ fontWeight: 'bold', fontSize: 13, color: '#1a237e', marginBottom: 6 }}>Ship To</Text>
+                                <Text style={{ fontSize: 12, color: '#222', fontWeight: 500 }}>{customerShipTo.name}</Text>
+                                {customerShipTo.address && <Text style={{ fontSize: 11, color: '#555' }}>{customerShipTo.address}</Text>}
+                                {customerShipTo.gstNumber && <Text style={{ fontSize: 11, color: '#555' }}>GSTIN: {customerShipTo.gstNumber}</Text>}
+                                {customerShipTo.panNumber && <Text style={{ fontSize: 11, color: '#555' }}>PAN: {customerShipTo.panNumber}</Text>}
+                            </View>
+                        </View>
                     </View>
-                    <View style={{ backgroundColor: '#fff', borderRadius: 10, padding: 16, flex: 1, borderWidth: 1, borderColor: '#e5e7eb', minHeight: 90 }}>
+                    {/* <View style={{ backgroundColor: '#fff', borderRadius: 10, padding: 16, flex: 1, borderWidth: 1, borderColor: '#e5e7eb', minHeight: 90 }}>
                         <Text style={{ fontWeight: 'bold', fontSize: 13, color: '#1a237e', marginBottom: 6 }}>Company Info</Text>
                         <Text style={{ fontSize: 12, color: '#222', fontWeight: 500 }}>{companyDetails.name}</Text>
                         {companyDetails.phone && <Text style={{ fontSize: 11, color: '#555' }}>{companyDetails.phone}</Text>}
                         {companyDetails.email && <Text style={{ fontSize: 11, color: '#555' }}>{companyDetails.email}</Text>}
-                    </View>
+                    </View> */}
                 </View>
                 {/* Items Table */}
                 <View style={{ borderRadius: 10, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#fff', marginBottom: 16, overflow: 'hidden' }}>

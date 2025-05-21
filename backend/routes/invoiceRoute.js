@@ -131,9 +131,30 @@ router.get("/", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
+    // Find the invoice by ID
+    const invoice = await invoiceModel.findById(id);
+    if (!invoice) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+    // Update quantities for all items in the invoice
+    for (const invoiceItem of invoice.items) {
+      const item = await itemModel.findById(invoiceItem.id);
+      if (!item) {
+        throw new Error(`Item not found: ${invoiceItem.name}`);
+      }
+      await itemModel.findByIdAndUpdate(
+        invoiceItem.id,
+        {
+          $inc: { quantity: invoiceItem.quantity },
+          $set: { updatedAt: new Date() },
+        }
+      );
+    }
+    // Delete the invoice
     await invoiceModel.findByIdAndDelete(id);
     res.json({ message: "Invoice deleted successfully" });
   } catch (error) {
+    console.error("Error deleting invoice:", error);
     res.status(500).json({ message: "Error deleting invoice", error });
   }
 });

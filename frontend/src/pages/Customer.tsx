@@ -342,7 +342,7 @@ export default function CustoemrPage() {
                                     </Badge>
                                 </TableCell> */}
                                 <TableCell className="text-left">{product.gstNumber}</TableCell>
-                                <TableCell className="text-left">{product.address}</TableCell>
+                                <TableCell className="text-left truncate min-w-24 max-w-44">{product.address}</TableCell>
                                 <TableCell className="text-left">{product.panNumber}</TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">

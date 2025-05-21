@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 
 const invoiceSchema = mongoose.Schema({
-  customer: {
+  customerBillTo: {
     name: {
       type: String,
+      uppercase: true,
       required: true,
     },
     gstNumber: {
@@ -12,6 +13,25 @@ const invoiceSchema = mongoose.Schema({
     },
     address: {
       type: String,
+      required: true,
+    },
+    panNumber: {
+      type: String,
+      required: true,
+    },
+  },
+  customerShipTo:{
+    name: {
+      type: String,
+      uppercase: true,
+      required: true,
+    },
+    gstNumber: {
+      type: String,
+      required: true,
+    },
+    address: {
+      type: String, 
       required: true,
     },
     panNumber: {
