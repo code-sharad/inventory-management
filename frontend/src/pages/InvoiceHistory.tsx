@@ -201,18 +201,18 @@ export default function BillingHistoryPage() {
     }
   };
 
-  const handleDownloadPDF = (invoice: Invoice) => {
-    QRCode.toDataURL(`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoice.id}`, { width: 120 }, (err: any, url: string) => {
-      setQRCodePreview(url);
-      console.log(url)
-    });
-    return <PDFDownloadLink
-      document={<ModernInvoicePDF invoiceData={invoice} qrCode={qrCodePreview} />}
-      fileName={`${invoice.invoiceNumber}.pdf`}
-    >
-      Download PDF
-    </PDFDownloadLink>
-  }
+  // const handleDownloadPDF = (invoice: Invoice) => {
+  //   QRCode.toDataURL(`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoice.id}`, { width: 120 }, (err: any, url: string) => {
+  //     setQRCodePreview(url);
+  //     console.log(url)
+  //   });
+  //   return <PDFDownloadLink
+  //     document={<ModernInvoicePDF invoiceData={invoice} qrCode={qrCodePreview} />}
+  //     fileName={`${invoice.invoiceNumber}.pdf`}
+  //   >
+  //     Download PDF
+  //   </PDFDownloadLink>
+  // }
 
   // Get status badge color
 
