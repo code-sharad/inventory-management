@@ -20,7 +20,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Edit, Plus, Trash2 } from "lucide-react"
+import { Edit, FolderPlus, PackagePlus, Plus, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import axiosInstance from "@/api";
@@ -59,6 +59,9 @@ export default function InventoryPage() {
     const [error, setError] = useState<string | null>(null)
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
+
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
     // Fetch initial data
     useEffect(() => {
         fetchProducts();
@@ -113,7 +116,7 @@ export default function InventoryPage() {
         try {
             const response = await axiosInstance.post(`/item`, newProduct)
             if (response.status !== 200) throw new Error("Failed to add product")
-            
+
 
             fetchProducts();
             fetchCategories();
@@ -200,7 +203,7 @@ export default function InventoryPage() {
                     {/* Add Product Dialog */}
                     <Dialog open={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button><Plus className="mr-2 h-4 w-4" /> Add Product</Button>
+                            <Button><PackagePlus className="md:mr-2 h-4 w-4" /> <span className="hidden md:block ">Add Product</span></Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
@@ -267,7 +270,7 @@ export default function InventoryPage() {
                     {/* Add Category Dialog */}
                     <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button><Plus className="mr-2 h-4 w-4" /> Add Category</Button>
+                            <Button><FolderPlus className="md:mr-2 h-4 w-4 " /> <span className="hidden md:block">Add Category</span></Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
@@ -315,11 +318,29 @@ export default function InventoryPage() {
                             </ScrollArea>
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setIsAddCategoryDialogOpen(false)}>Cancel</Button>
-                                
+
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
+
+                    <div className="flex items-center gap-2">
+                        <Input
+                            type="text"
+                            placeholder="Search products..."
+                            className="w-64"
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                const filtered = products.filter((product) =>
+                                    product.name.includes(e.target.value) 
+                                );
+                                console.log(filtered);
+                                setFilteredProducts(filtered);
+                            }}
+                        />
+                       
+                    </div>
                 </div>
+
             </div>
 
             {/* Products Table */}
@@ -336,7 +357,7 @@ export default function InventoryPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {paginatedProducts.map((product) => (
+                        {filteredProducts.length === 0 ? paginatedProducts.map((product) => (
                             <TableRow key={product._id}>
                                 <TableCell>{product.name}</TableCell>
                                 <TableCell>{product.hsnCode}</TableCell>
@@ -361,7 +382,33 @@ export default function InventoryPage() {
                                     </div>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        )) : filteredProducts.map((product) => {
+                            return <TableRow key={product._id}>
+                                <TableCell>{product.name}</TableCell>
+                                <TableCell>{product.hsnCode}</TableCell>
+                                <TableCell>
+                                    <Badge variant="outline">
+                                        {typeof product.category === 'string'
+                                            // @ts-ignore
+                                            ? product.category?.name
+                                            : product.category?.name || "Uncategorized"}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">{product.quantity}</TableCell>
+                                <TableCell className="text-right">₹{product.price.toFixed(2)}</TableCell>
+                                <TableCell className="text-right">
+                                    <div className="flex justify-end gap-2">
+                                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteProduct(product._id)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        }
+                        )}
                     </TableBody>
                 </Table>
                 {/* Pagination Controls */}

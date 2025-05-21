@@ -57,7 +57,7 @@ function Invoice() {
     category: "",
     hsnCode: "",
   });
-  const [gstRate, setGstRate] = useState(0.18);
+  const [gstRate, setGstRate] = useState(18);
   const [inventoryItems, setInventoryItems] = useState<
     {
       id: string;
@@ -333,7 +333,7 @@ function Invoice() {
   const subtotal = invoiceItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
     + transportationValue
     + packagingValue;
-  const gstAmount = subtotal * gstRate;
+  const gstAmount = subtotal * (gstRate/100);
   const total = subtotal + gstAmount;
 
   const invoiceData = {
