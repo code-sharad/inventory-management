@@ -5,7 +5,7 @@ const customerSchema = new mongoose.Schema({
     type: String,
     required: [true, "customer name is required"],
     trim: true,
-    lowercase: true,
+    uppercase: true,
     minlenght: [1, "Customer name must be at least 1 character"],
   },
   gstNumber: {
