@@ -31,6 +31,8 @@ import InvoiceClassic from "@/components/invoice-templates/template-classic";
 import ModernInvoicePDF from "@/components/invoice-templates/ModernInvoicePDF";
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
+import ClassicInvoicePDF from "@/components/invoice-templates/ClassicInviocePDF";
+import MinimalInvoicePDF from "@/components/invoice-templates/MinimalInvoicePDF";
 // Define invoice type
 type Invoice = {
   id: string;
@@ -277,13 +279,30 @@ export default function BillingHistoryPage() {
                       <TableCell>
                         <div className="flex justify-end items-center gap-2">
 
-                          <PDFDownloadLink
-                            document={<ModernInvoicePDF invoiceData={invoice} qrCode={invoice.qrCode} />}
-                            fileName={`${invoice.invoiceNumber}.pdf`}
-                          // onClick={() => handleDownloadPDF(invoice)}
-                          >
-                            <Download className="h-4 w-4" />
-                          </PDFDownloadLink>
+                          {invoice.template === "minimal" && (
+                            <PDFDownloadLink
+                              document={<MinimalInvoicePDF invoiceData={invoice} qrCode={invoice.qrCode} />}
+                              fileName={`${invoice.invoiceNumber}.pdf`}
+                            >
+                              <Download className="h-4 w-4" />
+                            </PDFDownloadLink>
+                          )}
+                          {invoice.template === "classic" && (
+                            <PDFDownloadLink
+                              document={<ClassicInvoicePDF invoiceData={invoice} qrCode={invoice.qrCode} />}
+                              fileName={`${invoice.invoiceNumber}.pdf`}
+                            >
+                              <Download className="h-4 w-4" />
+                            </PDFDownloadLink>
+                          )}
+                          {invoice.template === "modern" && (
+                            <PDFDownloadLink
+                              document={<ModernInvoicePDF invoiceData={invoice} qrCode={invoice.qrCode} />}
+                              fileName={`${invoice.invoiceNumber}.pdf`}
+                            >
+                              <Download className="h-4 w-4" />
+                            </PDFDownloadLink>
+                          )}
                           <Button
                             variant="ghost"
                             size="icon"

@@ -144,6 +144,18 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
             }
           }
 
+          const totalPages = pdf.internal.pages.length;
+          for (let i = 1; i <= totalPages; i++) {
+            pdf.setPage(i);
+            pdf.setFontSize(10);
+            pdf.text(
+              `Page ${i} of ${totalPages}`,
+              imgWidth / 2, // center horizontally
+              pageHeight - 5, // 5mm from bottom
+              { align: 'center' }
+            );
+          }
+
           pdf.save(`invoice_${invoiceNumber}.pdf`);
         });
       }
@@ -207,7 +219,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
         {/* Bill To & Company Details */}
         <div className="flex flex-row justify-between gap-8">
           <div className="bg-gray-50 flex flex-wrap justify-between gap-2 rounded-lg p-4 flex-1 min-w-[220px] border border-gray-200">
-           <div>
+            <div>
               <h3 className="text-base font-semibold text-gray-800 mb-2 ">Bill To :</h3>
               <p className="font-medium text-gray-900">{customerBillTo.name}</p>
               <p className="text-gray-700 text-sm">{customerBillTo.address}</p>
@@ -218,20 +230,24 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
               {customerBillTo.panNumber && (
                 <p className="text-gray-700 text-sm">PAN: {customerBillTo.panNumber}</p>
               )}
-           </div>
-           <div className='h-[1px] bg-gray-700 w-full'></div>
-            <div>
-              <h3 className="text-base font-semibold text-gray-800 mb-2">Ship To :</h3>
-              <p className="font-medium text-gray-900">{customerShipTo.name}</p>
-              <p className="text-gray-700 text-sm">{customerShipTo.address}</p>
-              {/* <p className="text-gray-700 text-sm">{customerBillTo.email}</p> */}
-              {customerShipTo.gstNumber && (
-                <p className="text-gray-700 text-sm">GSTIN: {customerShipTo.gstNumber}</p>
-              )}
-              {customerShipTo.panNumber && (
-                <p className="text-gray-700 text-sm">PAN: {customerShipTo.panNumber}</p>
-              )}
             </div>
+            <div className='h-[1px] bg-gray-700 w-full'></div>
+            {
+              customerShipTo.name && customerShipTo.address && (
+                <div>
+                  <h3 className="text-base font-semibold text-gray-800 mb-2">Ship To :</h3>
+                  <p className="font-medium text-gray-900">{customerShipTo.name}</p>
+                  <p className="text-gray-700 text-sm">{customerShipTo.address}</p>
+                  {/* <p className="text-gray-700 text-sm">{customerBillTo.email}</p> */}
+                  {customerShipTo.gstNumber && (
+                    <p className="text-gray-700 text-sm">GSTIN: {customerShipTo.gstNumber}</p>
+                  )}
+                  {customerShipTo.panNumber && (
+                    <p className="text-gray-700 text-sm">PAN: {customerShipTo.panNumber}</p>
+                  )}
+                </div>
+              )
+            }
           </div>
           <div className="bg-gray-50 rounded-lg p-4 flex-1 min-w-[220px] border border-gray-200">
             <h3 className="text-base font-semibold text-gray-800 mb-2">Company Info</h3>

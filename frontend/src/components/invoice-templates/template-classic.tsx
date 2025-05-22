@@ -219,19 +219,23 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
                 <p className="text-gray-700"><span className="font-medium">PAN Number:</span> {customerBillTo.panNumber}</p>
               )}
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-1">Ship To:</h3>
-              <p className="text-gray-700"><span className="font-medium">Name:</span> {customerShipTo.name}</p>
-              <p className="text-gray-700"><span className="font-medium">Address:</span> {customerShipTo.address}</p>
-              {customerShipTo.gstNumber && (
-                <p className="text-gray-700"><span className="font-medium">GST Number:</span> {customerShipTo.gstNumber}</p>
-              )}
-              {customerShipTo.panNumber && (
-                <p className="text-gray-700"><span className="font-medium">PAN Number:</span> {customerShipTo.panNumber}</p>
-              )}
-            </div>
+            {
+              customerShipTo.name && customerShipTo.address && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Ship To:</h3>
+                  <p className="text-gray-700"><span className="font-medium">Name:</span> {customerShipTo.name}</p>
+                  <p className="text-gray-700"><span className="font-medium">Address:</span> {customerShipTo.address}</p>
+                  {customerShipTo.gstNumber && (
+                    <p className="text-gray-700"><span className="font-medium">GST Number:</span> {customerShipTo.gstNumber}</p>
+                  )}
+                  {customerShipTo.panNumber && (
+                    <p className="text-gray-700"><span className="font-medium">PAN Number:</span> {customerShipTo.panNumber}</p>
+                  )}
+                </div>
+              )
+            }
           </div>
-          
+
         </div>
 
         {/* Table Section */}

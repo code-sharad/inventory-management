@@ -229,18 +229,22 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
                   <p className="text-gray-700 text-sm">PAN: {customerBillTo.panNumber}</p>
                 )}
              </div>
-              <div>
-                <h3 className="text-lg font-bold text-gray-800 mb-2 uppercase tracking-wide text-left">Ship To</h3>
-                <p className="font-semibold text-gray-900">{customerShipTo.name}</p>
-                <p className="text-gray-700 text-sm">{customerShipTo.address}</p>
-                {/* <p className="text-gray-700 text-sm">{customerBillTo.email}</p> */}
-                {customerShipTo.gstNumber && (
-                  <p className="text-gray-700 text-sm">GSTIN: {customerShipTo.gstNumber}</p>
-                )}
-                {customerShipTo.panNumber && (
-                  <p className="text-gray-700 text-sm">PAN: {customerShipTo.panNumber}</p>
-                )}
-              </div>
+             {
+              customerShipTo.name && customerShipTo.address && (
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-800 mb-2 uppercase tracking-wide text-left">Ship To</h3>
+                    <p className="font-semibold text-gray-900">{customerShipTo.name}</p>
+                    <p className="text-gray-700 text-sm">{customerShipTo.address}</p>
+                    {/* <p className="text-gray-700 text-sm">{customerBillTo.email}</p> */}
+                    {customerShipTo.gstNumber && (
+                      <p className="text-gray-700 text-sm">GSTIN: {customerShipTo.gstNumber}</p>
+                    )}
+                    {customerShipTo.panNumber && (
+                      <p className="text-gray-700 text-sm">PAN: {customerShipTo.panNumber}</p>
+                    )}
+                  </div>
+              )
+             } 
             </div>
           </div>
 

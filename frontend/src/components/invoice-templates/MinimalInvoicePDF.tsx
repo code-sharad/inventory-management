@@ -10,10 +10,8 @@ import {
 } from '@react-pdf/renderer';
 import { formatCurrency } from '@/lib/formatCurrency';
 import Poppins from '../../../public/fonts/Poppins-Regular.ttf';
-// import TimesNewRoman from '../../../public/fonts/Times-New-Roman.ttf';
 
 Font.register({ family: 'Poppins', src: Poppins });
-// Font.register({ family: 'TimesNewRoman', src: TimesNewRoman });
 
 interface InvoiceData {
     id: string;
@@ -62,26 +60,26 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontFamily: 'Poppins',
         backgroundColor: '#fff',
-        color: '#000',
+        color: '#222',
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         borderBottomWidth: 1,
-        borderBottomColor: '#222',
-        paddingBottom: 12,
-        marginBottom: 8,
+        borderBottomColor: '#e5e7eb',
+        paddingBottom: 10,
+        marginBottom: 12,
     },
     companyName: {
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: 'bold',
-        color: '#111',
+        color: '#222',
         fontFamily: 'Poppins',
     },
     companyAddress: {
         fontSize: 11,
-        color: '#333',
+        color: '#555',
         marginTop: 2,
         maxWidth: 220,
         fontFamily: 'Poppins',
@@ -91,7 +89,7 @@ const styles = StyleSheet.create({
         height: 66,
         backgroundColor: '#fff',
         borderWidth: 1,
-        borderColor: '#bbb',
+        borderColor: '#e5e7eb',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -109,68 +107,62 @@ const styles = StyleSheet.create({
     billToSection: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 18,
+        marginBottom: 16,
         gap: 12,
     },
     billTo: {
-        backgroundColor: '#fff',
+        backgroundColor: '#fafbfc',
         padding: 12,
         flex: 1,
         marginRight: 8,
-        // borderWidth: 1,
-        borderColor: '#222',
-        minHeight: 80,
-        // borderRadius: 0,
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+        minHeight: 70,
+        borderRadius: 6,
     },
     companyInfo: {
-        backgroundColor: '#fff',
+        backgroundColor: '#fafbfc',
         padding: 12,
         flex: 1,
-        // borderWidth: 1,
-        borderColor: '#222',
-        minHeight: 80,
-        // borderRadius: 0,
+        borderWidth: 1,
+        borderColor: '#e5e7eb',
+        minHeight: 70,
+        borderRadius: 6,
     },
     cardTitle: {
         fontWeight: 'bold',
         marginBottom: 4,
         fontSize: 13,
-        color: '#111',
+        color: '#222',
         fontFamily: 'Poppins',
     },
     cardField: {
         fontSize: 11,
-        color: '#111',
+        color: '#222',
         marginBottom: 2,
         fontFamily: 'Poppins',
-    },
-    cardSubField: {
-        fontSize: 10,
-        color: '#444',
-        marginBottom: 2,
     },
     table: {
         width: '100%',
         borderStyle: 'solid',
         borderWidth: 1,
-        borderColor: '#222',
-        marginBottom: 18,
+        borderColor: '#e5e7eb',
+        marginBottom: 16,
         flexDirection: 'column',
-        // borderRadius: 0,
+        borderRadius: 6,
+        overflow: 'hidden',
     },
     tableHeader: {
         flexDirection: 'row',
-        backgroundColor: '#eaeaea',
+        backgroundColor: '#f5f7fa',
         borderBottomWidth: 1,
-        borderBottomColor: '#222',
+        borderBottomColor: '#e5e7eb',
     },
     tableHeaderCell: {
         fontWeight: 'bold',
         fontSize: 12,
-        color: '#111',
+        color: '#222',
         padding: 8,
-        borderRightWidth: 1,
-        borderRightColor: '#222',
         fontFamily: 'Poppins',
     },
     tableRow: {
@@ -180,30 +172,25 @@ const styles = StyleSheet.create({
     },
     tableRowAlt: {
         flexDirection: 'row',
-        backgroundColor: '#fff',
+        backgroundColor: '#fafbfc',
         alignItems: 'center',
     },
     tableCell: {
         padding: 8,
-        borderRightWidth: 1,
-        borderRightColor: '#222',
-        borderBottomWidth: 1,
-        borderBottomColor: '#222',
         fontSize: 11,
-        color: '#111',
+        color: '#222',
         fontFamily: 'Poppins',
     },
     lastTableCell: {
-        borderRightWidth: 0,
     },
     summary: {
         alignItems: 'flex-end',
-        marginTop: 12,
-        backgroundColor: '#fff',
-        // borderRadius: 0,
+        marginTop: 10,
+        backgroundColor: '#fafbfc',
+        borderRadius: 6,
         padding: 12,
         borderWidth: 1,
-        borderColor: '#222',
+        borderColor: '#e5e7eb',
     },
     summaryRow: {
         flexDirection: 'row',
@@ -217,7 +204,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Poppins',
     },
     summaryValue: {
-        color: '#111',
+        color: '#222',
         fontWeight: 'bold',
         fontFamily: 'Poppins',
     },
@@ -228,14 +215,14 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginTop: 8,
         borderTopWidth: 1,
-        borderTopColor: '#222',
+        borderTopColor: '#e5e7eb',
         paddingTop: 6,
-        color: '#111',
+        color: '#222',
         fontFamily: 'Poppins',
     },
 });
 
-const ClassicInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> = ({ invoiceData, qrCode }) => {
+const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> = ({ invoiceData, qrCode }) => {
     const { customerBillTo, customerShipTo, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
 
     return (
@@ -257,83 +244,80 @@ const ClassicInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                         <Text style={styles.invoiceNumber}>Date: {invoiceDate}</Text>
                     </View>
                 </View>
-                {/* Wrap main content in a View with extra margin at the bottom to prevent footer overlap */}
-                <View style={{ marginBottom: 72 }}>
-                    {/* Bill To & Ship To */}
-                    <View style={styles.billToSection}>
-                        <View style={styles.billTo}>
-                            <Text style={styles.cardTitle}>Bill To:</Text>
-                            <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>Name:</Text> {customerBillTo.name}</Text>
-                            {customerBillTo.address && <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {customerBillTo.address}</Text>}
-                            {customerBillTo.gstNumber && <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>GST Number:</Text> {customerBillTo.gstNumber}</Text>}
-                            {customerBillTo.panNumber && <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>PAN Number:</Text> {customerBillTo.panNumber}</Text>}
-                        </View>
-                        {(customerShipTo.name && customerShipTo.address) ? (
-                            <View style={styles.companyInfo}>
-                                <Text style={styles.cardTitle}>Ship To:</Text>
-                                <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>Name:</Text> {customerShipTo.name}</Text>
-                                {customerShipTo.address && <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {customerShipTo.address}</Text>}
-                                {customerShipTo.gstNumber && <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>GST Number:</Text> {customerShipTo.gstNumber}</Text>}
-                                {customerShipTo.panNumber && <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>PAN Number:</Text> {customerShipTo.panNumber}</Text>}
-                            </View>
-                        ) : ''}
+                {/* Bill To & Ship To */}
+                <View style={styles.billToSection}>
+                    <View style={styles.billTo}>
+                        <Text style={styles.cardTitle}>Bill To:</Text>
+                        <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>Name:</Text> {customerBillTo.name}</Text>
+                        {customerBillTo.address && <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {customerBillTo.address}</Text>}
+                        {customerBillTo.gstNumber && <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>GST Number:</Text> {customerBillTo.gstNumber}</Text>}
+                        {customerBillTo.panNumber && <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>PAN Number:</Text> {customerBillTo.panNumber}</Text>}
                     </View>
-                    {/* Items Table */}
-                    <View style={styles.table}>
-                        {/* Table Header */}
-                        <View style={styles.tableHeader} wrap={false}>
-                            <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Item</Text>
-                            <Text style={[styles.tableHeaderCell, { flex: 1.2 }]}>HSN Code</Text>
-                            <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'right' }]}>Quantity</Text>
-                            <Text style={[styles.tableHeaderCell, { flex: 1.3, textAlign: 'right' }]}>Unit Price</Text>
-                            <Text style={[styles.tableHeaderCell, { flex: 1.5, textAlign: 'right' }]}>Total</Text>
+                    {(customerShipTo.name && customerShipTo.address) ? (
+                        <View style={styles.companyInfo}>
+                            <Text style={styles.cardTitle}>Ship To:</Text>
+                            <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>Name:</Text> {customerShipTo.name}</Text>
+                            {customerShipTo.address && <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {customerShipTo.address}</Text>}
+                            {customerShipTo.gstNumber && <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>GST Number:</Text> {customerShipTo.gstNumber}</Text>}
+                            {customerShipTo.panNumber && <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>PAN Number:</Text> {customerShipTo.panNumber}</Text>}
                         </View>
-                        {/* Table Body */}
-                        {items.map((item, idx) => (
-                            <View
-                                style={idx % 2 === 0 ? styles.tableRow : styles.tableRowAlt}
-                                key={item.id}
-                                wrap={false}
-                            >
-                                <Text style={[styles.tableCell, { flex: 2 }]}>{item.name}</Text>
-                                <Text style={[styles.tableCell, { flex: 1.2 }]}>{item.hsnCode ? item.hsnCode : '-'}</Text>
-                                <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>{item.quantity}</Text>
-                                <Text style={[styles.tableCell, { flex: 1.3, textAlign: 'right' }]}>₹{formatCurrency(item.price)}</Text>
-                                <Text style={[styles.tableCell, { flex: 1.5, textAlign: 'right' }]}>₹{formatCurrency(item.price * item.quantity)}</Text>
-                            </View>
-                        ))}
+                    ) : ''}
+                </View>
+                {/* Items Table */}
+                <View style={styles.table}>
+                    {/* Table Header */}
+                    <View style={styles.tableHeader} wrap={false}>
+                        <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Item</Text>
+                        <Text style={[styles.tableHeaderCell, { flex: 1.2 }]}>HSN Code</Text>
+                        <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'right' }]}>Qty</Text>
+                        <Text style={[styles.tableHeaderCell, { flex: 1.3, textAlign: 'right' }]}>Price</Text>
+                        <Text style={[styles.tableHeaderCell, { flex: 1.5, textAlign: 'right' }]}>Total</Text>
                     </View>
-                    {/* Financial Summary */}
-                    <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                        <View style={{ width: '60%', backgroundColor: '#fff', padding: 12, borderWidth: 1, borderColor: '#bbb', flexDirection: 'column', gap: 6 }}>
+                    {/* Table Body */}
+                    {items.map((item, idx) => (
+                        <View
+                            style={idx % 2 === 0 ? styles.tableRow : styles.tableRowAlt}
+                            key={item.id}
+                            wrap={false}
+                        >
+                            <Text style={[styles.tableCell, { flex: 2 }]}>{item.name}</Text>
+                            <Text style={[styles.tableCell, { flex: 1.2 }]}>{item.hsnCode ? item.hsnCode : '-'}</Text>
+                            <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>{item.quantity}</Text>
+                            <Text style={[styles.tableCell, { flex: 1.3, textAlign: 'right' }]}>₹{formatCurrency(item.price)}</Text>
+                            <Text style={[styles.tableCell, { flex: 1.5, textAlign: 'right' }]}>₹{formatCurrency(item.price * item.quantity)}</Text>
+                        </View>
+                    ))}
+                </View>
+                {/* Financial Summary */}
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                    <View style={{ width: '60%', backgroundColor: '#fafbfc', borderRadius: 6, padding: 12, borderWidth: 1, borderColor: '#e5e7eb', flexDirection: 'column', gap: 6 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', fontSize: 13, color: '#222' }}>
+                            <Text>Subtotal</Text>
+                            <Text>₹{formatCurrency(invoiceData.subtotal)}</Text>
+                        </View>
+                        {invoiceData.transportationAndOthers !== undefined && (
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', fontSize: 13, color: '#222' }}>
-                                <Text>Subtotal</Text>
-                                <Text>₹{formatCurrency(invoiceData.subtotal)}</Text>
+                                <Text>Transportation & Others</Text>
+                                <Text>₹{formatCurrency(invoiceData.transportationAndOthers)}</Text>
                             </View>
-                            {invoiceData.transportationAndOthers !== undefined && (
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', fontSize: 13, color: '#222' }}>
-                                    <Text>Transportation & Others</Text>
-                                    <Text>₹{formatCurrency(invoiceData.transportationAndOthers)}</Text>
-                                </View>
-                            )}
-                            {invoiceData.packaging !== undefined && (
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', fontSize: 13, color: '#222' }}>
-                                    <Text>Packaging</Text>
-                                    <Text>₹{formatCurrency(invoiceData.packaging)}</Text>
-                                </View>
-                            )}
+                        )}
+                        {invoiceData.packaging !== undefined && (
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', fontSize: 13, color: '#222' }}>
-                                <Text>GST ({invoiceData.gstRate}%)</Text>
-                                <Text>₹{formatCurrency(invoiceData.gstAmount)}</Text>
+                                <Text>Packaging</Text>
+                                <Text>₹{formatCurrency(invoiceData.packaging)}</Text>
                             </View>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', fontSize: 15, color: '#111', fontWeight: 'bold', marginTop: 8, borderTopWidth: 1, borderTopColor: '#bbb', paddingTop: 8 }}>
-                                <Text>Total</Text>
-                                <Text>₹{formatCurrency(invoiceData.total)}</Text>
-                            </View>
+                        )}
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', fontSize: 13, color: '#222' }}>
+                            <Text>GST ({invoiceData.gstRate}%)</Text>
+                            <Text>₹{formatCurrency(invoiceData.gstAmount)}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', fontSize: 15, color: '#222', fontWeight: 'bold', marginTop: 8, borderTopWidth: 1, borderTopColor: '#e5e7eb', paddingTop: 8 }}>
+                            <Text>Total</Text>
+                            <Text>₹{formatCurrency(invoiceData.total)}</Text>
                         </View>
                     </View>
                 </View>
-                {/* Bank Details and Terms & Conditions (now in normal flow) */}
+                {/* Bank Details and Terms & Conditions */}
                 <View style={{ padding: 10, marginBottom: 10, backgroundColor: '#fff' }}>
                     <Text style={{ fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>Bank Details:</Text>
                     <Text style={{ fontSize: 11, marginBottom: 2 }}>Bank Name : ICICI</Text>
@@ -348,19 +332,19 @@ const ClassicInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                     <Text style={{ fontSize: 11, marginBottom: 2 }}>- We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</Text>
                     <Text style={{ fontSize: 11 }}>- Payment is due within 30 days of the invoice date.</Text>
                 </View>
-                {/* Classic UI Footer with border, background, and spaced info */}
+                {/* Minimal Footer */}
                 <View
                     style={{
                         position: 'absolute',
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        height: 36,
-                        backgroundColor: '#f3f3f3',
+                        height: 32,
+                        backgroundColor: '#fafbfc',
                         borderTopWidth: 1,
-                        borderTopColor: '#bbb',
+                        borderTopColor: '#e5e7eb',
                         paddingHorizontal: 32,
-                        paddingVertical: 8,
+                        paddingVertical: 6,
                         flexDirection: 'row',
                         alignItems: 'center',
                         justifyContent: 'space-between',
@@ -385,4 +369,4 @@ const ClassicInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
     );
 };
 
-export default ClassicInvoicePDF;
+export default MinimalInvoicePDF;

@@ -29,7 +29,7 @@ interface InvoiceData {
         address: string;
         gstNumber?: string;
         panNumber?: string;
-      };
+    };
     companyDetails: {
         name: string;
         address: string;
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
 });
 
 const ModernInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> = ({ invoiceData, qrCode }) => {
-    const { customerBillTo,customerShipTo, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
+    const { customerBillTo, customerShipTo, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
 
     return (
         <Document>
@@ -291,13 +291,17 @@ const ModernInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> =
                                 {customerBillTo.gstNumber && <Text style={{ fontSize: 11, color: '#555' }}>GSTIN: {customerBillTo.gstNumber}</Text>}
                                 {customerBillTo.panNumber && <Text style={{ fontSize: 11, color: '#555' }}>PAN: {customerBillTo.panNumber}</Text>}
                             </View>
-                            <View style={{ flex: 1 }}>
-                                <Text style={{ fontWeight: 'bold', fontSize: 13, color: '#1a237e', marginBottom: 6 }}>Ship To</Text>
-                                <Text style={{ fontSize: 12, color: '#222', fontWeight: 500 }}>{customerShipTo.name}</Text>
-                                {customerShipTo.address && <Text style={{ fontSize: 11, color: '#555' }}>{customerShipTo.address}</Text>}
-                                {customerShipTo.gstNumber && <Text style={{ fontSize: 11, color: '#555' }}>GSTIN: {customerShipTo.gstNumber}</Text>}
-                                {customerShipTo.panNumber && <Text style={{ fontSize: 11, color: '#555' }}>PAN: {customerShipTo.panNumber}</Text>}
-                            </View>
+                            {
+                                (customerShipTo.name && customerShipTo.address) ? (
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{ fontWeight: 'bold', fontSize: 13, color: '#1a237e', marginBottom: 6 }}>Ship To</Text>
+                                        <Text style={{ fontSize: 12, color: '#222', fontWeight: 500 }}>{customerShipTo.name}</Text>
+                                        {customerShipTo.address && <Text style={{ fontSize: 11, color: '#555' }}>{customerShipTo.address}</Text>}
+                                        {customerShipTo.gstNumber && <Text style={{ fontSize: 11, color: '#555' }}>GSTIN: {customerShipTo.gstNumber}</Text>}
+                                        {customerShipTo.panNumber && <Text style={{ fontSize: 11, color: '#555' }}>PAN: {customerShipTo.panNumber}</Text>}
+                                    </View>
+                                ) : ''
+                            }
                         </View>
                     </View>
                     {/* <View style={{ backgroundColor: '#fff', borderRadius: 10, padding: 16, flex: 1, borderWidth: 1, borderColor: '#e5e7eb', minHeight: 90 }}>
@@ -360,6 +364,53 @@ const ModernInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> =
                             <Text>₹{formatCurrency(invoiceData.total)}</Text>
                         </View>
                     </View>
+                </View>
+                {/* Bank Details and Terms & Conditions */}
+                <View style={{ padding: 10, marginBottom: 10, backgroundColor: '#fff' }}>
+                    <Text style={{ fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>Bank Details:</Text>
+                    <Text style={{ fontSize: 11, marginBottom: 2 }}>Bank Name : ICICI</Text>
+                    <Text style={{ fontSize: 11, marginBottom: 2 }}>Account Name : DYNAMIC ENTERPRISES</Text>
+                    <Text style={{ fontSize: 11, marginBottom: 2 }}>Branch : Sinhgad  Road Branch</Text>
+                    <Text style={{ fontSize: 11, marginBottom: 2 }}>A/C Type : Currrent</Text>
+                    <Text style={{ fontSize: 11, marginBottom: 2 }}>A/C No : 180205500134</Text>
+                    <Text style={{ fontSize: 11 }}>IFSC Code : ICIC0001802</Text>
+                </View>
+                <View style={{ padding: 10, backgroundColor: '#fff' }}>
+                    <Text style={{ fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>Terms and Conditions:</Text>
+                    <Text style={{ fontSize: 11, marginBottom: 2 }}>- We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</Text>
+                    <Text style={{ fontSize: 11 }}>- Payment is due within 30 days of the invoice date.</Text>
+                </View>
+                {/* Modern UI Footer with border, background, and spaced info */}
+                <View
+                    style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 36,
+                        backgroundColor: '#f5f7fa',
+                        borderTopWidth: 1,
+                        borderTopColor: '#e0e0e0',
+                        paddingHorizontal: 32,
+                        paddingVertical: 8,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                    }}
+                    fixed
+                >
+                    <Text
+                        style={{ fontSize: 10, color: '#555' }}
+                        render={() => `Invoice No: ${invoiceNumber}`}
+                    />
+                    <Text
+                        style={{ fontSize: 10, color: '#555' }}
+                        render={() => `Invoice Date: ${invoiceDate}`}
+                    />
+                    <Text
+                        style={{ fontSize: 10, color: '#555' }}
+                        render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`}
+                    />
                 </View>
             </Page>
         </Document>

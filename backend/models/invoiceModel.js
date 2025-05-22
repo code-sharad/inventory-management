@@ -24,19 +24,19 @@ const invoiceSchema = mongoose.Schema({
     name: {
       type: String,
       uppercase: true,
-      required: true,
+      required: false,
     },
     gstNumber: {
       type: String,
-      required: true,
+      required: false,
     },
     address: {
       type: String, 
-      required: true,
+      required: false,
     },
     panNumber: {
       type: String,
-      required: true,
+      required: false,
     },
   },
   packaging: {
