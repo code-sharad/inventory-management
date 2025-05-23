@@ -33,7 +33,10 @@ class AuthService {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-      domain: process.env.NODE_ENV === "production" ? process.env.COOKIE_DOMAIN : undefined,
+      domain:
+        process.env.NODE_ENV === "production"
+          ? process.env.COOKIE_DOMAIN
+          : undefined,
       path: "/",
     });
 
@@ -43,7 +46,7 @@ class AuthService {
         cookieDomain: process.env.COOKIE_DOMAIN,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-        ip: req.ip,
+        deviceInfo: deviceInfo,
       });
     }
 
@@ -318,6 +321,24 @@ class AuthService {
       const tokenExists = user.refreshTokens.some(
         (rt) => rt.token === refreshToken && rt.expiresAt > new Date()
       );
+
+      // Debug logging for production
+      if (process.env.NODE_ENV === "production") {
+        logger.info("Refresh token validation debug", {
+          userId: user._id,
+          receivedToken: refreshToken
+            ? refreshToken.substring(0, 50) + "..."
+            : "none",
+          storedTokensCount: user.refreshTokens.length,
+          storedTokens: user.refreshTokens.map((rt) => ({
+            tokenStart: rt.token ? rt.token.substring(0, 50) + "..." : "none",
+            expiresAt: rt.expiresAt,
+            isExpired: rt.expiresAt <= new Date(),
+          })),
+          tokenExists: tokenExists,
+          ip: req.ip,
+        });
+      }
 
       if (!tokenExists) {
         throw new Error("Invalid or expired refresh token");
