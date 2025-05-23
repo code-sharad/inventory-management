@@ -32,8 +32,20 @@ class AuthService {
       expires: expiresAt,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      domain: process.env.NODE_ENV === "production" ? process.env.COOKIE_DOMAIN : undefined,
+      path: "/",
     });
+
+    // Debug logging for cookie setting
+    if (process.env.NODE_ENV === "production") {
+      logger.info("Setting refresh token cookie", {
+        cookieDomain: process.env.COOKIE_DOMAIN,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        ip: req.ip,
+      });
+    }
 
     // Remove 2FA secrets from user object
     const userCopy = user.toObject();
@@ -263,6 +275,16 @@ class AuthService {
   static async refreshToken(req, res) {
     try {
       const refreshToken = req.cookies.refreshToken;
+
+      // Debug logging for production
+      if (process.env.NODE_ENV === "production") {
+        logger.info("Refresh token request debug", {
+          cookies: req.cookies,
+          headers: req.headers.cookie,
+          hasRefreshToken: !!refreshToken,
+          ip: req.ip,
+        });
+      }
 
       if (!refreshToken) {
         return res.status(401).json({

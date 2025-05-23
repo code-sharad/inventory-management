@@ -48,21 +48,32 @@ app.use(
       if (!origin) return callback(null, true);
 
       const allowedOrigins = [
-        process.env.VITE_FRONTEND_URL,
+        process.env.FRONTEND_URL, // For production frontend
+        process.env.VITE_FRONTEND_URL, // Alternative env var name
         "http://localhost:3000",
         "http://localhost:3001",
         "http://localhost:5173", // Vite default
+        "http://localhost:5174", // Vite alternative port
+        "https://localhost:5173", // HTTPS localhost
       ].filter(Boolean);
 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
+      // In production, be more strict about origins
+      if (process.env.NODE_ENV === "production") {
+        if (allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          console.log(`CORS blocked origin: ${origin}`);
+          callback(new Error("Not allowed by CORS"));
+        }
       } else {
-        callback(new Error("Not allowed by CORS"));
+        // In development, be more permissive
+        callback(null, true);
       }
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["Set-Cookie"], // Important for cookies in production
   })
 );
 
