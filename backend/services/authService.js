@@ -420,7 +420,6 @@ class AuthService {
       user.password = password;
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
-      user.passwordChangedAt = Date.now();
 
       // Clear all refresh tokens
       user.refreshTokens = [];

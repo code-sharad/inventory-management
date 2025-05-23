@@ -385,7 +385,6 @@ router.patch("/change-password", authenticate, async (req, res) => {
 
     // Update password
     user.password = newPassword;
-    user.passwordChangedAt = Date.now();
     user.refreshTokens = []; // Clear all refresh tokens
     await user.save();
 
@@ -550,7 +549,6 @@ router.post(
 
       // Update password
       admin.password = newPassword;
-      admin.passwordChangedAt = Date.now();
       admin.refreshTokens = []; // Clear all refresh tokens
       await admin.save();
 
@@ -708,7 +706,6 @@ router.post(
 
       // 3) Update the user's password
       targetUser.password = newPassword;
-      targetUser.passwordChangedAt = Date.now();
       targetUser.refreshTokens = []; // Clear all refresh tokens to force re-login
       await targetUser.save();
 

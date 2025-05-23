@@ -275,3 +275,19 @@
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mPassword reset failed\u001b[39m","meta":{"error":"Token is invalid or has expired","ip":"::1"},"timestamp":"2025-05-23 19:37:21:3721"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mPassword reset failed\u001b[39m","meta":{"error":"Token is invalid or has expired","ip":"::1"},"timestamp":"2025-05-23 19:37:36:3736"}
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mReceived SIGINT. Graceful shutdown initiated.\u001b[39m","meta":{},"timestamp":"2025-05-23 19:40:12:4012"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-23T14:16:24.428Z"},"timestamp":"2025-05-23 19:46:24:4624"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-23 19:46:24:4624"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mUser logged out successfully\u001b[39m","meta":{"email":"admin@gmail.com","ip":"::1","userId":"681f415d3b428c8771e7ca6b"},"timestamp":"2025-05-23 19:46:28:4628"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mLogin failed\u001b[39m","meta":{"email":"bhadaitsharad07@gmail.com","error":"Account is deactivated. Please contact administrator.","ip":"::1"},"timestamp":"2025-05-23 19:46:51:4651"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mLogin failed\u001b[39m","meta":{"email":"bhadaitsharad07@gmail.com","error":"Account is deactivated. Please contact administrator.","ip":"::1"},"timestamp":"2025-05-23 19:47:17:4717"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mSuccessful login\u001b[39m","meta":{"email":"bhadaitsharad7@gmail.com","ip":"::1","userId":"68307ca798f57f32ecff3dca"},"timestamp":"2025-05-23 19:48:21:4821"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mUser logged out successfully\u001b[39m","meta":{"email":"bhadaitsharad7@gmail.com","ip":"::1","userId":"68307ca798f57f32ecff3dca"},"timestamp":"2025-05-23 19:48:35:4835"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-23T14:20:30.008Z"},"timestamp":"2025-05-23 19:50:30:5030"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-23 19:50:30:5030"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-23T14:20:37.307Z"},"timestamp":"2025-05-23 19:50:37:5037"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-23 19:50:37:5037"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-23T14:20:55.193Z"},"timestamp":"2025-05-23 19:50:55:5055"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-23 19:50:55:5055"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-23T14:21:05.044Z"},"timestamp":"2025-05-23 19:51:05:515"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-23 19:51:05:515"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mReceived SIGINT. Graceful shutdown initiated.\u001b[39m","meta":{},"timestamp":"2025-05-23 19:51:21:5121"}
