@@ -114,7 +114,7 @@ function Invoice() {
     panNumber: "",
     address: "",
   });
-  const [selectedCustomerShopTo, setSelectedCustomerShopTo] = useState<{
+  const [selectedCustomerShipTo, setSelectedCustomerShipTo] = useState<{
     id: string;
     name: string;
     gstNumber: string;
@@ -131,6 +131,8 @@ function Invoice() {
 
   const [transportationValue, setTransportationValue] = useState(0);
   const [packagingValue, setPackagingValue] = useState(0);
+  const [billToOpen, setBillToOpen] = useState(false);
+  const [shipToOpen, setShipToOpen] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
     const fetchItems = async () => {
@@ -339,7 +341,7 @@ function Invoice() {
   const invoiceData = {
     gstRate,
     customerBillTo: selectedCustomerBillTo,
-    customerShipTo: selectedCustomerShopTo,
+    customerShipTo: selectedCustomerShipTo,
     invoiceNumber,
     invoiceDate,
     items: invoiceItems.map(item => ({
@@ -439,12 +441,12 @@ function Invoice() {
               <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold mb-4">Customer Details</h3>
                <div className="flex gap-8 flex-wrap">
-                  <div id="bill-to ">
+                  <div id="bill-to container ">
                     <h3 className="mb-1">Bill To : </h3>
                     <div className="space-y-4">
                       <div>
-                        <Popover>
-                          <PopoverTrigger className="w-full border p-2 rounded-md text-left pl-4 font-medium flex justify-between items-center">
+                        <Popover open={billToOpen} onOpenChange={setBillToOpen} modal={true}  >
+                          <PopoverTrigger  className="w-full border p-2 rounded-md text-left pl-4 font-medium flex justify-between items-center">
                             {selectedCustomerBillTo.name !== "" ? selectedCustomerBillTo.name : "Select customer..."} {" "}
                             <div className="inline-flex h-6 flex-col">
                               <ChevronUpIcon /> <ChevronDown />
@@ -469,6 +471,7 @@ function Invoice() {
                                             panNumber: c.panNumber,
                                             address: c.address
                                           });
+                                          setBillToOpen(false);
                                         }}
                                       >
                                         <div className="flex flex-col gap-1">
@@ -508,13 +511,14 @@ function Invoice() {
                       )}
                     </div>
                   </div>
-                  <div id="ship-to">
+
+                  <div id="ship-to container">
                     <h3 className="mb-1">Ship To :</h3>
                     <div className="space-y-4">
                       <div>
-                        <Popover>
+                        <Popover open={shipToOpen} onOpenChange={setShipToOpen} modal={true}>
                           <PopoverTrigger className="w-full border p-2 rounded-md text-left pl-4 font-medium flex justify-between items-center">
-                            {selectedCustomerShopTo.name !== "" ? selectedCustomerShopTo.name : "Select customer..."} {" "}
+                            {selectedCustomerShipTo.name !== "" ? selectedCustomerShipTo.name : "Select customer..."} {" "}
                             <div className="inline-flex h-6 flex-col">
                               <ChevronUpIcon /> <ChevronDown />
                             </div>
@@ -526,24 +530,25 @@ function Invoice() {
                                 <CommandEmpty>No customers found.</CommandEmpty>
                                 <CommandGroup heading="Customers ">
                                   <ScrollArea className="h-[200px]">
-                                    {customers.map((c) => (
+                                    {customers.map((b) => (
                                       <CommandItem
-                                        key={c.id}
-                                        value={c.name}
+                                        key={b.id}
+                                        value={b.name}
                                         onSelect={() => {
-                                          setSelectedCustomerShopTo({
-                                            id: c.id,
-                                            name: c.name,
-                                            gstNumber: c.gstNumber,
-                                            panNumber: c.panNumber,
-                                            address: c.address
+                                          setSelectedCustomerShipTo({
+                                            id: b.id,
+                                            name: b.name,
+                                            gstNumber: b.gstNumber,
+                                            panNumber: b.panNumber,
+                                            address: b.address
                                           });
+                                          setShipToOpen(false);
                                         }}
                                       >
                                         <div className="flex flex-col gap-1">
-                                          <span className="font-medium">{c.name}</span>
-                                          {/* <span className="text-sm text-muted-foreground">{c.email}</span> */}
-                                          <span className="text-sm text-muted-foreground">{c.address}</span>
+                                          <span className="font-medium">{b.name}</span>
+                                          {/* <span className="text-sm text-muted-foreground">{b.email}</span> */}
+                                          <span className="text-sm text-muted-foreground">{b.address}</span>
                                         </div>
                                       </CommandItem>
                                     ))}
@@ -555,23 +560,23 @@ function Invoice() {
                         </Popover>
                       </div>
 
-                      {selectedCustomerBillTo.id && (
+                      {selectedCustomerShipTo.id && (
                         <div className="space-y-2 p-4 border rounded-md bg-muted/50">
                           <div className="flex justify-between">
                             <span className="text-sm font-medium">Name:</span>
-                            <span>{selectedCustomerBillTo.name}</span>
+                            <span>{selectedCustomerShipTo.name}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm font-medium">GST:</span>
-                            <span>{selectedCustomerBillTo.gstNumber}</span>
+                            <span>{selectedCustomerShipTo.gstNumber}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm font-medium">Pan Number:</span>
-                            <span>{selectedCustomerBillTo.panNumber}</span>
+                            <span>{selectedCustomerShipTo.panNumber}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm font-medium">Address:</span>
-                            <span>{selectedCustomerBillTo.address}</span>
+                            <span>{selectedCustomerShipTo.address}</span>
                           </div>
                         </div>
                       )}

@@ -7,6 +7,8 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import QRCode from 'react-qr-code';
 import { toast } from 'sonner';
 import { useReactToPrint } from 'react-to-print';
+import { Button } from '../ui/button';
+import { Printer } from 'lucide-react';
 
 interface InvoiceData {
   id: string;
@@ -51,7 +53,7 @@ interface InvoiceData {
 };
 
 const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }) => {
-  const { customerBillTo,customerShipTo, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
+  const { customerBillTo, customerShipTo, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
 
   const url = window.location.href;
 
@@ -159,7 +161,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-neutral-900 flex flex-col items-center py-8 px-2 font-sans">
       {/* Download Button */}
-      {
+      {/* {
         !url.includes('billing') ? '' : (
           <div className=" my-4 border-gray-200 flex w-full justify-start ml-6 rounded-b-lg gap-2">
             <button
@@ -187,7 +189,13 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
               Print
             </button>
           </div>)
-      }
+      } */}
+      <div className='flex justify-start absolute top-7 left-54 '>
+        <Button onClick={handlePrint} className='bg-gray-900 text-white' variant={'outline'}>
+          <Printer className='w-4 h-4' />
+          Print
+        </Button>
+      </div>
       <div className="w-[210mm] min-h-[297mm] bg-white rounded-lg shadow border border-gray-200 flex flex-col mx-auto print:w-[210mm] print:min-h-[297mm]">
         <div ref={contentRef} className="flex-1 flex flex-col px-10 py-8 gap-8">
           {/* Header */}
@@ -217,7 +225,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
           {/* Bill To only */}
           <div className="flex flex-col sm:flex-row justify-between gap-8">
             <div className="bg-gray-50 border grid grid-cols-2 border-gray-200 rounded-lg p-6 flex-1 min-w-[220px]">
-             <div>
+              <div>
                 <h3 className="text-lg font-bold text-gray-800 mb-2 uppercase tracking-wide text-left">Bill To</h3>
                 <p className="font-semibold text-gray-900">{customerBillTo.name}</p>
                 <p className="text-gray-700 text-sm">{customerBillTo.address}</p>
@@ -228,9 +236,9 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
                 {customerBillTo.panNumber && (
                   <p className="text-gray-700 text-sm">PAN: {customerBillTo.panNumber}</p>
                 )}
-             </div>
-             {
-              customerShipTo.name && customerShipTo.address && (
+              </div>
+              {
+                customerShipTo.name && customerShipTo.address && (
                   <div>
                     <h3 className="text-lg font-bold text-gray-800 mb-2 uppercase tracking-wide text-left">Ship To</h3>
                     <p className="font-semibold text-gray-900">{customerShipTo.name}</p>
@@ -243,8 +251,8 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
                       <p className="text-gray-700 text-sm">PAN: {customerShipTo.panNumber}</p>
                     )}
                   </div>
-              )
-             } 
+                )
+              }
             </div>
           </div>
 

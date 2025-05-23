@@ -303,6 +303,12 @@ export default function BillingHistoryPage() {
                               <Download className="h-4 w-4" />
                             </PDFDownloadLink>
                           )}
+                          {/* <PDFDownloadLink
+                            document={<ClassicInvoicePDF invoiceData={invoice} qrCode={invoice.qrCode} />}
+                            fileName={`${invoice.invoiceNumber}.pdf`}
+                          >
+                            <Download className="h-4 w-4" />
+                          </PDFDownloadLink> */}
                           <Button
                             variant="ghost"
                             size="icon"

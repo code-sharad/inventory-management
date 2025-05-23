@@ -5,10 +5,11 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
 import { formatCurrency } from '@/lib/formatCurrency';
 import QRCode from "react-qr-code"
-import { QrCode } from 'lucide-react';
+import { Printer, QrCode } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 
 import { toast } from 'sonner';
+import { Button } from '../ui/button';
 
 interface InvoiceData {
   id: string;
@@ -71,108 +72,14 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
   const getPageMargins = () => {
     return `@page { margin: ${0.79} ${0.79} ${0.79} ${0.79} !important; }`;
   };
-  const handleDownloadPDF = async () => {
-    setLoading(true);
-    try {
-      if (contentRef.current) {
-        await html2canvas(contentRef.current, { scale: 2 }).then((canvas) => {
-          const imgWidth = 210; // A4 width in mm
-          const pageHeight = 297; // A4 height in mm
-          const margin = 10; // 10mm margin
-          const usableWidth = imgWidth - 2 * margin;
-          const usablePageHeight = pageHeight - 2 * margin;
-          const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4',
-          });
 
-          const imgData = canvas.toDataURL('image/png');
-          const imgProps = {
-            width: canvas.width,
-            height: canvas.height,
-          };
-          const pdfHeight = (imgProps.height * usableWidth) / imgProps.width;
-
-          if (pdfHeight <= usablePageHeight) {
-            // Single page
-            pdf.addImage(imgData, 'PNG', margin, margin, usableWidth, pdfHeight);
-          } else {
-            // Multi-page
-            let position = 0;
-            let remainingHeight = imgProps.height;
-            while (remainingHeight > 0) {
-              const sliceHeight = Math.min(canvas.height - position, (usablePageHeight * canvas.width) / usableWidth);
-              if (sliceHeight <= 0 || canvas.width <= 0) break; // Prevents extra blank page and corrupt PNG
-
-              const pageCanvas = document.createElement('canvas');
-              pageCanvas.width = canvas.width;
-              pageCanvas.height = sliceHeight;
-
-              const ctx = pageCanvas.getContext('2d');
-              if (ctx) {
-                ctx.fillStyle = "#fff";
-                ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-                ctx.drawImage(
-                  canvas,
-                  0,
-                  position,
-                  canvas.width,
-                  sliceHeight,
-                  0,
-                  0,
-                  canvas.width,
-                  sliceHeight
-                );
-              }
-
-              // Only add the page if the canvas is not empty and image data is valid
-              if (pageCanvas.width > 0 && pageCanvas.height > 0) {
-                const pageImgData = pageCanvas.toDataURL('image/png');
-                if (
-                  pageImgData &&
-                  pageImgData.startsWith('data:image/png;base64,') &&
-                  pageImgData.length > 'data:image/png;base64,'.length
-                ) {
-                  if (position > 0) pdf.addPage();
-                  pdf.addImage(pageImgData, 'PNG', margin, margin, usableWidth, (sliceHeight * usableWidth) / canvas.width);
-                }
-              }
-
-              position += sliceHeight;
-              remainingHeight -= sliceHeight;
-            }
-          }
-
-          const totalPages = pdf.internal.pages.length;
-          for (let i = 1; i <= totalPages; i++) {
-            pdf.setPage(i);
-            pdf.setFontSize(10);
-            pdf.text(
-              `Page ${i} of ${totalPages}`,
-              imgWidth / 2, // center horizontally
-              pageHeight - 5, // 5mm from bottom
-              { align: 'center' }
-            );
-          }
-
-          pdf.save(`invoice_${invoiceNumber}.pdf`);
-        });
-      }
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
   console.log(items.map((item) => item.hsnCode))
 
   return (
     <div id="modern-invoice" className="w-[794px] min-h-[1123px] mx-auto flex flex-col items-center">
       {/* Header Bar */}
       {/* Download Button */}
-      {
+      {/* {
         !url.includes('billing') ? '' : (
           <div className=" my-4 border-gray-200 flex w-full justify-start ml-6 rounded-b-lg gap-2">
             <button
@@ -200,14 +107,21 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
               Print
             </button>
           </div>)
-      }
-
+      } */}
+      <div className='flex justify-start absolute top-7 left-54 '>
+        <Button onClick={handlePrint} className='bg-gray-900 text-white' variant={'outline'}>
+          <Printer className='w-4 h-4' />
+          Print
+        </Button>
+      </div>
       {/* Main Content Card */}
-      <div ref={contentRef} id="printable-content" className={`w-[794px] min-h-[1123px] bg-white rounded-b-lg   px-8 pb-8 flex flex-col gap-8 ${getPageMargins()}`}>
+      <div ref={contentRef} id="printable-content" className={`w-[794px] min-h-[1123px] bg-white rounded-b-lg my-5  px-8 pb-8 flex flex-col gap-8 ${getPageMargins()}`}>
         <div className="w-full rounded-t-lg bg-white border-b border-gray-300 px-0 py-6 flex flex-row justify-between items-center">
           <div className="flex flex-col items-start">
             <h1 className="text-2xl font-bold text-gray-900 tracking-wide">{companyDetails.name}</h1>
-            <span className="text-gray-600 text-sm mt-1 text-left  max-w-[200px]">{companyDetails.address}, {companyDetails.cityState}</span>
+            <p className="text-gray-700 text-sm">{companyDetails.phone}</p>
+            <p className="text-gray-700 text-sm">{companyDetails.email}</p>
+            <span className="text-gray-600 text-sm mt-1 text-left  max-w-[400px]">{companyDetails.address}, {companyDetails.cityState}</span>
           </div>
           <div className="flex flex-col items-end">
             <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} size={64} />
@@ -217,24 +131,28 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
           </div>
         </div>
         {/* Bill To & Company Details */}
-        <div className="flex flex-row justify-between gap-8">
-          <div className="bg-gray-50 flex flex-wrap justify-between gap-2 rounded-lg p-4 flex-1 min-w-[220px] border border-gray-200">
-            <div>
-              <h3 className="text-base font-semibold text-gray-800 mb-2 ">Bill To :</h3>
-              <p className="font-medium text-gray-900">{customerBillTo.name}</p>
-              <p className="text-gray-700 text-sm">{customerBillTo.address}</p>
-              {/* <p className="text-gray-700 text-sm">{customerBillTo.email}</p> */}
-              {customerBillTo.gstNumber && (
-                <p className="text-gray-700 text-sm">GSTIN: {customerBillTo.gstNumber}</p>
-              )}
-              {customerBillTo.panNumber && (
-                <p className="text-gray-700 text-sm">PAN: {customerBillTo.panNumber}</p>
-              )}
-            </div>
-            <div className='h-[1px] bg-gray-700 w-full'></div>
+        <div className="flex  justify-between gap-8">
+          <div className="bg-gray-50 grid grid-cols-2 grid-rows-1 gap-4 rounded-lg p-4 flex-1 min-w-[220px] border border-gray-200">
+           {
+            customerBillTo.name && customerBillTo.address && (
+                <div className=''>
+                  <h3 className="text-base font-semibold text-gray-800 mb-2 ">Bill To :</h3>
+                  <p className="font-medium text-gray-900">{customerBillTo.name}</p>
+                  <p className="text-gray-700 text-sm">{customerBillTo.address}</p>
+                  {/* <p className="text-gray-700 text-sm">{customerBillTo.email}</p> */}
+                  {customerBillTo.gstNumber && (
+                    <p className="text-gray-700 text-sm">GSTIN: {customerBillTo.gstNumber}</p>
+                  )}
+                  {customerBillTo.panNumber && (
+                    <p className="text-gray-700 text-sm">PAN: {customerBillTo.panNumber}</p>
+                  )}
+                </div>
+            )
+           }
+            {/* <div className='h-[1px] bg-gray-700 w-full'></div> */}
             {
               customerShipTo.name && customerShipTo.address && (
-                <div>
+                  <div className=''>
                   <h3 className="text-base font-semibold text-gray-800 mb-2">Ship To :</h3>
                   <p className="font-medium text-gray-900">{customerShipTo.name}</p>
                   <p className="text-gray-700 text-sm">{customerShipTo.address}</p>
@@ -249,12 +167,10 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
               )
             }
           </div>
-          <div className="bg-gray-50 rounded-lg p-4 flex-1 min-w-[220px] border border-gray-200">
+          {/* <div className="bg-gray-50 rounded-lg p-4 flex-1 min-w-[220px] border border-gray-200">
             <h3 className="text-base font-semibold text-gray-800 mb-2">Company Info</h3>
-            <p className="font-medium text-gray-900">{companyDetails.name}</p>
-            <p className="text-gray-700 text-sm">{companyDetails.phone}</p>
-            <p className="text-gray-700 text-sm">{companyDetails.email}</p>
-          </div>
+
+          </div> */}
         </div>
 
         {/* Items Table */}

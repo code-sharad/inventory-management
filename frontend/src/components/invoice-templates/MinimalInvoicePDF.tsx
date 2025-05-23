@@ -57,6 +57,8 @@ interface InvoiceData {
 const styles = StyleSheet.create({
     page: {
         padding: 32,
+        paddingTop: 64,
+        paddingBottom: 101,
         fontSize: 12,
         fontFamily: 'Poppins',
         backgroundColor: '#fff',
@@ -264,7 +266,7 @@ const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                     ) : ''}
                 </View>
                 {/* Items Table */}
-                <View style={styles.table}>
+                <View style={[styles.table, { marginBottom: 32 }]}>
                     {/* Table Header */}
                     <View style={styles.tableHeader} wrap={false}>
                         <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Item</Text>
@@ -289,7 +291,7 @@ const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                     ))}
                 </View>
                 {/* Financial Summary */}
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 40 }}>
                     <View style={{ width: '60%', backgroundColor: '#fafbfc', borderRadius: 6, padding: 12, borderWidth: 1, borderColor: '#e5e7eb', flexDirection: 'column', gap: 6 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', fontSize: 13, color: '#222' }}>
                             <Text>Subtotal</Text>
@@ -332,19 +334,19 @@ const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                     <Text style={{ fontSize: 11, marginBottom: 2 }}>- We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</Text>
                     <Text style={{ fontSize: 11 }}>- Payment is due within 30 days of the invoice date.</Text>
                 </View>
-                {/* Minimal Footer */}
+                {/* Classic UI Footer with border, background, and spaced info */}
                 <View
                     style={{
                         position: 'absolute',
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        height: 32,
-                        backgroundColor: '#fafbfc',
+                        height: 52,
+                        backgroundColor: '#f3f3f3',
                         borderTopWidth: 1,
-                        borderTopColor: '#e5e7eb',
+                        borderTopColor: '#bbb',
                         paddingHorizontal: 32,
-                        paddingVertical: 6,
+                        paddingVertical: 8,
                         flexDirection: 'row',
                         alignItems: 'center',
                         justifyContent: 'space-between',
@@ -363,6 +365,9 @@ const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                         style={{ fontSize: 10, color: '#222' }}
                         render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`}
                     />
+                    <Text style={{ position: 'absolute', left: 32, bottom: 4, fontSize: 9, color: '#888', width: '100%', textAlign: 'center' }}>
+                        This is an electronically generated document, no signature is required
+                    </Text>
                 </View>
             </Page>
         </Document>

@@ -7,6 +7,8 @@ import QRCode from 'react-qr-code';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { useReactToPrint } from 'react-to-print';
+import { Button } from '../ui/button';
+import { Printer } from 'lucide-react';
 
 interface InvoiceData {
   id: string;
@@ -151,7 +153,7 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-neutral-900 flex flex-col items-center py-8 px-2 font-sans">
       {/* Download Button */}
-      {
+      {/* {
         !url.includes('billing') ? '' : (
           <div className="my-4 border-gray-200 flex w-full justify-start ml-6 rounded-b-lg gap-2">
             <button
@@ -179,7 +181,13 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
               Print
             </button>
           </div>)
-      }
+      } */}
+      <div className='flex justify-start absolute top-7 left-54 '>
+        <Button onClick={handlePrint} className='bg-gray-900 text-white' variant={'outline'}>
+          <Printer className='w-4 h-4' />
+          Print
+        </Button>
+      </div>
       <div ref={contentRef}
         className="w-[210mm] min-h-[297mm] bg-white rounded-lg shadow flex flex-col mx-auto print:w-[210mm] print:min-h-[297mm]"
       >
@@ -192,6 +200,7 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
             <div>
               <h1 className="text-2xl font-bold text-gray-900 tracking-wide">{companyDetails.name}</h1>
               <p className="text-sm text-gray-500">{companyDetails.phone}</p>
+              <p className="text-sm text-gray-500">{companyDetails.email}</p>
               <p className="text-sm text-gray-500 max-w-[400px]">{companyDetails.address} {companyDetails.cityState}</p>
             </div>
           </div>

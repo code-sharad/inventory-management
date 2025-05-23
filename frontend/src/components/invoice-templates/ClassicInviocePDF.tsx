@@ -59,6 +59,8 @@ interface InvoiceData {
 const styles = StyleSheet.create({
     page: {
         padding: 32,
+        paddingTop: 64,
+        paddingBottom: 101,
         fontSize: 12,
         fontFamily: 'Poppins',
         backgroundColor: '#fff',
@@ -152,26 +154,27 @@ const styles = StyleSheet.create({
     table: {
         width: '100%',
         borderStyle: 'solid',
-        borderWidth: 1,
-        borderColor: '#222',
+        borderWidth: 0.5,
+        borderColor: '#bbb',
         marginBottom: 18,
         flexDirection: 'column',
-        // borderRadius: 0,
+        borderRadius: 4,
+        overflow: 'hidden',
     },
     tableHeader: {
         flexDirection: 'row',
-        backgroundColor: '#eaeaea',
+        backgroundColor: '#f5f5f5',
         borderBottomWidth: 1,
-        borderBottomColor: '#222',
+        borderBottomColor: '#bbb',
     },
     tableHeaderCell: {
         fontWeight: 'bold',
         fontSize: 12,
-        color: '#111',
-        padding: 8,
-        borderRightWidth: 1,
-        borderRightColor: '#222',
+        color: '#222',
+        paddingVertical: 10,
+        paddingHorizontal: 8,
         fontFamily: 'Poppins',
+        // No right border for header
     },
     tableRow: {
         flexDirection: 'row',
@@ -180,21 +183,21 @@ const styles = StyleSheet.create({
     },
     tableRowAlt: {
         flexDirection: 'row',
-        backgroundColor: '#fff',
+        backgroundColor: '#fafbfc',
         alignItems: 'center',
     },
     tableCell: {
-        padding: 8,
-        borderRightWidth: 1,
-        borderRightColor: '#222',
-        borderBottomWidth: 1,
-        borderBottomColor: '#222',
+        paddingVertical: 8,
+        paddingHorizontal: 8,
         fontSize: 11,
         color: '#111',
         fontFamily: 'Poppins',
+        borderBottomWidth: 0.25,
+        borderBottomColor: '#eee',
+        // No right border for cleaner look
     },
     lastTableCell: {
-        borderRightWidth: 0,
+        // No right border
     },
     summary: {
         alignItems: 'flex-end',
@@ -202,7 +205,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         // borderRadius: 0,
         padding: 12,
-        borderWidth: 1,
+        borderWidth: 0.5,
         borderColor: '#222',
     },
     summaryRow: {
@@ -279,7 +282,7 @@ const ClassicInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                         ) : ''}
                     </View>
                     {/* Items Table */}
-                    <View style={styles.table}>
+                    <View style={[styles.table, { marginBottom: 32 }]}>
                         {/* Table Header */}
                         <View style={styles.tableHeader} wrap={false}>
                             <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Item</Text>
@@ -355,7 +358,7 @@ const ClassicInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        height: 36,
+                        height: 52,
                         backgroundColor: '#f3f3f3',
                         borderTopWidth: 1,
                         borderTopColor: '#bbb',
@@ -379,6 +382,9 @@ const ClassicInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                         style={{ fontSize: 10, color: '#222' }}
                         render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`}
                     />
+                    <Text style={{ position: 'absolute', left: 32, bottom: 4, fontSize: 9, color: '#888', width: '100%', textAlign: 'center' }}>
+                        This is an electronically generated document, no signature is required
+                    </Text>
                 </View>
             </Page>
         </Document>

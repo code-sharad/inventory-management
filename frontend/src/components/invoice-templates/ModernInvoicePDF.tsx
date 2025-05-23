@@ -56,8 +56,9 @@ interface InvoiceData {
 
 const styles = StyleSheet.create({
     page: {
-        paddingVertical: 64,
-        paddingHorizontal: 32,
+        padding: 32,
+        paddingTop: 64,
+        paddingBottom: 101,
         fontSize: 12,
         fontFamily: 'Poppins',
         backgroundColor: '#fff',
