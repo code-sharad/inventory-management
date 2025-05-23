@@ -273,7 +273,7 @@ router.patch(
 router.get("/users", authenticate, restrictTo("admin"), async (req, res) => {
   try {
     const User = require("../models/user");
-    const users = await User.find({ role: { $ne: "admin" } }).select(
+    const users = await User.find({}).select(
       "_id username email role createdAt updatedAt lastLogin isActive isEmailVerified"
     );
 
@@ -426,6 +426,385 @@ router.delete(
         message: "User deleted successfully",
       });
     } catch (error) {
+      res.status(500).json({
+        status: "error",
+        message: "Failed to delete user",
+        error: error.message,
+      });
+    }
+  }
+);
+
+// Create user (Admin only)
+router.post(
+  "/create-user",
+  authenticate,
+  restrictTo("admin"),
+  validateRegister,
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      const { username, email, password, role } = req.body;
+      const User = require("../models/user");
+
+      // 1) Check if user already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({
+          status: "error",
+          message: "User already exists with this email",
+        });
+      }
+
+      // 2) Create user (admin-created users are automatically verified)
+      const newUser = await User.create({
+        username,
+        email,
+        password,
+        role: role || "user",
+        isEmailVerified: true, // Admin-created users are pre-verified
+        isActive: true,
+      });
+
+      // 3) Log successful user creation
+      logger.info("User created by admin", {
+        createdUserId: newUser._id,
+        createdUserEmail: newUser.email,
+        createdUserUsername: newUser.username,
+        createdUserRole: newUser.role,
+        adminId: req.user._id,
+        adminEmail: req.user.email,
+        ip: req.ip,
+      });
+
+      // 4) Return success response
+      res.status(201).json({
+        status: "success",
+        message: "User created successfully",
+        data: {
+          user: {
+            _id: newUser._id,
+            username: newUser.username,
+            email: newUser.email,
+            role: newUser.role,
+            isActive: newUser.isActive,
+            isEmailVerified: newUser.isEmailVerified,
+            createdAt: newUser.createdAt,
+          },
+        },
+      });
+    } catch (error) {
+      logger.error("Admin user creation failed", {
+        error: error.message,
+        email: req.body.email,
+        adminId: req.user._id,
+        adminEmail: req.user.email,
+        ip: req.ip,
+      });
+
+      res.status(400).json({
+        status: "error",
+        message: error.message,
+      });
+    }
+  }
+);
+
+// Change admin password
+router.post(
+  "/change-admin-password",
+  authenticate,
+  restrictTo("admin"),
+  [
+    body("current").notEmpty().withMessage("Current password is required"),
+    body("new")
+      .isLength({ min: 6 })
+      .withMessage("New password must be at least 6 characters long"),
+    body("confirm").custom((value, { req }) => {
+      if (value !== req.body.new) {
+        throw new Error("Passwords do not match");
+      }
+      return true;
+    }),
+  ],
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      const { current, new: newPassword } = req.body;
+      const User = require("../models/user");
+
+      // Get admin user with password
+      const admin = await User.findById(req.user._id).select("+password");
+
+      // Check current password
+      const isCurrentPasswordCorrect = await admin.correctPassword(
+        current,
+        admin.password
+      );
+      if (!isCurrentPasswordCorrect) {
+        return res.status(401).json({
+          status: "error",
+          message: "Current password is incorrect",
+        });
+      }
+
+      // Update password
+      admin.password = newPassword;
+      admin.passwordChangedAt = Date.now();
+      admin.refreshTokens = []; // Clear all refresh tokens
+      await admin.save();
+
+      logger.info("Admin password changed", {
+        adminId: req.user._id,
+        adminEmail: req.user.email,
+        ip: req.ip,
+      });
+
+      res.status(200).json({
+        status: "success",
+        message: "Admin password changed successfully",
+      });
+    } catch (error) {
+      logger.error("Admin password change failed", {
+        error: error.message,
+        adminId: req.user._id,
+        adminEmail: req.user.email,
+        ip: req.ip,
+      });
+
+      res.status(500).json({
+        status: "error",
+        message: "Failed to change admin password",
+      });
+    }
+  }
+);
+
+// Change admin email
+router.post(
+  "/change-admin-email",
+  authenticate,
+  restrictTo("admin"),
+  [
+    body("newEmail")
+      .isEmail()
+      .normalizeEmail()
+      .withMessage("Please provide a valid email address"),
+    body("confirmEmail").custom((value, { req }) => {
+      if (value !== req.body.newEmail) {
+        throw new Error("Email addresses do not match");
+      }
+      return true;
+    }),
+  ],
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      const { newEmail } = req.body;
+      const User = require("../models/user");
+
+      // Check if email is already taken
+      const existingUser = await User.findOne({ email: newEmail });
+      if (
+        existingUser &&
+        existingUser._id.toString() !== req.user._id.toString()
+      ) {
+        return res.status(400).json({
+          status: "error",
+          message: "Email address is already in use",
+        });
+      }
+
+      // Update email
+      const admin = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+          email: newEmail,
+          isEmailVerified: true, // Admin can verify their own email
+        },
+        { new: true, runValidators: true }
+      );
+
+      logger.info("Admin email changed", {
+        adminId: req.user._id,
+        oldEmail: req.user.email,
+        newEmail: newEmail,
+        ip: req.ip,
+      });
+
+      res.status(200).json({
+        status: "success",
+        message: "Admin email changed successfully",
+        data: {
+          user: {
+            _id: admin._id,
+            username: admin.username,
+            email: admin.email,
+            role: admin.role,
+          },
+        },
+      });
+    } catch (error) {
+      logger.error("Admin email change failed", {
+        error: error.message,
+        adminId: req.user._id,
+        adminEmail: req.user.email,
+        ip: req.ip,
+      });
+
+      res.status(500).json({
+        status: "error",
+        message: "Failed to change admin email",
+      });
+    }
+  }
+);
+
+// Change user password (Admin only)
+router.post(
+  "/change-user-password",
+  authenticate,
+  restrictTo("admin"),
+  [
+    body("email")
+      .isEmail()
+      .normalizeEmail()
+      .withMessage("Please provide a valid email address"),
+    body("newPassword")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters long"),
+    body("confirmPassword").custom((value, { req }) => {
+      if (value !== req.body.newPassword) {
+        throw new Error("Passwords do not match");
+      }
+      return true;
+    }),
+  ],
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      const { email, newPassword } = req.body;
+      const User = require("../models/user");
+
+      // 1) Find the user by email
+      const targetUser = await User.findOne({ email }).select("+password");
+      if (!targetUser) {
+        return res.status(404).json({
+          status: "error",
+          message: "User not found with this email address",
+        });
+      }
+
+      // 2) Prevent admin from changing another admin's password (unless it's their own)
+      if (
+        targetUser.role === "admin" &&
+        targetUser._id.toString() !== req.user._id.toString()
+      ) {
+        return res.status(403).json({
+          status: "error",
+          message: "Cannot change another admin's password",
+        });
+      }
+
+      // 3) Update the user's password
+      targetUser.password = newPassword;
+      targetUser.passwordChangedAt = Date.now();
+      targetUser.refreshTokens = []; // Clear all refresh tokens to force re-login
+      await targetUser.save();
+
+      // 4) Log the password change
+      logger.info("User password changed by admin", {
+        targetUserId: targetUser._id,
+        targetUserEmail: targetUser.email,
+        adminId: req.user._id,
+        adminEmail: req.user.email,
+        ip: req.ip,
+      });
+
+      // 5) Return success response
+      res.status(200).json({
+        status: "success",
+        message: "User password changed successfully",
+      });
+    } catch (error) {
+      logger.error("Admin password change failed", {
+        error: error.message,
+        email: req.body.email,
+        adminId: req.user._id,
+        adminEmail: req.user.email,
+        ip: req.ip,
+      });
+
+      res.status(500).json({
+        status: "error",
+        message: "Failed to change user password",
+      });
+    }
+  }
+);
+
+// Delete user (Admin only) - frontend compatible route
+router.delete(
+  "/delete-user/:id",
+  authenticate,
+  restrictTo("admin"),
+  async (req, res) => {
+    try {
+      const User = require("../models/user");
+      const { id } = req.params;
+
+      // Prevent admin from deleting themselves
+      if (id === req.user._id.toString()) {
+        return res.status(400).json({
+          status: "error",
+          message: "You cannot delete your own account",
+        });
+      }
+
+      // Find and delete the user
+      const userToDelete = await User.findById(id);
+      if (!userToDelete) {
+        return res.status(404).json({
+          status: "error",
+          message: "User not found",
+        });
+      }
+
+      // Prevent deleting another admin (unless it's their own account)
+      if (
+        userToDelete.role === "admin" &&
+        userToDelete._id.toString() !== req.user._id.toString()
+      ) {
+        return res.status(403).json({
+          status: "error",
+          message: "Cannot delete another admin account",
+        });
+      }
+
+      await User.findByIdAndDelete(id);
+
+      logger.info("User deleted by admin", {
+        deletedUserId: userToDelete._id,
+        deletedUserEmail: userToDelete.email,
+        deletedUserUsername: userToDelete.username,
+        adminId: req.user._id,
+        adminEmail: req.user.email,
+        ip: req.ip,
+      });
+
+      res.status(200).json({
+        status: "success",
+        message: "User deleted successfully",
+      });
+    } catch (error) {
+      logger.error("Admin user deletion failed", {
+        error: error.message,
+        userId: req.params.id,
+        adminId: req.user._id,
+        adminEmail: req.user.email,
+        ip: req.ip,
+      });
+
       res.status(500).json({
         status: "error",
         message: "Failed to delete user",

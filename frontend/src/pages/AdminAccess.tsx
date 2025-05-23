@@ -161,8 +161,10 @@ const AdminAccess: React.FC = () => {
 
         if (!newUser.password.trim()) {
             errors.password = 'Password is required';
-        } else if (newUser.password.length < 6) {
-            errors.password = 'Password must be at least 6 characters';
+        } else if (newUser.password.length < 8) {
+            errors.password = 'Password must be at least 8 characters long';
+        } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(newUser.password)) {
+            errors.password = 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character';
         }
 
         if (!newUser.role.trim()) {
@@ -776,9 +778,9 @@ const AdminAccess: React.FC = () => {
 
             <Separator />
 
-            {/* Users Table Section */}
+            {/* Admin Users Table Section */}
             <div className="mt-8">
-                <h3 className="text-xl font-semibold mb-4">Users</h3>
+                <h3 className="text-xl font-semibold mb-4">Admin Users</h3>
                 <div className="rounded-md border">
                     <Table>
                         <TableHeader>
@@ -793,15 +795,69 @@ const AdminAccess: React.FC = () => {
                         </TableHeader>
                         <TableBody>
                             {loadingUsers ? (
-                                <TableRow><TableCell colSpan={5}>Loading...</TableCell></TableRow>
+                                <TableRow><TableCell colSpan={6}>Loading...</TableCell></TableRow>
+                            ) : !Array.isArray(users) || users.filter(u => u.role === 'admin').length === 0 ? (
+                                <TableRow><TableCell colSpan={6}>No admin users found.</TableCell></TableRow>
+                            ) : (
+                                users.filter(u => u.role === 'admin').map((u) => (
+                                    <TableRow key={u._id}>
+                                        <TableCell>{u.username}</TableCell>
+                                        <TableCell>{u.email}</TableCell>
+                                        <TableCell>
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                {u.role}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>{u.createdAt ? new Date(u.createdAt).toLocaleString() : ''}</TableCell>
+                                        <TableCell>{u.lastLogin ? new Date(u.lastLogin).toLocaleString() : ''}</TableCell>
+                                        <TableCell>
+                                            <Button variant="destructive" size="icon" onClick={() => { setUserToDelete(u); setDeleteDialogOpen(true); }}>
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            </div>
+
+            <Separator />
+
+            {/* All Users Table Section */}
+            <div className="mt-8">
+                <h3 className="text-xl font-semibold mb-4">All Users</h3>
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Username</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Role</TableHead>
+                                <TableHead>Created At</TableHead>
+                                <TableHead>Last Login</TableHead>
+                                <TableHead>Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {loadingUsers ? (
+                                <TableRow><TableCell colSpan={6}>Loading...</TableCell></TableRow>
                             ) : !Array.isArray(users) || users.length === 0 ? (
-                                <TableRow><TableCell colSpan={5}>No users found.</TableCell></TableRow>
+                                <TableRow><TableCell colSpan={6}>No users found.</TableCell></TableRow>
                             ) : (
                                 users.map((u) => (
                                     <TableRow key={u._id}>
                                         <TableCell>{u.username}</TableCell>
                                         <TableCell>{u.email}</TableCell>
-                                        <TableCell>{u.role}</TableCell>
+                                        <TableCell>
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${u.role === 'admin'
+                                                ? 'bg-blue-100 text-blue-800'
+                                                : 'bg-green-100 text-green-800'
+                                                }`}>
+                                                {u.role}
+                                            </span>
+                                        </TableCell>
                                         <TableCell>{u.createdAt ? new Date(u.createdAt).toLocaleString() : ''}</TableCell>
                                         <TableCell>{u.lastLogin ? new Date(u.lastLogin).toLocaleString() : ''}</TableCell>
                                         <TableCell>

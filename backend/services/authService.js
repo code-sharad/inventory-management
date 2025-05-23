@@ -77,7 +77,7 @@ class AuthService {
   }
 
   // Register user
-  static async register(userData, req, res) {
+  static async register(userData, req) {
     try {
       const { username, email, password, role } = userData;
 
@@ -116,11 +116,11 @@ class AuthService {
         ip: req.ip,
       });
 
-      res.status(201).json({
+      return {
         status: "success",
         message:
           "Registration successful! Please check your email to verify your account.",
-      });
+      };
     } catch (error) {
       logger.error("Registration failed", {
         error: error.message,
@@ -357,7 +357,7 @@ class AuthService {
   }
 
   // Forgot password
-  static async forgotPassword(email, req, res) {
+  static async forgotPassword(email, req) {
     try {
       // 1) Get user based on POSTed email
       const user = await User.findOne({ email });
@@ -385,10 +385,10 @@ class AuthService {
         ip: req.ip,
       });
 
-      res.status(200).json({
+      return {
         status: "success",
         message: "Token sent to email!",
-      });
+      };
     } catch (error) {
       logger.error("Password reset request failed", {
         error: error.message,

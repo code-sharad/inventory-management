@@ -133,7 +133,7 @@ class EmailService {
   }
 
   async sendPasswordResetEmail(email, resetToken) {
-    const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const resetURL = `${process.env.VITE_FRONTEND_URL || "http://localhost:5173"}/reset-password/${resetToken}`;
 
     const message = `
       Forgot your password? 
