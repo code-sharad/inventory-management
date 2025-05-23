@@ -23,26 +23,32 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Edit, FolderPlus, PackagePlus, Plus, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import axiosInstance from "@/api";
 import { toast } from "sonner";
 
-type Product = {
-    _id: string;
-    name: string;
-    quantity: number;
-    price: number;
-    hsnCode: string;
-    category: { _id: string; name: string }; // Handle both cases
-};
-
-type Category = {
-    _id: string;
-    name: string;
-};
+// React Query hooks
+import {
+    useProducts,
+    useCategories,
+    useCreateProduct,
+    useUpdateProduct,
+    useDeleteProduct,
+    useCreateCategory,
+    useDeleteCategory,
+    type Product,
+    type Category
+} from "@/hooks/useApi";
 
 export default function InventoryPage() {
-    const [products, setProducts] = useState<Product[]>([])
-    const [categories, setCategories] = useState<Category[]>([])
+    // React Query hooks
+    const { data: products = [], isLoading: isLoadingProducts, error: productsError } = useProducts();
+    const { data: categories = [], isLoading: isLoadingCategories, error: categoriesError } = useCategories();
+
+    const createProductMutation = useCreateProduct();
+    const updateProductMutation = useUpdateProduct();
+    const deleteProductMutation = useDeleteProduct();
+    const createCategoryMutation = useCreateCategory();
+    const deleteCategoryMutation = useDeleteCategory();
+
     const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false)
     const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -55,134 +61,94 @@ export default function InventoryPage() {
         category: ""
     })
     const [newCategory, setNewCategory] = useState("")
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-    // Fetch initial data
+
+    // Handle loading and error states
+    const isLoading = isLoadingProducts || isLoadingCategories;
+    const error = productsError || categoriesError;
+
+    // Filter products based on search term
     useEffect(() => {
-        fetchProducts();
-        fetchCategories();
-    }, []);
-
-    const fetchProducts = async () => {
-        try {
-            setLoading(true);
-            const response = await axiosInstance.get(`/item`);
-
-            if (response.status !== 200) throw new Error(`HTTP error! status: ${response.status}`);
-            const data = response.data;
-            console.log("Products fetched:", data); // Debug log
-            setProducts(data);
-        } catch (err) {
-            setError(handleApiError(err));
-        } finally {
-            setLoading(false);
+        if (!searchTerm) {
+            setFilteredProducts(products);
+        } else {
+            const filtered = products.filter(product =>
+                product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                product.hsnCode.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            setFilteredProducts(filtered);
         }
-    };
-
-    const fetchCategories = async () => {
-        try {
-            setLoading(true);
-            const response = await axiosInstance.get(`/category`);
-            if (response.status !== 200) throw new Error(`HTTP error! status: ${response.status}`);
-            const data = response.data;
-            console.log("Categories fetched:", data); // Debug log
-            setCategories(data);
-
-        } catch (err) {
-            setError(handleApiError(err));
-        } finally {
-            setLoading(false);
-        }
-    };
+        setCurrentPage(1); // Reset to first page when filtering
+    }, [products, searchTerm]);
 
     // Calculate paginated products
-    const paginatedProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-    const totalPages = Math.ceil(products.length / itemsPerPage);
+    const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
     // Reset to first page if products change and current page is out of range
     useEffect(() => {
-        if (currentPage > totalPages) {
+        if (currentPage > totalPages && totalPages > 0) {
             setCurrentPage(1);
         }
-    }, [products, totalPages]);
+    }, [filteredProducts, totalPages, currentPage]);
 
     // Add new product
     const handleAddProduct = async () => {
         try {
-            const response = await axiosInstance.post(`/item`, newProduct)
-            if (response.status !== 200) throw new Error("Failed to add product")
-
-
-            fetchProducts();
-            fetchCategories();
-
-            setNewProduct({ name: "", quantity: 0, price: 0, hsnCode: "", category: "" })
-            setIsAddProductDialogOpen(false)
-            toast.success("Product added successfully")
-        } catch (err) {
-            console.log("firstError")
-            setError("Failed to add product")
+            await createProductMutation.mutateAsync(newProduct);
+            setNewProduct({ name: "", quantity: 0, price: 0, hsnCode: "", category: "" });
+            setIsAddProductDialogOpen(false);
+        } catch (error) {
+            // Error handling is done in the mutation
         }
     }
 
     // Add new category
     const handleAddCategory = async () => {
         try {
-            const response = await axiosInstance.post(`/category`, { name: newCategory })
-            if (response.status !== 201) throw new Error("Failed to add category")
-            const addedCategory = response.data
-            setCategories([...categories, addedCategory])
-            fetchProducts();
-            fetchCategories();
-            setNewCategory("")
-            // setIsAddCategoryDialogOpen(false)
-            toast.success("Category added successfully")
-        } catch (err) {
-            setError("Failed to add category")
+            await createCategoryMutation.mutateAsync({ name: newCategory });
+            setNewCategory("");
+            setIsAddCategoryDialogOpen(false);
+        } catch (error) {
+            // Error handling is done in the mutation
         }
     }
 
     // Edit product
     const handleEditProduct = async () => {
-        if (!currentProduct) return
+        if (!currentProduct) return;
         try {
-            const response = await axiosInstance.put(`/item/${currentProduct._id}`, currentProduct)
-            if (response.status !== 200) throw new Error("Failed to update product")
-            const updatedProduct = response.data
-            setProducts(products.map(p => p._id === updatedProduct._id ? updatedProduct : p))
-            setIsEditDialogOpen(false)
-            setCurrentProduct(null)
-        } catch (err) {
-            setError("Failed to update product")
+            await updateProductMutation.mutateAsync({
+                id: currentProduct._id,
+                data: currentProduct
+            });
+            setIsEditDialogOpen(false);
+            setCurrentProduct(null);
+        } catch (error) {
+            // Error handling is done in the mutation
         }
     }
 
     // Delete product
     const handleDeleteProduct = async (id: string) => {
         try {
-            const response = await axiosInstance.delete(`/item/${id}`)
-            if (response.status !== 200) throw new Error("Failed to delete product")
-            setProducts(products.filter(p => p._id !== id))
-            toast.success("Product deleted successfully")
-        } catch (err) {
-            setError("Failed to delete product")
+            await deleteProductMutation.mutateAsync(id);
+        } catch (error) {
+            // Error handling is done in the mutation
         }
     }
 
     // Delete category
     const handleDeleteCategory = async (id: string) => {
         try {
-            const response = await axiosInstance.delete(`/category/${id}`)
-            if (response.status !== 200) throw new Error("Failed to delete category")
-            setCategories(categories.filter(c => c._id !== id))
-            toast.success("Category deleted successfully")
-        } catch (err) {
-            setError("Failed to delete category")
+            await deleteCategoryMutation.mutateAsync(id);
+        } catch (error) {
+            // Error handling is done in the mutation
         }
     }
 
@@ -192,14 +158,39 @@ export default function InventoryPage() {
         setIsEditDialogOpen(true)
     }
 
+    if (isLoading) {
+        return (
+            <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                        <p className="text-lg">Loading inventory data...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <p className="text-lg text-red-600 mb-4">Error loading inventory data</p>
+                        <p className="text-sm text-gray-600">
+                            {error?.message || "Unknown error occurred"}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
-            {error && <div className="text-red-500">{error}</div>}
-            {loading && <div>Loading...</div>}
-
             <div className="flex items-center justify-between flex-wrap gap-4">
-                <h2 className="text-3xl font-serif font-bold tracking-tight">Inventory</h2>
-                <div className="flex gap-8 flex-wrap">
+                <h2 className="text-3xl font-bold tracking-tight">Inventory</h2>
+                <div className="flex gap-2">
                     {/* Add Product Dialog */}
                     <Dialog open={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen}>
                         <DialogTrigger asChild>
@@ -262,7 +253,12 @@ export default function InventoryPage() {
                             </div>
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setIsAddProductDialogOpen(false)}>Cancel</Button>
-                                <Button onClick={handleAddProduct}>Add Product</Button>
+                                <Button
+                                    onClick={handleAddProduct}
+                                    disabled={createProductMutation.isPending}
+                                >
+                                    {createProductMutation.isPending ? "Adding..." : "Add Product"}
+                                </Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
@@ -286,7 +282,12 @@ export default function InventoryPage() {
                                             value={newCategory}
                                             onChange={(e) => setNewCategory(e.target.value)}
                                         />
-                                        <Button onClick={handleAddCategory}>Add Category</Button>
+                                        <Button
+                                            onClick={handleAddCategory}
+                                            disabled={createCategoryMutation.isPending}
+                                        >
+                                            {createCategoryMutation.isPending ? "Adding..." : "Add Category"}
+                                        </Button>
                                     </div>
                                 </div>
                             </div>
@@ -303,13 +304,16 @@ export default function InventoryPage() {
                                         {categories.map((c) => (
                                             <TableRow key={c._id}>
                                                 <TableCell className="">{categories.indexOf(c) + 1}</TableCell>
-                                                {/* <TableCell className="hidden md:block">{c._id}</TableCell> */}
                                                 <TableCell>{c.name}</TableCell>
                                                 <TableCell>
-                                                    <Trash2
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
                                                         onClick={() => handleDeleteCategory(c._id)}
-                                                        className="w-4 cursor-pointer"
-                                                    />
+                                                        disabled={deleteCategoryMutation.isPending}
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -318,7 +322,6 @@ export default function InventoryPage() {
                             </ScrollArea>
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setIsAddCategoryDialogOpen(false)}>Cancel</Button>
-
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
@@ -328,19 +331,11 @@ export default function InventoryPage() {
                             type="text"
                             placeholder="Search products..."
                             className="w-64"
-                            onChange={(e) => {
-                                setSearchTerm(e.target.value);
-                                const filtered = products.filter((product) =>
-                                    product.name.includes(e.target.value) 
-                                );
-                                console.log(filtered);
-                                setFilteredProducts(filtered);
-                            }}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                         />
-                       
                     </div>
                 </div>
-
             </div>
 
             {/* Products Table */}
@@ -357,60 +352,42 @@ export default function InventoryPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredProducts.length === 0 ? paginatedProducts.map((product) => (
+                        {paginatedProducts.map((product) => (
                             <TableRow key={product._id}>
                                 <TableCell>{product.name}</TableCell>
                                 <TableCell>{product.hsnCode}</TableCell>
                                 <TableCell>
                                     <Badge variant="outline">
-                                        {typeof product.category === 'string'
-                                            // @ts-ignore
-                                            ? product.category?.name
-                                            : product.category?.name || "Uncategorized"}
+                                        {product.category?.name || "Uncategorized"}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right">{product.quantity}</TableCell>
                                 <TableCell className="text-right">₹{product.price.toFixed(2)}</TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
-                                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => openEditDialog(product)}
+                                            disabled={updateProductMutation.isPending}
+                                        >
                                             <Edit className="h-4 w-4" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteProduct(product._id)}>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => handleDeleteProduct(product._id)}
+                                            disabled={deleteProductMutation.isPending}
+                                        >
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
                                     </div>
                                 </TableCell>
                             </TableRow>
-                        )) : filteredProducts.map((product) => {
-                            return <TableRow key={product._id}>
-                                <TableCell>{product.name}</TableCell>
-                                <TableCell>{product.hsnCode}</TableCell>
-                                <TableCell>
-                                    <Badge variant="outline">
-                                        {typeof product.category === 'string'
-                                            // @ts-ignore
-                                            ? product.category?.name
-                                            : product.category?.name || "Uncategorized"}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-right">{product.quantity}</TableCell>
-                                <TableCell className="text-right">₹{product.price.toFixed(2)}</TableCell>
-                                <TableCell className="text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteProduct(product._id)}>
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        }
-                        )}
+                        ))}
                     </TableBody>
                 </Table>
+
                 {/* Pagination Controls */}
                 <div className="flex justify-between items-center p-4">
                     <Button
@@ -449,6 +426,14 @@ export default function InventoryPage() {
                                 />
                             </div>
                             <div className="grid gap-2">
+                                <Label htmlFor="edit-hsnCode">HSN Code</Label>
+                                <Input
+                                    id="edit-hsnCode"
+                                    value={currentProduct.hsnCode}
+                                    onChange={(e) => setCurrentProduct({ ...currentProduct, hsnCode: e.target.value })}
+                                />
+                            </div>
+                            <div className="grid gap-2">
                                 <Label htmlFor="edit-quantity">Quantity</Label>
                                 <Input
                                     id="edit-quantity"
@@ -470,9 +455,14 @@ export default function InventoryPage() {
                             <div className="grid gap-2">
                                 <Label htmlFor="edit-category">Category</Label>
                                 <Select
-                                    value={typeof currentProduct.category === 'string' ? currentProduct.category : currentProduct.category._id}
-                                    // @ts-ignore
-                                    onValueChange={(value) => setCurrentProduct({ ...currentProduct, category: value })}
+                                    value={currentProduct.category?._id}
+                                    onValueChange={(value) => {
+                                        const selectedCategory = categories.find(c => c._id === value);
+                                        setCurrentProduct({
+                                            ...currentProduct,
+                                            category: selectedCategory || currentProduct.category
+                                        });
+                                    }}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select category" />
@@ -488,7 +478,12 @@ export default function InventoryPage() {
                     )}
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleEditProduct}>Save Changes</Button>
+                        <Button
+                            onClick={handleEditProduct}
+                            disabled={updateProductMutation.isPending}
+                        >
+                            {updateProductMutation.isPending ? "Updating..." : "Update Product"}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

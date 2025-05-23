@@ -5,7 +5,7 @@ import { formatCurrency } from '@/lib/formatCurrency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import axiosInstance from '@/api';
-import { useUser } from '@/contexts/UserContext';
+
 interface InvoiceData {
     id: string;
     invoiceNumber: string;

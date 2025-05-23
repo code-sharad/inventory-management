@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { useUser } from '@/contexts/UserContext';
+import { useAuth } from '@/contexts/AuthContext';
 import axiosInstance from '@/api';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from "lucide-react";
@@ -13,21 +13,76 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Trash2 } from 'lucide-react';
 
+// Error display component
+const ErrorMessage = ({ error }: { error?: string }) => {
+    if (!error) return null;
+    return <p className="text-sm text-destructive mt-1">{error}</p>;
+};
+
+// Helper function to extract field errors from backend response
+const extractFieldErrors = (error: any) => {
+    const fieldErrors: Record<string, string> = {};
+
+    if (error?.response?.data?.errors) {
+        // Handle validation errors array
+        const errors = error.response.data.errors;
+        errors.forEach((err: any) => {
+            if (err.path) {
+                fieldErrors[err.path] = err.message;
+            }
+        });
+    } else if (error?.response?.data?.message) {
+        // Handle single error message
+        fieldErrors.general = error.response.data.message;
+    } else {
+        fieldErrors.general = error.message || 'An error occurred';
+    }
+
+    return fieldErrors;
+};
+
 const AdminAccess: React.FC = () => {
     // Placeholder: Replace with your actual admin check logic
-    const { user } = useUser();
-    const isAdmin = user?.user.role === "admin"; // TODO: Replace with real check
+    const { user, isLoading } = useAuth();
+
+    // Show loading while auth is initializing
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-lg">Loading...</div>
+            </div>
+        );
+    }
+
+    // Show unauthorized if not admin
+    if (!user || user.role !== "admin") {
+        return (
+            <div className="flex items-center justify-center h-screen text-destructive text-lg font-semibold">
+                Unauthorized: Admins only
+            </div>
+        );
+    }
+
+    const isAdmin = user.role === "admin";
     // State for Create User
     const [newUser, setNewUser] = useState({ username: '', email: '', password: '', role: '' });
+    const [createUserErrors, setCreateUserErrors] = useState<Record<string, string>>({});
+    const [createUserLoading, setCreateUserLoading] = useState(false);
 
     // State for Change Password
     const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
+    const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
+    const [passwordLoading, setPasswordLoading] = useState(false);
 
     // State for Change Email
     const [emails, setEmails] = useState({ newEmail: '', confirmEmail: '' });
+    const [emailErrors, setEmailErrors] = useState<Record<string, string>>({});
+    const [emailLoading, setEmailLoading] = useState(false);
 
     // State for Change User Password (by admin)
     const [userPassword, setUserPassword] = useState({ username: '', email: '', newPassword: '', confirmPassword: '' });
+    const [userPasswordErrors, setUserPasswordErrors] = useState<Record<string, string>>({});
+    const [userPasswordLoading, setUserPasswordLoading] = useState(false);
 
     // State for password visibility toggles
     const [showUserPassword, setShowUserPassword] = useState(false);
@@ -47,9 +102,24 @@ const AdminAccess: React.FC = () => {
         setLoadingUsers(true);
         try {
             const response = await axiosInstance.get('/auth/users');
-            setUsers(response.data);
+            // Handle different response structures
+            const userData = response.data?.data?.users || response.data;
+            console.log('Raw users response:', response.data);
+
+            // Ensure userData is an array
+            if (Array.isArray(userData)) {
+                setUsers(userData);
+            } else if (Array.isArray(response.data)) {
+                setUsers(response.data);
+            } else {
+                console.error('Users data is not an array:', userData);
+                setUsers([]);
+                toast.error('Invalid users data format');
+            }
         } catch (error) {
+            console.error('Fetch users error:', error);
             toast.error('Failed to fetch users');
+            setUsers([]); // Ensure users is always an array
         } finally {
             setLoadingUsers(false);
         }
@@ -73,89 +143,249 @@ const AdminAccess: React.FC = () => {
         }
     };
 
+    // Client-side validation functions
+    const validateCreateUser = () => {
+        const errors: Record<string, string> = {};
+
+        if (!newUser.username.trim()) {
+            errors.username = 'Username is required';
+        } else if (newUser.username.length < 3) {
+            errors.username = 'Username must be at least 3 characters';
+        }
+
+        if (!newUser.email.trim()) {
+            errors.email = 'Email is required';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email)) {
+            errors.email = 'Please enter a valid email address';
+        }
+
+        if (!newUser.password.trim()) {
+            errors.password = 'Password is required';
+        } else if (newUser.password.length < 6) {
+            errors.password = 'Password must be at least 6 characters';
+        }
+
+        if (!newUser.role.trim()) {
+            errors.role = 'Role is required';
+        }
+
+        return errors;
+    };
+
+    const validatePasswordChange = () => {
+        const errors: Record<string, string> = {};
+
+        if (!passwords.current.trim()) {
+            errors.current = 'Current password is required';
+        }
+
+        if (!passwords.new.trim()) {
+            errors.new = 'New password is required';
+        } else if (passwords.new.length < 6) {
+            errors.new = 'Password must be at least 6 characters';
+        }
+
+        if (!passwords.confirm.trim()) {
+            errors.confirm = 'Please confirm your new password';
+        } else if (passwords.new !== passwords.confirm) {
+            errors.confirm = 'Passwords do not match';
+        }
+
+        return errors;
+    };
+
+    const validateEmailChange = () => {
+        const errors: Record<string, string> = {};
+
+        if (!emails.newEmail.trim()) {
+            errors.newEmail = 'New email is required';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emails.newEmail)) {
+            errors.newEmail = 'Please enter a valid email address';
+        }
+
+        if (!emails.confirmEmail.trim()) {
+            errors.confirmEmail = 'Please confirm your new email';
+        } else if (emails.newEmail !== emails.confirmEmail) {
+            errors.confirmEmail = 'Email addresses do not match';
+        }
+
+        return errors;
+    };
+
+    const validateUserPasswordChange = () => {
+        const errors: Record<string, string> = {};
+
+        if (!userPassword.email.trim()) {
+            errors.email = 'Email is required';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userPassword.email)) {
+            errors.email = 'Please enter a valid email address';
+        }
+
+        if (!userPassword.newPassword.trim()) {
+            errors.newPassword = 'New password is required';
+        } else if (userPassword.newPassword.length < 6) {
+            errors.newPassword = 'Password must be at least 6 characters';
+        }
+
+        if (!userPassword.confirmPassword.trim()) {
+            errors.confirmPassword = 'Please confirm the new password';
+        } else if (userPassword.newPassword !== userPassword.confirmPassword) {
+            errors.confirmPassword = 'Passwords do not match';
+        }
+
+        return errors;
+    };
+
     // Handlers
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Clear previous errors
+        setCreateUserErrors({});
+
+        // Client-side validation
+        const validationErrors = validateCreateUser();
+        if (Object.keys(validationErrors).length > 0) {
+            setCreateUserErrors(validationErrors);
+            return;
+        }
+
+        setCreateUserLoading(true);
         try {
             const response = await axiosInstance.post("/auth/create-user", newUser);
             if (response.status === 200 || response.status === 201) {
                 toast.success("User created successfully");
+                setNewUser({ username: '', email: '', password: '', role: '' });
                 fetchUsers();
-            } else {
-                toast.error("User creation failed");
             }
         } catch (error: any) {
-            toast.error(error?.response?.data?.message || "User creation failed");
+            console.error('Create user error:', error);
+            const fieldErrors = extractFieldErrors(error);
+            setCreateUserErrors(fieldErrors);
+
+            if (fieldErrors.general) {
+                toast.error(fieldErrors.general);
+            } else {
+                toast.error("Failed to create user");
+            }
+        } finally {
+            setCreateUserLoading(false);
         }
     };
 
     const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (passwords.new !== passwords.confirm) {
-            toast.error("New passwords do not match");
+
+        // Clear previous errors
+        setPasswordErrors({});
+
+        // Client-side validation
+        const validationErrors = validatePasswordChange();
+        if (Object.keys(validationErrors).length > 0) {
+            setPasswordErrors(validationErrors);
             return;
         }
+
+        setPasswordLoading(true);
         try {
             const response = await axiosInstance.post("/auth/change-admin-password", passwords);
             if (response.status === 200 || response.status === 201) {
                 toast.success("Password changed successfully");
-            } else {
-                toast.error("Password change failed");
+                setPasswords({ current: '', new: '', confirm: '' });
             }
         } catch (error: any) {
-            toast.error(error?.response?.data?.message || "Password change failed");
+            console.error('Change password error:', error);
+            const fieldErrors = extractFieldErrors(error);
+            setPasswordErrors(fieldErrors);
+
+            if (fieldErrors.general) {
+                toast.error(fieldErrors.general);
+            } else {
+                toast.error("Failed to change password");
+            }
+        } finally {
+            setPasswordLoading(false);
         }
     };
 
     const handleChangeEmail = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (emails.newEmail !== emails.confirmEmail) {
-            toast.error("Emails do not match");
+
+        // Clear previous errors
+        setEmailErrors({});
+
+        // Client-side validation
+        const validationErrors = validateEmailChange();
+        if (Object.keys(validationErrors).length > 0) {
+            setEmailErrors(validationErrors);
             return;
         }
+
+        setEmailLoading(true);
         try {
             const response = await axiosInstance.post("/auth/change-admin-email", emails);
             if (response.status === 200 || response.status === 201) {
-                fetchUsers();
                 toast.success("Email changed successfully");
-            } else {
-                toast.error("Email change failed");
+                setEmails({ newEmail: '', confirmEmail: '' });
+                fetchUsers();
             }
         } catch (error: any) {
-            toast.error(error?.response?.data?.message || "Email change failed");
+            console.error('Change email error:', error);
+            const fieldErrors = extractFieldErrors(error);
+            setEmailErrors(fieldErrors);
+
+            if (fieldErrors.general) {
+                toast.error(fieldErrors.general);
+            } else {
+                toast.error("Failed to change email");
+            }
+        } finally {
+            setEmailLoading(false);
         }
     };
 
     // Handler for changing any user's password (by admin)
     const handleChangeUserPassword = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (userPassword.newPassword !== userPassword.confirmPassword) {
-            toast.error("New passwords do not match");
+
+        // Clear previous errors
+        setUserPasswordErrors({});
+
+        // Client-side validation
+        const validationErrors = validateUserPasswordChange();
+        if (Object.keys(validationErrors).length > 0) {
+            setUserPasswordErrors(validationErrors);
             return;
         }
 
+        setUserPasswordLoading(true);
         try {
             const response = await axiosInstance.post("/auth/change-user-password", userPassword);
             if (response.status === 200) {
                 toast.success("User password changed successfully");
-            } else {
-                toast.error("User password change failed");
+                setUserPassword({ username: '', email: '', newPassword: '', confirmPassword: '' });
             }
         } catch (error: any) {
-            toast.error(error?.response?.data?.message || "User password change failed");
+            console.error('Change user password error:', error);
+            const fieldErrors = extractFieldErrors(error);
+            setUserPasswordErrors(fieldErrors);
+
+            if (fieldErrors.general) {
+                toast.error(fieldErrors.general);
+            } else {
+                toast.error("Failed to change user password");
+            }
+        } finally {
+            setUserPasswordLoading(false);
         }
     };
-
-    if (!isAdmin) {
-        return <div className="flex items-center justify-center h-screen text-destructive text-lg font-semibold">Unauthorized: Admins only</div>;
-    }
 
     return (
         <div className="max-w-5xl mx-auto py-10 px-4 space-y-8">
             <h2 className="text-3xl font-bold mb-2 text-center">Admin Access</h2>
             <p className="text-muted-foreground text-center mb-6">Manage users and your admin account</p>
 
-            {/* First row: Admin change email and password */}
+            {/* First row: Admin change email and passord */}
             <div className="flex flex-col md:flex-row gap-6">
                 {/* Change Password Section */}
                 <Card className="flex-1">
@@ -166,6 +396,11 @@ const AdminAccess: React.FC = () => {
                         </div>
                     </CardHeader>
                     <form onSubmit={handleChangePassword} className="space-y-4 px-6 pb-6">
+                        {passwordErrors.general && (
+                            <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
+                                <ErrorMessage error={passwordErrors.general} />
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <Label htmlFor="current-password">Current Password</Label>
                             <div className="relative">
@@ -174,7 +409,13 @@ const AdminAccess: React.FC = () => {
                                     type={showCurrentPassword ? "text" : "password"}
                                     placeholder="Current Password"
                                     value={passwords.current}
-                                    onChange={e => setPasswords({ ...passwords, current: e.target.value })}
+                                    onChange={e => {
+                                        setPasswords({ ...passwords, current: e.target.value });
+                                        if (passwordErrors.current) {
+                                            setPasswordErrors({ ...passwordErrors, current: '' });
+                                        }
+                                    }}
+                                    className={passwordErrors.current ? 'border-destructive' : ''}
                                     required
                                 />
                                 <button
@@ -187,6 +428,7 @@ const AdminAccess: React.FC = () => {
                                     {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
+                            <ErrorMessage error={passwordErrors.current} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="new-password">New Password</Label>
@@ -196,7 +438,13 @@ const AdminAccess: React.FC = () => {
                                     type={showNewPassword ? "text" : "password"}
                                     placeholder="New Password"
                                     value={passwords.new}
-                                    onChange={e => setPasswords({ ...passwords, new: e.target.value })}
+                                    onChange={e => {
+                                        setPasswords({ ...passwords, new: e.target.value });
+                                        if (passwordErrors.new) {
+                                            setPasswordErrors({ ...passwordErrors, new: '' });
+                                        }
+                                    }}
+                                    className={passwordErrors.new ? 'border-destructive' : ''}
                                     required
                                 />
                                 <button
@@ -209,6 +457,7 @@ const AdminAccess: React.FC = () => {
                                     {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
+                            <ErrorMessage error={passwordErrors.new} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="confirm-password">Confirm New Password</Label>
@@ -218,7 +467,13 @@ const AdminAccess: React.FC = () => {
                                     type={showConfirmPassword ? "text" : "password"}
                                     placeholder="Confirm New Password"
                                     value={passwords.confirm}
-                                    onChange={e => setPasswords({ ...passwords, confirm: e.target.value })}
+                                    onChange={e => {
+                                        setPasswords({ ...passwords, confirm: e.target.value });
+                                        if (passwordErrors.confirm) {
+                                            setPasswordErrors({ ...passwordErrors, confirm: '' });
+                                        }
+                                    }}
+                                    className={passwordErrors.confirm ? 'border-destructive' : ''}
                                     required
                                 />
                                 <button
@@ -231,8 +486,15 @@ const AdminAccess: React.FC = () => {
                                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
+                            <ErrorMessage error={passwordErrors.confirm} />
                         </div>
-                        <Button type="submit" className="w-full">Change Password</Button>
+                        <Button
+                            type="submit"
+                            className="w-full"
+                            disabled={passwordLoading}
+                        >
+                            {passwordLoading ? 'Changing Password...' : 'Change Password'}
+                        </Button>
                     </form>
                 </Card>
                 {/* Change Email Section */}
@@ -244,6 +506,11 @@ const AdminAccess: React.FC = () => {
                         </div>
                     </CardHeader>
                     <form onSubmit={handleChangeEmail} className="space-y-4 px-6 pb-6">
+                        {emailErrors.general && (
+                            <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
+                                <ErrorMessage error={emailErrors.general} />
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <Label htmlFor="new-email">New Email</Label>
                             <Input
@@ -251,9 +518,16 @@ const AdminAccess: React.FC = () => {
                                 type="email"
                                 placeholder="New Email"
                                 value={emails.newEmail}
-                                onChange={e => setEmails({ ...emails, newEmail: e.target.value })}
+                                onChange={e => {
+                                    setEmails({ ...emails, newEmail: e.target.value });
+                                    if (emailErrors.newEmail) {
+                                        setEmailErrors({ ...emailErrors, newEmail: '' });
+                                    }
+                                }}
+                                className={emailErrors.newEmail ? 'border-destructive' : ''}
                                 required
                             />
+                            <ErrorMessage error={emailErrors.newEmail} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="confirm-email">Confirm New Email</Label>
@@ -262,11 +536,24 @@ const AdminAccess: React.FC = () => {
                                 type="email"
                                 placeholder="Confirm New Email"
                                 value={emails.confirmEmail}
-                                onChange={e => setEmails({ ...emails, confirmEmail: e.target.value })}
+                                onChange={e => {
+                                    setEmails({ ...emails, confirmEmail: e.target.value });
+                                    if (emailErrors.confirmEmail) {
+                                        setEmailErrors({ ...emailErrors, confirmEmail: '' });
+                                    }
+                                }}
+                                className={emailErrors.confirmEmail ? 'border-destructive' : ''}
                                 required
                             />
+                            <ErrorMessage error={emailErrors.confirmEmail} />
                         </div>
-                        <Button type="submit" className="w-full">Change Email</Button>
+                        <Button
+                            type="submit"
+                            className="w-full"
+                            disabled={emailLoading}
+                        >
+                            {emailLoading ? 'Changing Email...' : 'Change Email'}
+                        </Button>
                     </form>
                 </Card>
             </div>
@@ -282,6 +569,11 @@ const AdminAccess: React.FC = () => {
                         </div>
                     </CardHeader>
                     <form onSubmit={handleCreateUser} className="space-y-4 px-6 pb-6">
+                        {createUserErrors.general && (
+                            <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
+                                <ErrorMessage error={createUserErrors.general} />
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <Label htmlFor="username">Username</Label>
                             <Input
@@ -289,9 +581,16 @@ const AdminAccess: React.FC = () => {
                                 type="text"
                                 placeholder="Username"
                                 value={newUser.username}
-                                onChange={e => setNewUser({ ...newUser, username: e.target.value })}
+                                onChange={e => {
+                                    setNewUser({ ...newUser, username: e.target.value });
+                                    if (createUserErrors.username) {
+                                        setCreateUserErrors({ ...createUserErrors, username: '' });
+                                    }
+                                }}
+                                className={createUserErrors.username ? 'border-destructive' : ''}
                                 required
                             />
+                            <ErrorMessage error={createUserErrors.username} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="user-email">Email</Label>
@@ -300,9 +599,16 @@ const AdminAccess: React.FC = () => {
                                 type="email"
                                 placeholder="Email"
                                 value={newUser.email}
-                                onChange={e => setNewUser({ ...newUser, email: e.target.value })}
+                                onChange={e => {
+                                    setNewUser({ ...newUser, email: e.target.value });
+                                    if (createUserErrors.email) {
+                                        setCreateUserErrors({ ...createUserErrors, email: '' });
+                                    }
+                                }}
+                                className={createUserErrors.email ? 'border-destructive' : ''}
                                 required
                             />
+                            <ErrorMessage error={createUserErrors.email} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="user-password">Password</Label>
@@ -312,7 +618,13 @@ const AdminAccess: React.FC = () => {
                                     type={showUserPassword ? "text" : "password"}
                                     placeholder="Password"
                                     value={newUser.password}
-                                    onChange={e => setNewUser({ ...newUser, password: e.target.value })}
+                                    onChange={e => {
+                                        setNewUser({ ...newUser, password: e.target.value });
+                                        if (createUserErrors.password) {
+                                            setCreateUserErrors({ ...createUserErrors, password: '' });
+                                        }
+                                    }}
+                                    className={createUserErrors.password ? 'border-destructive' : ''}
                                     required
                                 />
                                 <button
@@ -325,15 +637,24 @@ const AdminAccess: React.FC = () => {
                                     {showUserPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
+                            <ErrorMessage error={createUserErrors.password} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="user-role">Role</Label>
                             <Select
                                 value={newUser.role}
-                                onValueChange={role => setNewUser({ ...newUser, role })}
+                                onValueChange={role => {
+                                    setNewUser({ ...newUser, role });
+                                    if (createUserErrors.role) {
+                                        setCreateUserErrors({ ...createUserErrors, role: '' });
+                                    }
+                                }}
                                 required
                             >
-                                <SelectTrigger id="user-role">
+                                <SelectTrigger
+                                    id="user-role"
+                                    className={createUserErrors.role ? 'border-destructive' : ''}
+                                >
                                     <SelectValue placeholder="Select role" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -341,8 +662,15 @@ const AdminAccess: React.FC = () => {
                                     <SelectItem value="user">User</SelectItem>
                                 </SelectContent>
                             </Select>
+                            <ErrorMessage error={createUserErrors.role} />
                         </div>
-                        <Button type="submit" className="w-full">Create User</Button>
+                        <Button
+                            type="submit"
+                            className="w-full"
+                            disabled={createUserLoading}
+                        >
+                            {createUserLoading ? 'Creating User...' : 'Create User'}
+                        </Button>
                     </form>
                 </Card>
                 {/* Change User Password (by admin) Section */}
@@ -354,6 +682,11 @@ const AdminAccess: React.FC = () => {
                         </div>
                     </CardHeader>
                     <form onSubmit={handleChangeUserPassword} className="space-y-4 px-6 pb-6">
+                        {userPasswordErrors.general && (
+                            <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
+                                <ErrorMessage error={userPasswordErrors.general} />
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <Label htmlFor="user-password-email">Email</Label>
                             <Input
@@ -361,9 +694,16 @@ const AdminAccess: React.FC = () => {
                                 type="email"
                                 placeholder="Email"
                                 value={userPassword.email}
-                                onChange={e => setUserPassword({ ...userPassword, email: e.target.value })}
+                                onChange={e => {
+                                    setUserPassword({ ...userPassword, email: e.target.value });
+                                    if (userPasswordErrors.email) {
+                                        setUserPasswordErrors({ ...userPasswordErrors, email: '' });
+                                    }
+                                }}
+                                className={userPasswordErrors.email ? 'border-destructive' : ''}
                                 required
                             />
+                            <ErrorMessage error={userPasswordErrors.email} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="user-new-password">New Password</Label>
@@ -373,7 +713,13 @@ const AdminAccess: React.FC = () => {
                                     type={showUserNewPassword ? "text" : "password"}
                                     placeholder="New Password"
                                     value={userPassword.newPassword}
-                                    onChange={e => setUserPassword({ ...userPassword, newPassword: e.target.value })}
+                                    onChange={e => {
+                                        setUserPassword({ ...userPassword, newPassword: e.target.value });
+                                        if (userPasswordErrors.newPassword) {
+                                            setUserPasswordErrors({ ...userPasswordErrors, newPassword: '' });
+                                        }
+                                    }}
+                                    className={userPasswordErrors.newPassword ? 'border-destructive' : ''}
                                     required
                                 />
                                 <button
@@ -386,6 +732,7 @@ const AdminAccess: React.FC = () => {
                                     {showUserNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
+                            <ErrorMessage error={userPasswordErrors.newPassword} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="user-confirm-password">Confirm New Password</Label>
@@ -395,7 +742,13 @@ const AdminAccess: React.FC = () => {
                                     type={showUserConfirmPassword ? "text" : "password"}
                                     placeholder="Confirm New Password"
                                     value={userPassword.confirmPassword}
-                                    onChange={e => setUserPassword({ ...userPassword, confirmPassword: e.target.value })}
+                                    onChange={e => {
+                                        setUserPassword({ ...userPassword, confirmPassword: e.target.value });
+                                        if (userPasswordErrors.confirmPassword) {
+                                            setUserPasswordErrors({ ...userPasswordErrors, confirmPassword: '' });
+                                        }
+                                    }}
+                                    className={userPasswordErrors.confirmPassword ? 'border-destructive' : ''}
                                     required
                                 />
                                 <button
@@ -408,8 +761,15 @@ const AdminAccess: React.FC = () => {
                                     {showUserConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
+                            <ErrorMessage error={userPasswordErrors.confirmPassword} />
                         </div>
-                        <Button type="submit" className="w-full">Change User Password</Button>
+                        <Button
+                            type="submit"
+                            className="w-full"
+                            disabled={userPasswordLoading}
+                        >
+                            {userPasswordLoading ? 'Changing Password...' : 'Change User Password'}
+                        </Button>
                     </form>
                 </Card>
             </div>
@@ -434,7 +794,7 @@ const AdminAccess: React.FC = () => {
                         <TableBody>
                             {loadingUsers ? (
                                 <TableRow><TableCell colSpan={5}>Loading...</TableCell></TableRow>
-                            ) : users.length === 0 ? (
+                            ) : !Array.isArray(users) || users.length === 0 ? (
                                 <TableRow><TableCell colSpan={5}>No users found.</TableCell></TableRow>
                             ) : (
                                 users.map((u) => (

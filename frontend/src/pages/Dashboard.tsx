@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axiosInstance from '@/api';
 import { Bar, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -25,7 +24,17 @@ import {
 } from '@/components/ui/select';
 import { BarChart, Receipt, IndianRupee } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatCurrency';
-import { useUser } from '@/contexts/UserContext';
+import { useAuth } from '@/contexts/AuthContext';
+
+// React Query hooks
+import {
+  useInvoices,
+  useLowStockItems,
+  useDashboardStats,
+  type Invoice,
+  type Product
+} from '@/hooks/useApi';
+
 // Register Chart.js components
 ChartJS.register(
   CategoryScale,
@@ -36,39 +45,6 @@ ChartJS.register(
   Tooltip,
   Legend
 );
-
-// Type definitions for your data
-interface Invoice {
-  _id: string;
-  customerName: string;
-  customerEmail: string;
-  customerAddress: string;
-  invoiceNumber: string;
-  invoiceDate: string;
-  items: {
-    id: string;
-    name: string;
-    quantity: number;
-    price: number;
-    category: { _id: string; name: string } | null;
-  }[];
-  companyDetails: {
-    name: string;
-    address: string;
-    cityState: string;
-    phone: string;
-    email: string;
-  };
-  createdAt: string;
-}
-
-interface Item {
-  _id: string;
-  name: string;
-  category: { _id: string; name: string } | null;
-  quantity: number;
-  price: number;
-}
 
 interface MonthlyBill {
   month: string;
@@ -81,14 +57,49 @@ interface CategorySale {
 }
 
 const Dashboard: React.FC = () => {
-  const [stats, setStats] = useState<{ totalBills: number; totalAmount: number }>({ totalBills: 0, totalAmount: 0 });
-  const [monthlyBills, setMonthlyBills] = useState<MonthlyBill[]>([]);
-  const [categorySales, setCategorySales] = useState<CategorySale[]>([]);
-  const [lowStockItems, setLowStockItems] = useState<Item[]>([]);
+  const { user, isLoading: isAuthLoading } = useAuth();
+
+  // React Query hooks
+  const { data: invoices = [], isLoading: isLoadingInvoices, error: invoicesError } = useInvoices();
+  const { data: lowStockItems = [], isLoading: isLoadingLowStock } = useLowStockItems();
+  const { data: dashboardStats, isLoading: isLoadingStats } = useDashboardStats();
+
   const [filter, setFilter] = useState<string>('All');
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [search, setSearch] = useState('');
-  const { user } = useUser();
+
+  // Handle loading and error states
+  const isLoading = isAuthLoading || isLoadingInvoices || isLoadingLowStock || isLoadingStats;
+
+  // Show loading while auth is initializing
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show unauthorized if not admin
+  if (!user || user.role !== "admin") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg text-destructive">Unauthorized: Admin access required</div>
+      </div>
+    );
+  }
+
+  if (invoicesError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg text-red-600 mb-4">Error loading dashboard data</div>
+          <div className="text-sm text-gray-600">
+            {invoicesError?.message || "Unknown error occurred"}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Function to filter invoices based on the selected time period
   const filterInvoices = (invoices: Invoice[], period: string): Invoice[] => {
@@ -118,57 +129,39 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    // Fetch invoices
-    axiosInstance.get<Invoice[]>(`/invoice`)
-      .then(response => {
-        setInvoices(response.data);
-      })
-      .catch(error => console.error('Error fetching invoices:', error));
+  // Get filtered data
+  const filteredInvoices = filterInvoices(invoices, filter);
+  const stats = {
+    totalBills: filteredInvoices.length,
+    totalAmount: filteredInvoices.reduce((sum, invoice) =>
+      sum + invoice.items.reduce((itemSum, item) => itemSum + (item.quantity * item.price), 0), 0)
+  };
 
-    // Fetch low stock items
-    axiosInstance.get<Item[]>(`/item`)
-      .then(response => {
-        const lowStock = response.data.filter(item => item.quantity < 10);
-        setLowStockItems(lowStock);
-      })
-      .catch(error => console.error('Error fetching items:', error));
-  }, []);
+  // Process filtered invoices for charts
+  const monthlyData = filteredInvoices.reduce((acc, invoice) => {
+    const date = new Date(invoice.invoiceDate);
+    const monthYear = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+    acc[monthYear] = (acc[monthYear] || 0) + 1;
+    return acc;
+  }, {} as { [key: string]: number });
 
-  useEffect(() => {
-    // Process filtered invoices
-    const filteredInvoices = filterInvoices(invoices, filter);
+  const monthlyBills = Object.entries(monthlyData).map(([month, count]) => ({ month, count }));
 
-    // Update stats
-    const totalBills = filteredInvoices.length;
-    const totalAmount = filteredInvoices.reduce((sum, invoice) =>
-      sum + invoice.items.reduce((itemSum, item) => itemSum + (item.quantity * item.price), 0), 0);
-    setStats({ totalBills, totalAmount });
+  const categoryData = filteredInvoices.reduce((acc, invoice) => {
+    invoice.items.forEach(item => {
+      // Handle both string categories and populated category objects
+      const categoryName = typeof item.category === 'string'
+        ? item.category
+        : (item.category as any)?.name || 'Unknown';
+      acc[categoryName] = (acc[categoryName] || 0) + item.quantity;
+    });
+    return acc;
+  }, {} as { [key: string]: number });
 
-    // Update monthly bills
-    const monthlyData = filteredInvoices.reduce((acc, invoice) => {
-      const date = new Date(invoice.invoiceDate);
-      const monthYear = date.toLocaleString('default', { month: 'short', year: 'numeric' });
-      acc[monthYear] = (acc[monthYear] || 0) + 1;
-      return acc;
-    }, {} as { [key: string]: number });
-    const formattedMonthlyData = Object.entries(monthlyData).map(([month, count]) => ({ month, count }));
-    setMonthlyBills(formattedMonthlyData);
-
-    // Update category sales
-    const categoryData = filteredInvoices.reduce((acc, invoice) => {
-      invoice.items.forEach(item => {
-        const categoryName = item.category?.name || 'Unknown';
-        acc[categoryName] = (acc[categoryName] || 0) + item.quantity;
-      });
-      return acc;
-    }, {} as { [key: string]: number });
-    const formattedCategoryData = Object.entries(categoryData).map(([categoryName, totalSold]) => ({
-      categoryName,
-      totalSold
-    }));
-    setCategorySales(formattedCategoryData);
-  }, [invoices, filter]);
+  const categorySales = Object.entries(categoryData).map(([categoryName, totalSold]) => ({
+    categoryName,
+    totalSold
+  }));
 
   const barChartData = {
     labels: monthlyBills.map(item => item.month),
@@ -211,130 +204,128 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen dark:bg-black bg-gray-50">
-      {user?.user.role === "admin" && (
-        <div className="container mx-auto p-6">
-          {/* Filter Dropdown */}
-          <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <div className="flex-1" />
-            <div className="flex items-center gap-2">
-              <Label htmlFor="filter">Filter by:</Label>
-              <Select value={filter} onValueChange={setFilter}>
-                <SelectTrigger className="w-32" id="filter">
-                  <SelectValue placeholder="All" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All">All</SelectItem>
-                  <SelectItem value="Month">Month</SelectItem>
-                  <SelectItem value="Year">Year</SelectItem>
-                  <SelectItem value="Week">Week</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <div className="container mx-auto p-6">
+        {/* Filter Dropdown */}
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <div className="flex-1" />
+          <div className="flex items-center gap-2">
+            <Label htmlFor="filter">Filter by:</Label>
+            <Select value={filter} onValueChange={setFilter}>
+              <SelectTrigger className="w-32" id="filter">
+                <SelectValue placeholder="All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All</SelectItem>
+                <SelectItem value="Month">Month</SelectItem>
+                <SelectItem value="Year">Year</SelectItem>
+                <SelectItem value="Week">Week</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+        </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center gap-4">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <Receipt className="w-8 h-8 text-blue-600" />
-                </div>
-                <div>
-                  <CardTitle>Total Bills</CardTitle>
-                  <CardDescription>Number of bills generated in the selected period</CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <span className="text-3xl font-bold text-blue-700">{stats.totalBills}</span>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center gap-4">
-                <div className="bg-green-100 p-3 rounded-full">
-                  <IndianRupee className="w-8 h-8 text-green-600" />
-                </div>
-                <div>
-                  <CardTitle>Total Amount</CardTitle>
-                  <CardDescription>Total revenue in the selected period</CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <span className="text-3xl font-bold text-green-700">Rs.{formatCurrency(stats.totalAmount)}/-</span>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Charts */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><BarChart className="w-5 h-5 text-blue-500" /> Monthly Bills</CardTitle>
-                <CardDescription>Bills generated per month</CardDescription>
-              </CardHeader>
-              <CardContent className="min-h-64">
-                <Bar
-                  data={barChartData}
-                  options={{
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
-                  }}
-                />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Category Sales</CardTitle>
-                <CardDescription>Sales distribution by category</CardDescription>
-              </CardHeader>
-              <CardContent className="h-72 w-full">
-                <Pie data={pieChartData} />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Low Stock Table */}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <Card>
-            <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-              <CardTitle>Low Stock Items (Quantity &lt; 10)</CardTitle>
-              <Input
-                type="text"
-                placeholder="Search by name or category..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-full md:w-64"
-              />
+            <CardHeader className="flex flex-row items-center gap-4">
+              <div className="bg-blue-100 p-3 rounded-full">
+                <Receipt className="w-8 h-8 text-blue-600" />
+              </div>
+              <div>
+                <CardTitle>Total Bills</CardTitle>
+                <CardDescription>Number of bills generated in the selected period</CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Quantity</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredLowStockItems.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={3} className="text-center text-gray-400">No items found.</TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredLowStockItems.map(item => (
-                      <TableRow key={item._id}>
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell>{item.category?.name || 'N/A'}</TableCell>
-                        <TableCell>
-                          <Badge variant="destructive">{item.quantity}</Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+              <span className="text-3xl font-bold text-blue-700">{stats.totalBills}</span>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-4">
+              <div className="bg-green-100 p-3 rounded-full">
+                <IndianRupee className="w-8 h-8 text-green-600" />
+              </div>
+              <div>
+                <CardTitle>Total Amount</CardTitle>
+                <CardDescription>Total revenue in the selected period</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <span className="text-3xl font-bold text-green-700">Rs.{formatCurrency(stats.totalAmount)}/-</span>
             </CardContent>
           </Card>
         </div>
-      )}
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><BarChart className="w-5 h-5 text-blue-500" /> Monthly Bills</CardTitle>
+              <CardDescription>Bills generated per month</CardDescription>
+            </CardHeader>
+            <CardContent className="min-h-64">
+              <Bar
+                data={barChartData}
+                options={{
+                  plugins: { legend: { display: false } },
+                  scales: { y: { beginAtZero: true } }
+                }}
+              />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Category Sales</CardTitle>
+              <CardDescription>Sales distribution by category</CardDescription>
+            </CardHeader>
+            <CardContent className="h-72 w-full">
+              <Pie data={pieChartData} />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Low Stock Table */}
+        <Card>
+          <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+            <CardTitle>Low Stock Items (Quantity &lt; 10)</CardTitle>
+            <Input
+              type="text"
+              placeholder="Search by name or category..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full md:w-64"
+            />
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Quantity</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredLowStockItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center text-gray-400">No items found.</TableCell>
+                  </TableRow>
+                ) : (
+                  filteredLowStockItems.map(item => (
+                    <TableRow key={item._id}>
+                      <TableCell>{item.name}</TableCell>
+                      <TableCell>{item.category?.name || 'N/A'}</TableCell>
+                      <TableCell>
+                        <Badge variant="destructive">{item.quantity}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

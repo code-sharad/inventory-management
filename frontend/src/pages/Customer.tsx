@@ -1,9 +1,3 @@
-
-const handleApiError = (err: unknown) => {
-    console.error("API Error:", err);
-    return err instanceof Error ? err.message : "An unknown error occurred";
-};
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,408 +12,391 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { Edit, Plus, Trash2 } from "lucide-react"
-import axiosInstance from "@/api";
-import { useUser } from "@/contexts/UserContext";
+import { Edit, Plus, Trash2, AlertCircle } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-type Customer = {
-    _id: string;
-    name: string;
-    gstNumber: string;
-    address: string;
-    panNumber: string;
+import { ErrorMessage, GeneralError } from "@/components/ui/error-message";
+import { extractFieldErrors, validateForm, ValidationSchema } from "@/lib/form-utils";
+import { useNavigate } from "react-router-dom";
+
+// React Query hooks
+import {
+    useCustomersRaw,
+    useCreateCustomer,
+    useUpdateCustomer,
+    useDeleteCustomer,
+    type CustomerRaw
+} from "@/hooks/useApi";
+
+const handleApiError = (err: unknown) => {
+    console.error("API Error:", err);
+    return err instanceof Error ? err.message : "An unknown error occurred";
 };
 
-type Category = {
-    _id: string;
-    name: string;
+// Validation schema for customer creation
+const customerValidationSchema: ValidationSchema = {
+    name: {
+        required: true,
+        minLength: 2,
+        maxLength: 100,
+    },
+    gstNumber: {
+        required: true,
+        minLength: 15,
+        maxLength: 15,
+        pattern: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
+    },
+    address: {
+        required: true,
+        minLength: 10,
+        maxLength: 200,
+    },
+    panNumber: {
+        required: false,
+        pattern: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+    },
 };
 
+export default function CustomerPage() {
+    const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+    const navigate = useNavigate();
 
-export default function CustoemrPage() {
-    const [customer, setCustomer] = useState<Customer[]>([])
-    // @ts-expect-error 
-    const [categories, setCategories] = useState<Category[]>([])
+    // React Query hooks
+    const { data: customers = [], isLoading: isLoadingCustomers, error: customersError } = useCustomersRaw();
+    const createCustomerMutation = useCreateCustomer();
+    const updateCustomerMutation = useUpdateCustomer();
+    const deleteCustomerMutation = useDeleteCustomer();
+
     const [isAddCustomerDialogOpen, setisAddCustomerDialogOpen] = useState(false)
-    // const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false)
-    // @ts-expect-error 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-    // @ts-expect-error 
-    const [currentCustomer, setCurrentCustomer] = useState<Customer | null>(null)
+    const [currentCustomer, setCurrentCustomer] = useState<CustomerRaw | null>(null)
     const [newCustomer, setNewCustomer] = useState({
         name: "",
         address: '',
         gstNumber: '',
         panNumber: '',
     })
-    // @ts-expect-error
-    const [newCategory, setNewCategory] = useState("")
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
 
-    // Fetch initial data
+    // Form error states
+    const [customerErrors, setCustomerErrors] = useState<Record<string, string>>({});
+
+    // Authentication check
     useEffect(() => {
-        fetchCustomers();
-        // fetchCategories();
-    }, []);
-    console.log(import.meta.env.VITE_BASE_URL)
-    const fetchCustomers = async () => {
-        try {
-            setLoading(true);
-            const response = await axiosInstance.get(`/customer`);
+        if (!isAuthLoading && !isAuthenticated) {
+            toast.error('Please log in to access this page');
+            navigate('/login');
+            return;
+        }
+    }, [isAuthenticated, isAuthLoading, navigate]);
 
-            if (response.status !== 200) throw new Error(`HTTP error! status: ${response.status}`);
-            const data = response.data;
-            console.log("Products fetched:", data); // Debug log
-            setCustomer(data);
-        } catch (err) {
-            setError(handleApiError(err));
-        } finally {
-            setLoading(false);
+    // Clear errors when field values change
+    const handleFieldChange = (field: string, value: string) => {
+        setNewCustomer({ ...newCustomer, [field]: value });
+        if (customerErrors[field]) {
+            setCustomerErrors({ ...customerErrors, [field]: '' });
         }
     };
 
-    // const fetchCategories = async () => {
-    //     try {
-    //         setLoading(true);
-    //         const response = await fetch(`${import.meta.env.VITE_BASE_URL}/category`);
-    //         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    //         const data = await response.json();
-    //         console.log("Categories fetched:", data); // Debug log
-    //         setCategories(data);
-    //     } catch (err) {
-    //         setError(handleApiError(err));
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
-    // Add new product
-    const handleAddProduct = async () => {
-        try {
-            const response = await axiosInstance.post(`/customer`, newCustomer)
-            if (response.status !== 201 ) throw new Error("Failed to add product")
-            const addedProduct = response.data
-
-
-
-            setCustomer([...customer, addedProduct])
-            setNewCustomer({ name: "", gstNumber: '', address: '', panNumber: '' })
-            setisAddCustomerDialogOpen(false)
-            fetchCustomers()
-            toast.success("Customer added successfully")
-        } catch (err) {
-            setError("Failed to add product")
-        }
+    // Handle loading and error states
+    if (isAuthLoading || isLoadingCustomers) {
+        return (
+            <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                        <p className="text-lg">Loading customer data...</p>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
-    // Add new category
-    // const handleAddCategory = async () => {
-    //     try {
-    //         const response = await fetch(`${API_BASE_URL}/category`, {
-    //             method: "POST",
-    //             headers: { "Content-Type": "application/json" },
-    //             body: JSON.stringify({ name: newCategory })
-    //         })
-    //         if (!response.ok) throw new Error("Failed to add category")
-    //         const addedCategory = await response.json()
-    //         setCategories([...categories, addedCategory])
-    //         setNewCategory("")
-    //         setisAddCustomerDialogOpen(false)
-    //     } catch (err) {
-    //         setError("Failed to add category")
-    //     }
-    // }
+    if (customersError) {
+        return (
+            <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <p className="text-lg text-red-600 mb-4">Error loading customer data</p>
+                        <p className="text-sm text-gray-600">
+                            {customersError?.message || "Unknown error occurred"}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
-    // Edit product
-    // const handleEditCustomer = async () => {
-    //     if (!currentCustomer) return
-    //     try {
-    //         const response = await fetch(`${API_BASE_URL}/customer/${currentCustomer._id}`, {
-    //             method: "PUT",
-    //             headers: { "Content-Type": "application/json" },
-    //             body: JSON.stringify(currentCustomer)
-    //         })
-    //         if (!response.ok) throw new Error("Failed to update product")
-    //         const updatedProduct = await response.json()
-    //         setCustomer(customer.map(p => p._id === updatedProduct._id ? updatedProduct : p))
-    //         setIsEditDialogOpen(false)
-    //         setCurrentCustomer(null)
-    //     } catch (err) {
-    //         setError("Failed to update product")
-    //     }
-    // }
+    // Add new customer
+    const handleAddProduct = async () => {
+        // Clear previous errors
+        setCustomerErrors({});
 
-    // Delete product
+        // Client-side validation
+        const validationErrors = validateForm(newCustomer, customerValidationSchema);
+        if (Object.keys(validationErrors).length > 0) {
+            setCustomerErrors(validationErrors);
+            return;
+        }
+
+        try {
+            await createCustomerMutation.mutateAsync(newCustomer);
+            setNewCustomer({ name: "", gstNumber: '', address: '', panNumber: '' });
+            setisAddCustomerDialogOpen(false);
+        } catch (error: any) {
+            console.error('Add customer error:', error);
+            const fieldErrors = extractFieldErrors(error);
+            setCustomerErrors(fieldErrors);
+
+            if (fieldErrors.general) {
+                toast.error(fieldErrors.general);
+            }
+        }
+    };
+
+    // Edit customer
+    const handleEditCustomer = async () => {
+        if (!currentCustomer) return;
+
+        // Clear previous errors
+        setCustomerErrors({});
+
+        // Client-side validation
+        const validationErrors = validateForm(currentCustomer, customerValidationSchema);
+        if (Object.keys(validationErrors).length > 0) {
+            setCustomerErrors(validationErrors);
+            return;
+        }
+
+        try {
+            await updateCustomerMutation.mutateAsync({
+                id: currentCustomer._id,
+                data: currentCustomer
+            });
+            setIsEditDialogOpen(false);
+            setCurrentCustomer(null);
+        } catch (error: any) {
+            console.error('Edit customer error:', error);
+            const fieldErrors = extractFieldErrors(error);
+            setCustomerErrors(fieldErrors);
+
+            if (fieldErrors.general) {
+                toast.error(fieldErrors.general);
+            }
+        }
+    };
+
+    // Delete customer
     const handleDeleteCustomer = async (id: string) => {
         try {
-            const response = await axiosInstance.delete(`/customer/${id}`)
-            if (response.status !== 200) throw new Error("Failed to delete product")
-            setCustomer(customer.filter(p => p._id !== id))
-            toast.success("Customer deleted successfully")
-        } catch (err) {
-            setError("Failed to delete product")
+            await deleteCustomerMutation.mutateAsync(id);
+        } catch (error) {
+            // Error handling is done in the mutation
         }
-    }
-
-    // Delete category
-    // const handleDeleteCategory = async (id: string) => {
-    //     try {
-    //         const response = await fetch(`${API_BASE_URL}/customer/${id}`, {
-    //             method: "DELETE"
-    //         })
-    //         if (!response.ok) throw new Error("Failed to delete category")
-    //         setCategories(categories.filter(c => c._id !== id))
-    //     } catch (err) {
-    //         setError("Failed to delete category")
-    //     }
-    // }
+    };
 
     // Open edit dialog
-    const openEditDialog = (customer: Customer) => {
-        setCurrentCustomer(customer)
-        setIsEditDialogOpen(true)
-    }
+    const openEditDialog = (customer: CustomerRaw) => {
+        setCurrentCustomer(customer);
+        setIsEditDialogOpen(true);
+    };
 
     return (
         <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
-            {error && <div className="text-red-500">{error}</div>}
-            {loading && <div>Loading...</div>}
+            {/* Loading state for authentication check */}
+            {isAuthLoading && (
+                <div className="flex items-center justify-center min-h-[200px]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <span className="ml-2">Loading...</span>
+                </div>
+            )}
 
-            <div className="flex items-center justify-between">
-                <h2 className="text-3xl font-serif font-bold tracking-tight">Customers</h2>
-                <div className="flex gap-8">
-                    {/* Add Product Dialog */}
-                    <Dialog open={isAddCustomerDialogOpen} onOpenChange={setisAddCustomerDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button><Plus className="mr-2 h-4 w-4" /> Add Customer</Button>
-                        </DialogTrigger>
+            {/* Early return if not authenticated (while not loading) */}
+            {!isAuthLoading && !isAuthenticated && (
+                <div className="flex items-center justify-center min-h-[200px]">
+                    <div className="flex flex-col items-center space-y-2">
+                        <AlertCircle className="h-8 w-8 text-destructive" />
+                        <p className="text-muted-foreground">Please log in to access this page</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Main content - only show when authenticated */}
+            {!isAuthLoading && isAuthenticated && (
+                <>
+                    {customersError && <div className="text-red-500">Error loading customers</div>}
+                    {isLoadingCustomers && <div>Loading customers...</div>}
+
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-3xl font-bold tracking-tight">Customers</h2>
+                        <div>
+                            {/* Add Customer Dialog */}
+                            <Dialog open={isAddCustomerDialogOpen} onOpenChange={setisAddCustomerDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button><Plus className="mr-2 h-4 w-4" /> Add Customer</Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Add New Customer</DialogTitle>
+                                        <DialogDescription>Add a new customer to your database.</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="grid gap-4 py-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="name">Name</Label>
+                                            <Input
+                                                id="name"
+                                                value={newCustomer.name}
+                                                onChange={(e) => handleFieldChange('name', e.target.value)}
+                                            />
+                                            {customerErrors.name && <ErrorMessage error={customerErrors.name} />}
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="gstNumber">GST Number</Label>
+                                            <Input
+                                                id="gstNumber"
+                                                value={newCustomer.gstNumber}
+                                                onChange={(e) => handleFieldChange('gstNumber', e.target.value)}
+                                                placeholder="27ABCDE1234F1Z5"
+                                            />
+                                            {customerErrors.gstNumber && <ErrorMessage error={customerErrors.gstNumber} />}
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="address">Address</Label>
+                                            <Input
+                                                id="address"
+                                                value={newCustomer.address}
+                                                onChange={(e) => handleFieldChange('address', e.target.value)}
+                                            />
+                                            {customerErrors.address && <ErrorMessage error={customerErrors.address} />}
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="panNumber">PAN Number (Optional)</Label>
+                                            <Input
+                                                id="panNumber"
+                                                value={newCustomer.panNumber}
+                                                onChange={(e) => handleFieldChange('panNumber', e.target.value)}
+                                                placeholder="ABCDE1234F"
+                                            />
+                                            {customerErrors.panNumber && <ErrorMessage error={customerErrors.panNumber} />}
+                                        </div>
+                                        {customerErrors.general && <GeneralError error={customerErrors.general} />}
+                                    </div>
+                                    <DialogFooter>
+                                        <Button variant="outline" onClick={() => setisAddCustomerDialogOpen(false)}>Cancel</Button>
+                                        <Button onClick={handleAddProduct} disabled={createCustomerMutation.isPending}>
+                                            {createCustomerMutation.isPending ? 'Adding Customer...' : 'Add Customer'}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                    </div>
+
+                    {/* Customers Table */}
+                    <div className="rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead className="text-left">GST Number</TableHead>
+                                    <TableHead className="text-left">Address</TableHead>
+                                    <TableHead className="text-left">PAN Number</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {customers.map((customer) => (
+                                    <TableRow key={customer._id}>
+                                        <TableCell>{customer.name.toUpperCase()}</TableCell>
+                                        <TableCell className="text-left">{customer.gstNumber}</TableCell>
+                                        <TableCell className="text-left truncate min-w-24 max-w-44">{customer.address}</TableCell>
+                                        <TableCell className="text-left">{customer.panNumber}</TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => openEditDialog(customer)}
+                                                    disabled={updateCustomerMutation.isPending}
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => handleDeleteCustomer(customer._id)}
+                                                    disabled={deleteCustomerMutation.isPending}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    {/* Edit Customer Dialog */}
+                    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Add New Customer</DialogTitle>
-                                <DialogDescription></DialogDescription>
+                                <DialogTitle>Edit Customer</DialogTitle>
+                                <DialogDescription>Make changes to the customer details.</DialogDescription>
                             </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="name">Name</Label>
-                                    <Input
-                                        id="name"
-                                        required
-                                        value={newCustomer.name}
-                                        onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
-                                    />
+                            {currentCustomer && (
+                                <div className="grid gap-4 py-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="edit-name">Name</Label>
+                                        <Input
+                                            id="edit-name"
+                                            value={currentCustomer.name}
+                                            onChange={(e) => setCurrentCustomer({ ...currentCustomer, name: e.target.value })}
+                                        />
+                                        {customerErrors.name && <ErrorMessage error={customerErrors.name} />}
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="edit-gstNumber">GST Number</Label>
+                                        <Input
+                                            id="edit-gstNumber"
+                                            value={currentCustomer.gstNumber}
+                                            onChange={(e) => setCurrentCustomer({ ...currentCustomer, gstNumber: e.target.value })}
+                                        />
+                                        {customerErrors.gstNumber && <ErrorMessage error={customerErrors.gstNumber} />}
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="edit-address">Address</Label>
+                                        <Input
+                                            id="edit-address"
+                                            value={currentCustomer.address}
+                                            onChange={(e) => setCurrentCustomer({ ...currentCustomer, address: e.target.value })}
+                                        />
+                                        {customerErrors.address && <ErrorMessage error={customerErrors.address} />}
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="edit-panNumber">PAN Number</Label>
+                                        <Input
+                                            id="edit-panNumber"
+                                            value={currentCustomer.panNumber}
+                                            onChange={(e) => setCurrentCustomer({ ...currentCustomer, panNumber: e.target.value })}
+                                        />
+                                        {customerErrors.panNumber && <ErrorMessage error={customerErrors.panNumber} />}
+                                    </div>
+                                    {customerErrors.general && <GeneralError error={customerErrors.general} />}
                                 </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="quantity">GST Number</Label>
-                                    <Input
-                                        id="gst_number"
-                                        type="text"
-                                        maxLength={15}
-                                        minLength={15}
-                                        required
-                                        value={newCustomer.gstNumber}
-                                        onChange={(e) => setNewCustomer({ ...newCustomer, gstNumber: e.target.value || '' })}
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="price">Address</Label>
-                                    <Input
-                                        id="address"
-                                        type="text"
-                                        maxLength={100}
-                                        required
-                                        value={newCustomer.address}
-                                        onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value || '' })}
-                                    />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="price">Pan Number (optional)</Label>
-                                    <Input
-                                        id="pan_number"
-                                        type="text"
-                                        maxLength={10}
-                                        value={newCustomer.panNumber}
-                                        onChange={(e) => setNewCustomer({ ...newCustomer, panNumber: e.target.value || '' })}
-                                    />
-                                </div>
-                                {/* <div className="grid gap-2">
-                                    <Label htmlFor="category">Category</Label>
-                                    <Select onValueChange={(value) => setNewCustomer({ ...newCustomer, category: value })}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select category" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {categories.map((c) => (
-                                                <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div> */}
-                            </div>
+                            )}
                             <DialogFooter>
-                                <Button variant="outline" onClick={() => setisAddCustomerDialogOpen(false)}>Cancel</Button>
-                                <Button onClick={handleAddProduct}>Add Customer</Button>
+                                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+                                <Button
+                                    onClick={handleEditCustomer}
+                                    disabled={updateCustomerMutation.isPending}
+                                >
+                                    {updateCustomerMutation.isPending ? "Updating..." : "Update Customer"}
+                                </Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
-
-                    {/* Add Category Dialog */}
-                    {/* <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button><Plus className="mr-2 h-4 w-4" /> Add Category</Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Add New Category</DialogTitle>
-                                <DialogDescription>Add a new category to your inventory.</DialogDescription>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="name">Name</Label>
-                                    <Input
-                                        id="name"
-                                        value={newCategory}
-                                        onChange={(e) => setNewCategory(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                            <ScrollArea className="h-72 rounded-md border">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>ID</TableHead>
-                                            <TableHead>Name</TableHead>
-                                            <TableHead>Delete</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {categories.map((c) => (
-                                            <TableRow key={c._id}>
-                                                <TableCell>{c._id}</TableCell>
-                                                <TableCell><Badge>{c.name}</Badge></TableCell>
-                                                <TableCell>
-                                                    <Trash2
-                                                        onClick={() => handleDeleteCategory(c._id)}
-                                                        className="w-4 cursor-pointer"
-                                                    />
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </ScrollArea>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setIsAddCategoryDialogOpen(false)}>Cancel</Button>
-                                <Button onClick={handleAddCategory}>Add Category</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog> */}
-                </div>
-            </div>
-
-            {/* Products Table */}
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>GST Number</TableHead>
-                            <TableHead className="text-left">Address</TableHead>
-                            <TableHead className="text-left">PAN Number</TableHead>
-                            {/* <TableHead className="text-right">Price</TableHead>
-                            <TableHead className="text-right">Actions</TableHead> */}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {customer.map((product) => (
-                            <TableRow key={product._id}>
-                                <TableCell>{product.name.toUpperCase()}</TableCell>
-                                {/* <TableCell>
-                                    <Badge variant="outline">
-                                        {typeof product.category === 'string'
-                                            ? product.category
-                                            : product.category?.name || "Uncategorized"}
-                                    </Badge>
-                                </TableCell> */}
-                                <TableCell className="text-left">{product.gstNumber}</TableCell>
-                                <TableCell className="text-left truncate min-w-24 max-w-44">{product.address}</TableCell>
-                                <TableCell className="text-left">{product.panNumber}</TableCell>
-                                <TableCell className="text-right">
-                                    <div className="flex justify-end gap-2">
-                                        {/* <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>
-                                            <Edit className="h-4 w-4" />
-                                        </Button> */}
-                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteCustomer(product._id)}>
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
-
-            {/* Edit Product Dialog */}
-            {/* <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Edit Product</DialogTitle>
-                        <DialogDescription>Make changes to the product details.</DialogDescription>
-                    </DialogHeader>
-                    {currentCustomer && (
-                        <div className="grid gap-4 py-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-name">Name</Label>
-                                <Input
-                                    id="edit-name"
-                                    value={currentCustomer.name}
-                                    onChange={(e) => setCurrentCustomer({ ...currentCustomer, name: e.target.value })}
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-quantity">Quantity</Label>
-                                <Input
-                                    id="edit-quantity"
-                                    type="number"
-                                    value={currentCustomer.quantity}
-                                    onChange={(e) => setCurrentCustomer({ ...currentCustomer, quantity: parseInt(e.target.value) || 0 })}
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-price">Price</Label>
-                                <Input
-                                    id="edit-price"
-                                    type="number"
-                                    step="0.01"
-                                    value={currentCustomer.price}
-                                    onChange={(e) => setCurrentCustomer({ ...currentCustomer, price: parseFloat(e.target.value) || 0 })}
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-category">Category</Label>
-                                <Select
-                                    value={typeof currentCustomer.category === 'string' ? currentCustomer.category : currentCustomer.category._id}
-                                    onValueChange={(value) => setCurrentCustomer({ ...currentCustomer, category: value })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select category" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categories.map((c) => (
-                                            <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                    )}
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleEditCustomer}>Save Changes</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog> */}
+                </>
+            )}
         </div>
     )
 }

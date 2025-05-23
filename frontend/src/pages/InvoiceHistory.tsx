@@ -25,7 +25,6 @@ import ModernInvoiceTemplate from "@/components/invoice-templates/template-Moder
 import PremiumMinimalInvoice from "@/components/invoice-templates/template-minimal";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { format, parseISO } from "date-fns";
-import axiosInstance from "@/api";
 import { toast } from "sonner";
 import InvoiceClassic from "@/components/invoice-templates/template-classic";
 import ModernInvoicePDF from "@/components/invoice-templates/ModernInvoicePDF";
@@ -33,47 +32,13 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
 import ClassicInvoicePDF from "@/components/invoice-templates/ClassicInviocePDF";
 import MinimalInvoicePDF from "@/components/invoice-templates/MinimalInvoicePDF";
-// Define invoice type
-type Invoice = {
-  id: string;
-  invoiceNumber: string;
-  createdAt: string;
-  invoiceDate: string;
-  customerBillTo: {
-    name: string;
-    address: string;
-    gstNumber?: string;
-    panNumber?: string;
-  };
-  customerShipTo: {
-    name: string;
-    address: string;
-    gstNumber?: string;
-    panNumber?: string;
-  };
-  companyDetails: {
-    name: string;
-    address: string;
-    cityState: string;
-    phone: string;
-    email: string;
-  };
-  items: {
-    id: string;
-    productId: string;
-    name: string;
-    price: number;
-    quantity: number;
-    category: string;
-    hsnCode: string;
-  }[];
-  subtotal: number;
-  gstAmount: number;
-  gstRate: number;
-  total: number;
-  qrCode: string;
-  template: "modern" | "minimal" | "classic";
-};
+
+// React Query hooks
+import {
+  useInvoices,
+  useDeleteInvoice,
+  type Invoice
+} from "@/hooks/useApi";
 
 function normalize(str: string | undefined | null) {
   return (str ?? "")
@@ -103,50 +68,47 @@ function matchesSearchFields(fields: (string | undefined | null)[], query: strin
 }
 
 export default function BillingHistoryPage() {
-  // @ts-ignore
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  // React Query hooks
+  const { data: invoices = [], isLoading, error } = useInvoices();
+  const deleteInvoiceMutation = useDeleteInvoice();
 
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  // @ts-ignore
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
-  // @ts-ignore
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const itemsPerPage = 10;
-  // @ts-ignore
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
   const [qrCodePreview, setQRCodePreview] = useState<string>('');
 
+  // Handle loading and error states
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-4 pt-6 md:p-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-lg">Loading invoice history...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-
-  useEffect(() => {
-    // Fetch invoices from the server
-    const fetchInvoices = async () => {
-      try {
-        const response = await axiosInstance.get(`/invoice`);
-
-        if (response.status !== 200) {
-          throw new Error("Failed to fetch invoices");
-        }
-        const data = response.data;
-        const invoicesWithIds = data.map((invoice: any) => ({
-          ...invoice,
-          id: invoice._id
-        }));
-        const invoiceRemove_id = invoicesWithIds.filter((invoice: any) => delete invoice._id);
-
-        const sortedInvoices = invoiceRemove_id.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        setInvoices(sortedInvoices);
-        console.log(sortedInvoices)
-      } catch (error) {
-        console.error("Error fetching invoices:", error);
-      }
-    };
-
-
-    fetchInvoices();
-  }, [])
+  if (error) {
+    return (
+      <div className="container mx-auto p-4 pt-6 md:p-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-lg text-red-600 mb-4">Error loading invoice history</p>
+            <p className="text-sm text-gray-600">
+              {error?.message || "Unknown error occurred"}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const filteredInvoices = invoices.filter(invoice =>
     matchesSearchFields(
@@ -158,9 +120,6 @@ export default function BillingHistoryPage() {
       searchQuery
     )
   );
-  // console.log(filteredInvoices)
-
-
 
   // Pagination
   const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
@@ -168,8 +127,6 @@ export default function BillingHistoryPage() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-
 
   // Preview invoice
   const previewInvoice = (invoice: Invoice) => {
@@ -186,37 +143,13 @@ export default function BillingHistoryPage() {
   const handleDeleteInvoice = async () => {
     if (!invoiceToDelete) return;
     try {
-      const response = await axiosInstance.delete(`/invoice/${invoiceToDelete.id}`);
-      if (response.status !== 200) {
-        throw new Error("Failed to delete invoice");
-      }
-      setInvoices((prev) => prev.filter((inv) => inv.id !== invoiceToDelete.id));
-
-      setInvoices((prev) => prev.filter((inv) => inv.id !== invoiceToDelete.id));
+      await deleteInvoiceMutation.mutateAsync(invoiceToDelete.id);
       setDeleteDialogOpen(false);
       setInvoiceToDelete(null);
-      toast.success("Invoice deleted successfully");
     } catch (error) {
-      toast.error("Error deleting invoice");
-      setDeleteDialogOpen(false);
-      setInvoiceToDelete(null);
+      // Error handling is done in the mutation
     }
   };
-
-  // const handleDownloadPDF = (invoice: Invoice) => {
-  //   QRCode.toDataURL(`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoice.id}`, { width: 120 }, (err: any, url: string) => {
-  //     setQRCodePreview(url);
-  //     console.log(url)
-  //   });
-  //   return <PDFDownloadLink
-  //     document={<ModernInvoicePDF invoiceData={invoice} qrCode={qrCodePreview} />}
-  //     fileName={`${invoice.invoiceNumber}.pdf`}
-  //   >
-  //     Download PDF
-  //   </PDFDownloadLink>
-  // }
-
-  // Get status badge color
 
   return (
     <div className="flex-1 p-4 z-0 pt-6 md:p-8">

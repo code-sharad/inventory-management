@@ -1,137 +1,301 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const authRoutes = require("./routes/authRoute");
-const { authenticate, restrictTo } = require("./middleware/auth");
-
+const helmet = require("helmet");
+const mongoSanitize = require("express-mongo-sanitize");
 const rateLimit = require("express-rate-limit");
+const cookieParser = require("cookie-parser");
+const { authenticate, restrictTo } = require("./middleware/auth");
+const logger = require("./utils/logger");
 
 require("dotenv").config();
+
 const app = express();
 
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
+// Trust proxy (important for rate limiting and IP detection behind reverse proxy)
+app.set("trust proxy", 1);
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-
-const cookieParser = require("cookie-parser");
-app.use(cookieParser());
-
-app.use(bodyParser.json());
-
+// Security Middleware
 app.use(
-  cors({
-    origin: process.env.VITE_FRONTEND_URL,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE","OPTIONA"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+      },
+    },
   })
 );
 
+// Body parsing middleware
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 
+// Cookie parser
+app.use(cookieParser());
 
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// CORS configuration
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = [
+        process.env.VITE_FRONTEND_URL,
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:5173", // Vite default
+      ].filter(Boolean);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  })
+);
+
+// Global rate limiting
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // Limit each IP to 1000 requests per windowMs
+  message: {
+    status: "error",
+    message: "Too many requests from this IP, please try again later.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(globalLimiter);
+
+// Database connection
 const db = require("./db");
-db().then((res) => {
-  console.log(res,'------------------------');
-});
+db()
+  .then((res) => {
+    logger.info("Database connected successfully", { message: res });
+  })
+  .catch((error) => {
+    logger.error("Database connection failed", { error: error.message });
+    process.exit(1);
+  });
 
+// Health check endpoint
 app.get("/", (req, res) => {
-  res.send("backend is live");
+  res.status(200).json({
+    status: "success",
+    message: "Billing API is running",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+  });
 });
 
+// Health check endpoint for detailed status
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "success",
+    data: {
+      service: "Billing Inventory Management API",
+      version: "2.0.0",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || "development",
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+    },
+  });
+});
+
+// Import routes
+const authRoutes = require("./routes/authRoute");
 const categoryRoute = require("./routes/categoryRoute");
 const itemRoute = require("./routes/itemRoute");
 const invoiceRoute = require("./routes/invoiceRoute");
 const customerRoute = require("./routes/customerRoute");
-const User = require("./models/user");
 const invoiceModel = require("./models/invoiceModel");
-app.set("trust proxy", 1);
 
-app.use("/auth", authenticate, authRoutes);
-
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // limit each IP to 10 requests per windowMs
-  message: "Too many login attempts, please try again later.",
-});
-
-
-app.use("/login", loginLimiter, async (req, res) => {
-  const { email, password } = req.body;
-  //   console.log("Received login request:", { username });
-
-  try {
-    if (!email || !password) {
-      console.log("Missing fields in request:", { email, password });
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      console.log("User not found:", email);
-      return res.status(400).json({ message: "User not found" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      console.log("Password mismatch for user:", email);
-      return res.status(400).json({ message: "Invalid username or password" });
-    }
-    user.lastLogin = Date.now();
-    await user.save();
-    // if (user.role !== "admin") {
-    //   console.log("Role mismatch:", { expected: user.role, received: "admin" });
-    //   return res.status(403).json({ message: `Role must be admin` });
-    // }
-
-    const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-    console.log(token);
-
-    res.header("Authorization", `Bearer ${token}`);
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      maxAge: 3600000 * 24, // 1 day
-      sameSite: "none",
-    });
-    console.log("Login successful for user:", email);
-    res.status(200).json({
-      token,
-      user: { email: user.email, role: user.role, _id: user._id },
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-});
-
-// app.get("/csrf-token", (req, res) => {
-//   console.log(req.csrfToken());
-//   res.json({ csrfToken: req.csrfToken() });
-// });
-
+// Mount routes
+app.use("/auth", authRoutes);
 app.use("/customer", authenticate, customerRoute);
 app.use("/category", authenticate, categoryRoute);
 app.use("/item", authenticate, itemRoute);
 app.use("/invoice", authenticate, invoiceRoute);
-app.use("/invoice-view/:id", async (req, res) => {
-  const id = req.params.id;
+
+// Public invoice view (no authentication required)
+app.get("/invoice-view/:id", async (req, res) => {
   try {
+    const { id } = req.params;
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid invoice ID format",
+      });
+    }
+
     const invoice = await invoiceModel.findById(id);
     if (!invoice) {
-      return res.status(404).json({ message: "Invoice not found" });
+      return res.status(404).json({
+        status: "error",
+        message: "Invoice not found",
+      });
     }
-    res.json(invoice);
-  } catch (err) {
-    console.log(err);
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        invoice,
+      },
+    });
+  } catch (error) {
+    logger.error("Failed to fetch invoice", {
+      error: error.message,
+      invoiceId: req.params.id,
+      ip: req.ip,
+    });
+
+    res.status(500).json({
+      status: "error",
+      message: "Failed to fetch invoice",
+    });
   }
 });
 
-app.listen(3000, () => {
-  console.log("server is running on port 3000");
+// Handle undefined routes
+app.all("*", (req, res) => {
+  logger.warn("Route not found", {
+    method: req.method,
+    url: req.originalUrl,
+    ip: req.ip,
+    userAgent: req.get("User-Agent"),
+  });
+
+  res.status(404).json({
+    status: "error",
+    message: `Can't find ${req.originalUrl} on this server!`,
+  });
 });
+
+// Global error handling middleware
+app.use((error, req, res, next) => {
+  logger.error("Unhandled error", {
+    error: error.message,
+    stack: error.stack,
+    method: req.method,
+    url: req.originalUrl,
+    ip: req.ip,
+    userAgent: req.get("User-Agent"),
+  });
+
+  // Handle specific error types
+  if (error.name === "ValidationError") {
+    return res.status(400).json({
+      status: "error",
+      message: "Validation Error",
+      errors: Object.values(error.errors).map((err) => err.message),
+    });
+  }
+
+  if (error.name === "CastError") {
+    return res.status(400).json({
+      status: "error",
+      message: "Invalid ID format",
+    });
+  }
+
+  if (error.code === 11000) {
+    const field = Object.keys(error.keyValue)[0];
+    return res.status(400).json({
+      status: "error",
+      message: `${field} already exists`,
+    });
+  }
+
+  if (error.message === "Not allowed by CORS") {
+    return res.status(403).json({
+      status: "error",
+      message: "CORS error: Origin not allowed",
+    });
+  }
+
+  // Default error response
+  res.status(500).json({
+    status: "error",
+    message:
+      process.env.NODE_ENV === "production"
+        ? "Something went wrong!"
+        : error.message,
+  });
+});
+
+// Graceful shutdown handling
+const gracefulShutdown = (signal) => {
+  logger.info(`Received ${signal}. Graceful shutdown initiated.`);
+
+  server.close(() => {
+    logger.info("HTTP server closed.");
+
+    // Close database connections
+    require("mongoose").connection.close(() => {
+      logger.info("MongoDB connection closed.");
+      process.exit(0);
+    });
+  });
+
+  // Force close after 10 seconds
+  setTimeout(() => {
+    logger.error(
+      "Could not close connections in time, forcefully shutting down"
+    );
+    process.exit(1);
+  }, 10000);
+};
+
+const PORT = process.env.PORT || 3000;
+
+const server = app.listen(PORT, () => {
+  logger.info(`Server started successfully`, {
+    port: PORT,
+    environment: process.env.NODE_ENV || "development",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Handle unhandled promise rejections
+process.on("unhandledRejection", (err, promise) => {
+  logger.error("Unhandled Promise Rejection", {
+    error: err.message,
+    stack: err.stack,
+  });
+
+  // Close server & exit process
+  server.close(() => {
+    process.exit(1);
+  });
+});
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (err) => {
+  logger.error("Uncaught Exception", {
+    error: err.message,
+    stack: err.stack,
+  });
+
+  process.exit(1);
+});
+
+// Graceful shutdown
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
+module.exports = app;

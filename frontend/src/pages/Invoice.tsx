@@ -33,14 +33,26 @@ import InvoiceClassic from "@/components/invoice-templates/template-classic";
 import ModernInvoiceTemplate from "@/components/invoice-templates/template-Modern";
 import PremiumMinimalInvoice from "@/components/invoice-templates/template-minimal";
 import TemplateCarousel from "@/components/invoice-templates/TemplateCarousel";
-import axiosInstance from "@/api";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
 
-
-
+// React Query hooks
+import {
+  useItems,
+  useCustomers,
+  useInvoiceNumber,
+  useSaveInvoice,
+  type Item,
+  type Customer
+} from "@/hooks/useApi";
 
 function Invoice() {
+  // React Query hooks
+  const { data: inventoryItems = [], isLoading: isLoadingItems, error: itemsError } = useItems();
+  const { data: customers = [], isLoading: isLoadingCustomers, error: customersError } = useCustomers();
+  const { data: fetchedInvoiceNumber = "", isLoading: isLoadingInvoiceNumber } = useInvoiceNumber();
+  const saveInvoiceMutation = useSaveInvoice();
+
   const [open, setOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<{
     id: string;
@@ -58,17 +70,6 @@ function Invoice() {
     hsnCode: "",
   });
   const [gstRate, setGstRate] = useState(18);
-  const [inventoryItems, setInventoryItems] = useState<
-    {
-      id: string;
-      name: string;
-      quantity: number;
-      price: number;
-      category: string;
-      hsnCode: string;
-      categoryId: string;
-    }[]
-  >([]);
   const [invoiceItems, setInvoiceItems] = useState<
     {
       id: string;
@@ -91,36 +92,16 @@ function Invoice() {
     phone: "9820132560, 9637831717",
     email: "dyn.enterprises@gmail.com",
   });
-  
-  const [selectedTemplate, setSelectedTemplate] = useState("modern");
 
-  const [customers, setCustomers] = useState<{
-    id: string;
-    name: string;
-    gstNumber: string;
-    panNumber: string;
-    address: string;
-  }[]>([]);
-  const [selectedCustomerBillTo, setSelectedCustomerBillTo] = useState<{
-    id: string;
-    name: string;
-    gstNumber: string;
-    panNumber: string;
-    address: string;
-  }>({
+  const [selectedTemplate, setSelectedTemplate] = useState("modern");
+  const [selectedCustomerBillTo, setSelectedCustomerBillTo] = useState<Customer>({
     id: "",
     name: "",
     gstNumber: "",
     panNumber: "",
     address: "",
   });
-  const [selectedCustomerShipTo, setSelectedCustomerShipTo] = useState<{
-    id: string;
-    name: string;
-    gstNumber: string;
-    panNumber: string;
-    address: string;
-  }>({
+  const [selectedCustomerShipTo, setSelectedCustomerShipTo] = useState<Customer>({
     id: "",
     name: "",
     gstNumber: "",
@@ -134,72 +115,42 @@ function Invoice() {
   const [billToOpen, setBillToOpen] = useState(false);
   const [shipToOpen, setShipToOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Set invoice number when fetched
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const response = await axiosInstance.get(`/item`, { withCredentials: true });
-
-        const items = response.data.map((item: any) => {
-          let categoryName = "Uncategorized";
-          let categoryId = "";
-          if (item.category && typeof item.category === 'object' && item.category.name) {
-            categoryName = item.category.name;
-            categoryId = item.category._id?.toString() || "";
-            console.log(`Mapped item ${item.name} with category: ${categoryName}`);
-          } else if (item.category) {
-            console.error(`Category object for ${item.name} missing name, raw data:`, item.category);
-            categoryName = item.category.toString();
-            categoryId = item.category.toString();
-          } else {
-            console.error(`No category data for item: ${item.name}`);
-          }
-
-          return {
-            id: item._id?.toString() || "",
-            name: item.name || "Unknown Product",
-            quantity: Number(item.quantity) || 0,
-            price: Number(item.price) || 0,
-            category: categoryName,
-            categoryId: categoryId,
-            hsnCode: item.hsnCode || "",
-          };
-        });
-        console.log("Mapped inventory items:", JSON.stringify(items, null, 2));
-        setInventoryItems(items);
-      } catch (error) {
-        console.error('Error fetching items:', error);
-      }
-    };
-    const fetchCustomers = async () => {
-      try {
-        const response = await axiosInstance.get(`/customer`, { withCredentials: true });
-        console.log("Raw /api/customers response:", JSON.stringify(response.data, null, 2));
-        const customers = response.data.map((customer: any) => ({
-          id: customer._id?.toString() || "",
-          name: customer.name || "Unknown Customer",
-          gstNumber: customer.gstNumber || "Unknown GST Number",
-          panNumber: customer.panNumber || "Unknown Pan Number",
-          address: customer.address || "Unknown Address",
-        }));
-        setCustomers(customers);
-        console.log("Mapped customers:", JSON.stringify(customers, null, 2));
-      } catch (error) {
-        console.error('Error fetching customers:', error);
-      }
+    if (fetchedInvoiceNumber && !invoiceNumber) {
+      setInvoiceNumber(fetchedInvoiceNumber);
     }
-    const fetchInvoiceNumber = async () => {
-      try {
-        const response = await axiosInstance.get("/invoice/get-invoice-number", { withCredentials: true });
-        setInvoiceNumber(response.data.invoiceNumber);
-      } catch (error) {
-        console.error('Error fetching invoice number:', error);
-      }
-    }
+  }, [fetchedInvoiceNumber, invoiceNumber]);
 
-    fetchCustomers();
-    fetchItems();
-    fetchInvoiceNumber();
-  }, []);
+  // Handle loading and error states
+  if (isLoadingItems || isLoadingCustomers || isLoadingInvoiceNumber) {
+    return (
+      <div className="container p-4 pt-6 md:p-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-lg">Loading invoice data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (itemsError || customersError) {
+    return (
+      <div className="container p-4 pt-6 md:p-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-lg text-red-600 mb-4">Error loading data</p>
+            <p className="text-sm text-gray-600">
+              {itemsError?.message || customersError?.message || "Unknown error occurred"}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const templates = [
     {
@@ -303,7 +254,7 @@ function Invoice() {
   };
 
   const handleSaveInvoice = async () => {
-    if (!customers || invoiceItems.length === 0) {
+    if (!selectedCustomerBillTo.id || invoiceItems.length === 0) {
       toast.error("Please provide customer name, email, address, invoice number, and at least one item.");
       return;
     }
@@ -315,19 +266,11 @@ function Invoice() {
 
     try {
       console.log("Saving invoice with data:", JSON.stringify(invoiceData, null, 2));
-      const response = await axiosInstance.post(`/invoice`, invoiceData, { withCredentials: true });
-      console.log("Invoice saved successfully:", response.data);
-      toast.success('Invoice saved successfully!');
+      await saveInvoiceMutation.mutateAsync(invoiceData);
       navigate("/billing");
-    } catch (error: any) {
-      console.error('Error saving invoice:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        config: error.config,
-      });
-      const errorMessage = error.response?.data?.error || error.message || 'Unknown server error';
-      toast.error(`Failed to save invoice: ${errorMessage}`);
+    } catch (error) {
+      // Error handling is done in the mutation
+      console.error('Error in handleSaveInvoice:', error);
     }
   };
 
@@ -335,7 +278,7 @@ function Invoice() {
   const subtotal = invoiceItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
     + transportationValue
     + packagingValue;
-  const gstAmount = subtotal * (gstRate/100);
+  const gstAmount = subtotal * (gstRate / 100);
   const total = subtotal + gstAmount;
 
   const invoiceData = {
@@ -440,13 +383,13 @@ function Invoice() {
 
               <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold mb-4">Customer Details</h3>
-               <div className="flex gap-8 flex-wrap">
+                <div className="flex gap-8 flex-wrap">
                   <div id="bill-to container ">
                     <h3 className="mb-1">Bill To : </h3>
                     <div className="space-y-4">
                       <div>
                         <Popover open={billToOpen} onOpenChange={setBillToOpen} modal={true}  >
-                          <PopoverTrigger  className="w-full border p-2 rounded-md text-left pl-4 font-medium flex justify-between items-center">
+                          <PopoverTrigger className="w-full border p-2 rounded-md text-left pl-4 font-medium flex justify-between items-center">
                             {selectedCustomerBillTo.name !== "" ? selectedCustomerBillTo.name : "Select customer..."} {" "}
                             <div className="inline-flex h-6 flex-col">
                               <ChevronUpIcon /> <ChevronDown />
@@ -582,12 +525,12 @@ function Invoice() {
                       )}
                     </div>
                   </div>
-               </div>
+                </div>
               </div>
 
               <div>
                 <h3 className="text-lg font-semibold mb-4 flex flex-col gap-4">Invoice Details</h3>
-               <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4">
                   <div className="flex flex-col sm:flex-row gap-4    ">
                     <div className="min-w-0 flex-2">
                       <Label className="mb-2"># Invoice Number</Label>
@@ -643,7 +586,7 @@ function Invoice() {
                     <Label className="mb-2">Invoice Date</Label>
                     <DatePicker value={invoiceDate} onChange={setInvoiceDate} />
                   </div>
-               </div>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -846,7 +789,7 @@ function Invoice() {
         </CardContent>
       </Card>
 
-      <div className="container mt-8 w-full overflow-x-auto">
+      <div className="container relative mt-8 w-full overflow-x-auto">
         {/* @ts-ignore */}
         <SelectedTemplate invoiceData={invoiceData} />
       </div>
@@ -854,9 +797,10 @@ function Invoice() {
       <div className="container mt-12 w-full flex justify-center">
         <Button
           onClick={handleSaveInvoice}
-          className="w-full max-w-md h-16  p-5 px-12 text-lg font-bold bg-gray-800 border border-gray-700 text-white shadow-lg rounded-xl hover:scale-[1.02] hover:bg-black transition-all duration-200 focus:ring-4 cursor-pointer focus:outline-none"
+          disabled={saveInvoiceMutation.isPending}
+          className="w-full max-w-md h-16  p-5 px-12 text-lg font-bold bg-gray-800 border border-gray-700 text-white shadow-lg rounded-xl hover:scale-[1.02] hover:bg-black transition-all duration-200 focus:ring-4 cursor-pointer focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Save Invoice
+          {saveInvoiceMutation.isPending ? "Saving..." : "Save Invoice"}
         </Button>
       </div>
     </div>

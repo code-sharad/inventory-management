@@ -1,90 +1,169 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
-import { useUser } from "../contexts/UserContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import axiosInstance from "@/api";
-import axios from "axios";
+import React, { useState, forwardRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 
-export default function Login() {
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { loginSchema, LoginFormData } from '@/lib/validations/auth';
+
+const Login = forwardRef<HTMLDivElement>((props, ref) => {
   const navigate = useNavigate();
-  const { login } = useUser();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string>('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  const loginForm = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
+  const handleLogin = async (data: LoginFormData) => {
     try {
-      // Here you would typically make an API call to your backend
-      // For now, we'll simulate a successful login
-      axiosInstance.post(`/login`, {
-        email,
-        password,
-      }).then((res: any) => {
-        console.log(res)
-        if (res.status === 200) {
-          login(res.data);
-          if (res.data.role === "admin") {
-            navigate("/");
-          }
-          if (res.data.role === "user") {
-            navigate("/inventory");
-          }
-        } else {
-          setError(res.data.message);
-        }
-      })
-        .catch((err: any) => {
-          console.log(err.response.data)
-          setError(err.response.data.message || err.response.data);
-        });
+      setIsLoading(true);
+      setError(''); // Clear any previous errors
+      const response = await login(data);
 
-     
-    } catch (err: any) {
-      setError(err.response.data || "Invalid email or password");
+      if (response.status === 'success') {
+        // Login successful, navigate based on user role
+        if (response.data?.user?.role === 'admin') {
+          navigate('/');
+        } else {
+          navigate('/inventory');
+        }
+      } else {
+        // Handle error response
+        setError(response.message || 'Login failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div ref={ref} className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-neutral-950">
       <Card className="w-[400px]">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Login</CardTitle>
+        <CardHeader className="space-y-1">
+          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-blue-100 dark:bg-blue-900 rounded-full">
+            <Lock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          </div>
+          <CardTitle className="text-2xl text-center">DEGROUP INVOICE</CardTitle>
+          <p className="text-sm text-muted-foreground text-center">
+            Enter your credentials to access your account
+          </p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+          <Form {...loginForm}>
+            <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
+              {error && (
+                <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-md">
+                  {error}
+                </div>
+              )}
+
+              <FormField
+                control={loginForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          {...field}
+                          type="email"
+                          placeholder="john@example.com"
+                          className="pl-10"
+                          autoComplete="email"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+
+              <FormField
+                control={loginForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          {...field}
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="Enter your password"
+                          className="pl-10 pr-10"
+                          autoComplete="current-password"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            {error && <div className="text-red-500 text-sm">{error}</div>}
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
-          </form>
+
+              <div className="flex items-center justify-between">
+                <div></div>
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full"
+              >
+                {isLoading ? 'Signing in...' : 'Sign in'}
+              </Button>
+            </form>
+          </Form>
+
         </CardContent>
       </Card>
     </div>
   );
-}
+});
+
+Login.displayName = 'Login';
+
+export default Login;
