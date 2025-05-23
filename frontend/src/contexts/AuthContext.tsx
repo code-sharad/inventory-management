@@ -165,6 +165,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
             const result = response.data as AuthResponse;
 
             if (result.status === 'success') {
+                // Clear authentication state since all refresh tokens are cleared on password reset
+                clearAuthState();
                 toast.success('Password reset successful');
             }
 
@@ -182,7 +184,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
             const result = response.data as AuthResponse;
 
             if (result.status === 'success') {
-                toast.success('Password changed successfully');
+                // Clear authentication state since all refresh tokens are cleared on password change
+                clearAuthState();
+                toast.success('Password changed successfully - Please log in again');
             }
 
             return result;
@@ -228,7 +232,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
             }
 
             return false;
-        } catch (error) {
+        } catch (error: any) {
+            // Check if it's the "No refresh token found" error - this is expected after password reset
+            if (error.response?.data?.message === 'No refresh token found') {
+                console.log('No refresh token found - user needs to log in');
+                clearAuthState();
+                return false;
+            }
+
             console.error('Token refresh failed:', error);
             clearAuthState();
             return false;

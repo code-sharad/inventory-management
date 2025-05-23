@@ -82,10 +82,27 @@ axiosInstance.interceptors.response.use(
           // Retry the original request
           return axiosInstance(originalRequest);
         }
-      } catch (refreshError) {
+      } catch (refreshError: any) {
         processQueue(refreshError, null);
 
-        // Remove tokens and redirect to login
+        // Check if it's "No refresh token found" - this is expected after password reset
+        if (refreshError.response?.data?.message === 'No refresh token found') {
+          // Don't log this as an error, it's expected after password reset
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('user');
+          window.dispatchEvent(new CustomEvent('auth:logout'));
+
+          // Only redirect if not already on an auth page
+          if (!window.location.pathname.includes('/login') &&
+            !window.location.pathname.includes('/reset-password') &&
+            !window.location.pathname.includes('/forgot-password')) {
+            window.location.href = '/login';
+          }
+
+          return Promise.reject(refreshError);
+        }
+
+        // Remove tokens and redirect to login for other errors
         localStorage.removeItem('accessToken');
         localStorage.removeItem('user');
 
