@@ -92,6 +92,7 @@ app.use(
   })
 );
 app.options("*", cors(corsOptions));
+
 // Global rate limiting
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
