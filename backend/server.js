@@ -77,7 +77,6 @@ app.use(mongoSanitize());
 //   })
 // );
 
-app.options("*", cors()); // Handle preflight requests for all routes
 app.use(
   cors({
     origin: [
@@ -92,7 +91,7 @@ app.use(
     credentials: true,
   })
 );
-
+app.options("*", cors(corsOptions));
 // Global rate limiting
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
