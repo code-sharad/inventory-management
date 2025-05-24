@@ -77,6 +77,7 @@ app.use(mongoSanitize());
 //   })
 // );
 
+app.options("*", cors()); // Handle preflight requests for all routes
 app.use(
   cors({
     origin: [
