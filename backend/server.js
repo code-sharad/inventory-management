@@ -77,20 +77,16 @@ app.use(mongoSanitize());
 //   })
 // );
 
-app.use(
-  cors({
-    origin: [
-      process.env.FRONTEND_URL, // Production frontend URL
-      process.env.VITE_FRONTEND_URL, // Alternative env var name
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:5173", // Vite default
-      "http://localhost:5174", // Vite alternative port
-      "https://localhost:5173", // HTTPS localhost
-    ],
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: [
+    process.env.FRONTEND_URL, // Production frontend URL
+    process.env.VITE_FRONTEND_URL, // Alternative env var name
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
 // Global rate limiting
