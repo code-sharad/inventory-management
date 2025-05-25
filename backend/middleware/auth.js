@@ -133,35 +133,6 @@ const requireEmailVerification = (req, res, next) => {
   next();
 };
 
-// Middleware to check account lock status
-const checkAccountLock = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.user._id).select(
-      "+loginAttempts +lockUntil"
-    );
-
-    if (user && user.isLocked) {
-      return res.status(423).json({
-        status: "error",
-        message:
-          "Account is temporarily locked due to too many failed login attempts",
-      });
-    }
-
-    next();
-  } catch (error) {
-    logger.error("Account lock check failed", {
-      error: error.message,
-      userId: req.user._id,
-    });
-
-    return res.status(500).json({
-      status: "error",
-      message: "Internal server error",
-    });
-  }
-};
-
 // Optional authentication - doesn't require login but populates user if logged in
 const optionalAuth = async (req, res, next) => {
   try {
@@ -223,7 +194,6 @@ module.exports = {
   authenticate,
   restrictTo,
   requireEmailVerification,
-  checkAccountLock,
   optionalAuth,
   getTokenFromCookies, // Keep for backward compatibility
 };

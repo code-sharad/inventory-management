@@ -9,7 +9,7 @@ This document describes the comprehensive authentication system implemented for 
 ### 🔐 Core Authentication
 - **JWT Access & Refresh Tokens**: Short-lived access tokens (15 minutes) with long-lived refresh tokens (7 days)
 - **Secure Password Storage**: bcrypt hashing with salt rounds
-- **Account Lockout**: Automatic lockout after 5 failed login attempts for 2 hours
+
 - **Session Management**: Track and manage user sessions across multiple devices
 
 ### 🛡️ Security Features
@@ -245,10 +245,7 @@ Authorization: Bearer <access_token>
 - **Password reset tokens**: 10-minute expiration
 - **Email verification tokens**: 24-hour expiration
 
-### Account Lockout
-- **Failed attempts threshold**: 5 attempts
-- **Lockout duration**: 2 hours
-- **Automatic unlock**: After lockout period expires
+
 
 ## Environment Configuration
 
@@ -321,8 +318,7 @@ app.use('/public', optionalAuth, publicRoutes);
   isEmailVerified: Boolean,  // Email verification status
   twoFactorEnabled: Boolean, // 2FA status
   twoFactorSecret: String,   // 2FA secret (encrypted)
-  loginAttempts: Number,     // Failed login count
-  lockUntil: Date,          // Account lock expiration
+
   refreshTokens: [{         // Active refresh tokens
     token: String,
     createdAt: Date,
@@ -409,7 +405,7 @@ To migrate from the old authentication system:
 
 1. **Always use HTTPS in production**
 2. **Keep JWT secrets secure and rotate them regularly**
-3. **Monitor failed login attempts and investigate suspicious activity**
+3. **Monitor authentication events and investigate suspicious activity**
 4. **Regularly update dependencies**
 5. **Use strong password policies**
 6. **Enable 2FA for admin accounts**
@@ -423,7 +419,7 @@ To migrate from the old authentication system:
 ### Common Issues
 
 1. **JWT Token Expired**: Use refresh token endpoint to get new access token
-2. **Account Locked**: Wait for lockout period to expire or manually unlock via admin
+
 3. **Email Not Verified**: Resend verification email
 4. **2FA Issues**: Ensure authenticator app time is synchronized
 5. **CORS Errors**: Check allowed origins in environment configuration

@@ -58,8 +58,6 @@ class AuthService {
     delete userCopy.emailVerificationExpires;
     delete userCopy.passwordResetToken;
     delete userCopy.passwordResetExpires;
-    delete userCopy.loginAttempts;
-    delete userCopy.lockUntil;
 
     await user.save({ validateBeforeSave: false });
 
@@ -155,18 +153,9 @@ class AuthService {
       }
 
       // 2) Check if user exists and password is correct
-      const user = await User.findOne({ email }).select(
-        "+password +loginAttempts +lockUntil"
-      );
+      const user = await User.findOne({ email }).select("+password");
 
-      // 3) Check if account is locked
-      if (user && user.isLocked) {
-        throw new Error(
-          "Account temporarily locked due to too many failed login attempts"
-        );
-      }
-
-      // 4) Check if account is active
+      // 3) Check if account is active
       if (!user || !user.isActive) {
         throw new Error(
           "Account is deactivated. Please contact administrator."
@@ -181,7 +170,6 @@ class AuthService {
 
       if (!isPasswordCorrect) {
         // Log failed attempt
-        await user.incLoginAttempts();
         await this.logLoginAttempt(user, req, false);
 
         logger.warn("Failed login attempt", {
@@ -193,8 +181,7 @@ class AuthService {
         throw new Error("Invalid email or password");
       }
 
-      // 6) Reset login attempts and update login info
-      await user.resetLoginAttempts();
+      // 6) Update login info
       user.lastLogin = Date.now();
       user.lastActiveAt = Date.now();
       await user.save({ validateBeforeSave: false });

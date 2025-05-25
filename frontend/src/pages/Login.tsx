@@ -48,11 +48,13 @@ const Login = forwardRef<HTMLDivElement>((props, ref) => {
         }
       } else {
         // Handle error response
+        console.log(response.message,"response.message");
+        console.log(response.data,"response.data");
         setError(response.message || 'Login failed. Please try again.');
       }
     } catch (error) {
       console.error('Login failed:', error);
-      setError('An unexpected error occurred. Please try again.');
+      setError(`${error.message}`);
     } finally {
       setIsLoading(false);
     }
