@@ -100,7 +100,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
             return data;
         } catch (error: any) {
-            const errorMessage = error.response?.data?.message || 'Login failed';
+            const errorMessage = 'Login failed';
             toast.error(errorMessage);
             throw error;
         }
