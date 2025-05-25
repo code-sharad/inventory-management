@@ -65,26 +65,47 @@ export default function InventoryPage() {
     const itemsPerPage = 10;
 
     const [searchTerm, setSearchTerm] = useState("");
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
     // Handle loading and error states
     const isLoading = isLoadingProducts || isLoadingCategories;
     const error = productsError || categoriesError;
 
+    // Debounce search term to avoid excessive filtering
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+    }, [searchTerm]);
+
     // Filter products based on search term
     useEffect(() => {
-        if (!searchTerm) {
-            setFilteredProducts(products);
-        } else {
-            const filtered = products.filter(product =>
-                product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                product.category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                product.hsnCode.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            setFilteredProducts(filtered);
-        }
+        const filterProducts = () => {
+            if (!debouncedSearchTerm?.trim()) {
+                return products;
+            }
+
+            const searchTermLower = debouncedSearchTerm.toLowerCase().trim();
+
+            return products.filter(product => {
+                const searchableFields = [
+                    product?.name,
+                    product?.category?.name,
+                    product?.hsnCode
+                ].filter(Boolean); // Remove null/undefined values
+
+                return searchableFields.some(field =>
+                    field?.toLowerCase().includes(searchTermLower)
+                );
+            });
+        };
+
+        setFilteredProducts(filterProducts());
         setCurrentPage(1); // Reset to first page when filtering
-    }, [products, searchTerm]);
+    }, [products, debouncedSearchTerm]);
 
     // Calculate paginated products
     const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -327,13 +348,20 @@ export default function InventoryPage() {
                     </Dialog>
 
                     <div className="flex items-center gap-2">
-                        <Input
-                            type="text"
-                            placeholder="Search products..."
-                            className="w-64"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                        <div className="relative">
+                            <Input
+                                type="text"
+                                placeholder="Search by name, category, or HSN code..."
+                                className="w-64 pr-10"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            {searchTerm && searchTerm !== debouncedSearchTerm && (
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

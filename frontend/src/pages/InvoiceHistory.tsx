@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -40,46 +40,150 @@ import {
   type Invoice
 } from "@/hooks/useApi";
 
-function normalize(str: string | undefined | null) {
-  return (str ?? "")
+// Search utilities
+const normalizeText = (text: string | undefined | null): string => {
+  return String(text ?? "")
     .toLowerCase()
-    .normalize("NFD") // Remove accents/diacritics
+    .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
-    .replace(/[^a-z0-9]+/g, " ") // Replace non-alphanumerics with space
     .trim();
-}
+};
 
-function tokenize(str: string | undefined | null) {
-  return normalize(str).split(/\s+/).filter(Boolean);
-}
+// Optimized search with pre-computed searchable text including date
+const searchInvoices = (invoices: Invoice[], query: string): Invoice[] => {
+  if (!query.trim()) return invoices;
 
-function matchesSearchFields(fields: (string | undefined | null)[], query: string) {
-  if (!query) return true;
-  const queryTokens = tokenize(query);
+  const normalizedQuery = normalizeText(query);
+  const queryTerms = normalizedQuery.split(/\s+/).filter(Boolean);
 
-  // For each field, tokenize and check if all query tokens are present in any field tokens
-  return fields.some(field => {
-    const fieldTokens = tokenize(field);
-    // For each query token, check if it matches the start of any field token
-    return queryTokens.every(qt =>
-      fieldTokens.some(ft => ft.startsWith(qt))
-    );
+  return invoices.filter(invoice => {
+    // Direct field searches for better performance
+    const searchableFields = [
+      invoice.invoiceNumber,
+      invoice.customerBillTo?.name,
+      invoice.customerBillTo?.address,
+      invoice.customerBillTo?.gstNumber,
+      invoice.customerBillTo?.panNumber,
+      invoice.customerShipTo?.name,
+      invoice.customerShipTo?.address,
+      invoice.customerShipTo?.gstNumber,
+      invoice.customerShipTo?.panNumber,
+      invoice.total?.toString(),
+      // Add date in searchable format
+      format(parseISO(invoice.createdAt), "MMM d, yyyy"),
+      format(parseISO(invoice.createdAt), "yyyy-MM-dd"),
+      format(parseISO(invoice.createdAt), "dd/MM/yyyy"),
+    ].filter(Boolean);
+
+    const searchableText = searchableFields
+      .map(normalizeText)
+      .join(" ");
+
+    return queryTerms.every(term => searchableText.includes(term));
   });
-}
+};
+
+
 
 export default function BillingHistoryPage() {
   // React Query hooks
   const { data: invoices = [], isLoading, error } = useInvoices();
   const deleteInvoiceMutation = useDeleteInvoice();
 
+  // State management
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeSearchQuery, setActiveSearchQuery] = useState(""); // The actual search being applied
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const itemsPerPage = 10;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
   const [qrCodePreview, setQRCodePreview] = useState<string>('');
+
+  const itemsPerPage = 10;
+
+  // Optimized filtered invoices with better memoization
+  const filteredInvoices = useMemo(() => {
+    // Early return for empty search
+    if (!activeSearchQuery.trim()) {
+      return invoices;
+    }
+
+    // Use more efficient search
+    return searchInvoices(invoices, activeSearchQuery);
+  }, [invoices, activeSearchQuery]);
+
+  // Optimized pagination with early bounds checking
+  const { totalPages, paginatedInvoices } = useMemo(() => {
+    const totalCount = filteredInvoices.length;
+    const total = Math.ceil(totalCount / itemsPerPage);
+
+    // Avoid unnecessary slicing if no results
+    if (totalCount === 0) {
+      return { totalPages: 0, paginatedInvoices: [] };
+    }
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalCount);
+    const paginated = filteredInvoices.slice(startIndex, endIndex);
+
+    return { totalPages: total, paginatedInvoices: paginated };
+  }, [filteredInvoices, currentPage, itemsPerPage]);
+
+  // Handle search execution
+  const handleSearch = useCallback(() => {
+    setActiveSearchQuery(searchQuery);
+    setCurrentPage(1); // Reset to first page when search changes
+  }, [searchQuery]);
+
+  // Handle search input change
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+  }, []);
+
+  // Handle Enter key press in search input
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  }, [handleSearch]);
+
+  // Clear search
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery("");
+    setActiveSearchQuery("");
+    setCurrentPage(1);
+  }, []);
+
+  // Auto-reset page if current page is out of bounds
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
+
+  // Preview invoice
+  const previewInvoice = useCallback((invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+
+    QRCode.toDataURL(`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoice.id}`, { width: 120 }, (err: any, url: string) => {
+      setQRCodePreview(url);
+      console.log(url)
+    });
+    setIsPreviewOpen(true);
+  }, []);
+
+  // Delete invoice
+  const handleDeleteInvoice = async () => {
+    if (!invoiceToDelete) return;
+    try {
+      await deleteInvoiceMutation.mutateAsync(invoiceToDelete.id);
+      setDeleteDialogOpen(false);
+      setInvoiceToDelete(null);
+    } catch (error) {
+      // Error handling is done in the mutation
+    }
+  };
 
   // Handle loading and error states
   if (isLoading) {
@@ -110,64 +214,49 @@ export default function BillingHistoryPage() {
     );
   }
 
-  const filteredInvoices = invoices.filter(invoice =>
-    matchesSearchFields(
-      [
-        invoice.invoiceNumber,
-        invoice.customerBillTo.name,
-        invoice.customerShipTo.name
-      ],
-      searchQuery
-    )
-  );
-
-  // Pagination
-  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
-  const paginatedInvoices = filteredInvoices.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  // Preview invoice
-  const previewInvoice = (invoice: Invoice) => {
-    setSelectedInvoice(invoice);
-
-    QRCode.toDataURL(`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoice.id}`, { width: 120 }, (err: any, url: string) => {
-      setQRCodePreview(url);
-      console.log(url)
-    });
-    setIsPreviewOpen(true);
-  };
-
-  // Delete invoice
-  const handleDeleteInvoice = async () => {
-    if (!invoiceToDelete) return;
-    try {
-      await deleteInvoiceMutation.mutateAsync(invoiceToDelete.id);
-      setDeleteDialogOpen(false);
-      setInvoiceToDelete(null);
-    } catch (error) {
-      // Error handling is done in the mutation
-    }
-  };
-
   return (
     <div className="flex-1 p-4 z-0 pt-6 md:p-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <h2 className="text-3xl font-serif font-bold tracking-tight">Billing History</h2>
+        <div>
+          <h2 className="text-3xl font-serif font-bold tracking-tight">Billing History</h2>
+          {activeSearchQuery && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Showing {filteredInvoices.length} result{filteredInvoices.length !== 1 ? 's' : ''} for "{activeSearchQuery}"
+            </p>
+          )}
+        </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search invoices..."
-              className="pl-8 w-full sm:w-[250px] md:w-[300px]"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1); // Reset to first page when search changes
-              }}
-            />
+          <div className="flex gap-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search by invoice #, customer, amount, date..."
+                className="pl-8 w-full sm:w-[250px] md:w-[300px]"
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onKeyPress={handleKeyPress}
+              />
+            </div>
+            <Button
+              onClick={handleSearch}
+              variant="default"
+              size="default"
+              className="whitespace-nowrap"
+            >
+              <Search className="h-4 w-4 mr-2" />
+              Search
+            </Button>
+            {activeSearchQuery && (
+              <Button
+                onClick={handleClearSearch}
+                variant="outline"
+                size="default"
+                className="whitespace-nowrap"
+              >
+                Clear
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -263,7 +352,6 @@ export default function BillingHistoryPage() {
                             onClick={() => {
                               setInvoiceToDelete(invoice);
                               setDeleteDialogOpen(true);
-                              handleDeleteInvoice();
                             }}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />

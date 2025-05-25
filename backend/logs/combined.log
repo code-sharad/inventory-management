@@ -604,3 +604,7 @@
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-25T05:51:49.254Z"},"timestamp":"2025-05-25 11:21:49:2149"}
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-25 11:21:49:2149"}
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mReceived SIGINT. Graceful shutdown initiated.\u001b[39m","meta":{},"timestamp":"2025-05-25 11:22:10:2210"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-25T12:19:36.549Z"},"timestamp":"2025-05-25 17:49:36:4936"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-25 17:49:36:4936"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-25T12:43:42.153Z"},"timestamp":"2025-05-25 18:13:42:1342"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-25 18:13:42:1342"}
