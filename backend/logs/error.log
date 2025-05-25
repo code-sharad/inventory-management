@@ -125,3 +125,5 @@
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mLogin failed\u001b[39m","meta":{"email":"admin@gmail.com","error":"Invalid email or password","ip":"::1"},"timestamp":"2025-05-26 01:20:50:2050"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mLogin failed\u001b[39m","meta":{"email":"codesharad@gmail.com","error":"Invalid email or password","ip":"::1"},"timestamp":"2025-05-26 01:23:29:2329"}
 {"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mLogin failed\u001b[39m","meta":{"email":"codesharad@gmail.com","error":"Invalid email or password","ip":"::1"},"timestamp":"2025-05-26 01:23:30:2330"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mLogin failed\u001b[39m","meta":{"email":"admin@gmail.com","error":"Invalid email or password","ip":"::1"},"timestamp":"2025-05-26 01:26:10:2610"}
+{"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mLogin failed\u001b[39m","meta":{"email":"admin@gmail.com","error":"Invalid email or password","ip":"::1"},"timestamp":"2025-05-26 01:26:10:2610"}

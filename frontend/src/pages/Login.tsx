@@ -135,12 +135,12 @@ const Login = forwardRef<HTMLDivElement>((props, ref) => {
       setError(null); // Clear any previous errors
 
       // Add timeout to login request
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('TIMEOUT')), 3000) // 3 second timeout
-      );
+      // const timeoutPromise = new Promise((_, reject) =>
+      //   setTimeout(() => reject(new Error('TIMEOUT')), 3000) // 3 second timeout
+      // );
 
       const loginPromise = login(data);
-      const response = await Promise.race([loginPromise]);
+      const response = await loginPromise;
 
       if (response.status === 'success') {
         // Reset retry count on successful login
