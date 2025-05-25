@@ -12,6 +12,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { forceLogout } from "@/lib/auth-utils";
+import logoImage from "/logo.png"
 
 export default function Header() {
   const { logout, user } = useAuth();
@@ -33,6 +34,18 @@ export default function Header() {
   return (
     <div className="flex items-center h-16 gap-1 border-b-1 justify-between w-full">
       <div className="flex items-center gap-1 z-[1000]">
+        <div className="md:hidden block text-2xl font-bold">
+          <div className="rounded-full overflow-hidden ml-2">
+            <img
+              src={logoImage}
+              alt="Invoice Management Logo"
+              className="w-24 h-12 object-cover rounded-[1000px] overflow-hidden "
+              loading="eager"
+              width={64}
+              height={64}
+            />
+          </div>
+        </div>
         <div className="md:hidden">
           <button onClick={() => setIsOpen(!isOpen)} className="p-4 dark:text-white">
             <div className="w-6 h-0.5 bg-black dark:bg-white mb-1"></div>
@@ -90,7 +103,7 @@ export default function Header() {
             </div>
           </nav>
         </div>
-        <h1 className="md:hidden block text-2xl font-bold">IM</h1>
+
       </div>
       <header className="w-screen z-10 flex justify-end items-center text-2xl lg:px-8 pr-8 lg:pr-18 sticky top-0 dark:bg-[#09090b] bg-white/90 backdrop-blur-3xl">
         <div className="flex gap-4 z-10 justify-center items-center">

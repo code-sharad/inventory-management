@@ -235,6 +235,7 @@ const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                 {/* Header */}
                 <View style={styles.header}>
                     <View>
+                        <Image src={"/invoice-logo.png"} style={{ width: 64, height: 64 }} />
                         <Text style={styles.companyName}>{companyDetails.name}</Text>
                         {companyDetails.phone && <Text style={styles.companyAddress}>{companyDetails.phone}</Text>}
                         {companyDetails.email && <Text style={styles.companyAddress}>{companyDetails.email}</Text>}

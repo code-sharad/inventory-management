@@ -274,6 +274,7 @@ const ModernInvoicePDF: React.FC<{ invoiceData: InvoiceData | null, qrCode: stri
                 {/* Header */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 24, marginBottom: 16 }}>
                     <View style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <Image src={"/invoice-logo.png"} style={{ width: 64, height: 64 }} />
                         <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#1a237e' }}>{companyDetails.name}</Text>
                         {companyDetails.phone && <Text style={{ fontSize: 11, color: '#555' }}>{companyDetails.phone}</Text>}
                         {companyDetails.email && <Text style={{ fontSize: 11, color: '#555' }}>{companyDetails.email}</Text>}

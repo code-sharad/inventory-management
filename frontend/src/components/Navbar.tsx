@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation } from "react-router-dom"
 import Header from "./Header"
 import { useAuth } from "@/contexts/AuthContext";
-
+import logoImage from "/logo.png"
 export default function Navbar() {
     const location = useLocation()
     const { user } = useAuth();
@@ -11,9 +11,18 @@ export default function Navbar() {
             <div className="hidden md:block inset-y-0 z-[1000] left-0 w-52 max-w-full border-r dark:bg-zinc-900 bg-zinc-50">
                 {/* <Header /> */}
                 <div>
-                    <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center justify-center p-2">
+                       <div className="rounded-full overflow-hidden mr-2 scale-125">
+                            <img
+                                src={logoImage}
+                                alt="Invoice Management Logo"
+                                className="w-16 h-12 object-cover rounded-[1000px] overflow-hidden "
+                                loading="eager"
+                                width={64}
+                                height={64}
+                            />
+                       </div>
                         <h1 className="text-lg font-bold dark:text-white text-gray-900">Invoice Management</h1>
-
                     </div>
                 </div>
                 <nav className="flex flex-col text-md pl-4 pt-8 gap-6 ">

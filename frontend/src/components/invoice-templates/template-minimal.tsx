@@ -161,26 +161,10 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
   return (
     <div className="min-h-screen bg-[#fafafa] dark:bg-neutral-900 flex flex-col items-center py-8 px-2 font-sans">
       {/* Download Button */}
-      {/* {
+      {
         !url.includes('billing') ? '' : (
           <div className=" my-4 border-gray-200 flex w-full justify-start ml-6 rounded-b-lg gap-2">
-            <button
-              onClick={handleDownloadPDF}
-              className="px-7 py-3 bg-gray-800 text-white font-bold rounded shadow hover:bg-black transition-colors text-lg border border-gray-700"
-              disabled={loading}
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                  </svg>
-                  Downloading...
-                </span>
-              ) : (
-                'Download PDF'
-              )}
-            </button>
+           
             <button
               onClick={handlePrint}
               className="px-7 py-3 bg-blue-700 text-white font-bold rounded shadow hover:bg-blue-900 transition-colors text-lg border border-blue-700"
@@ -189,13 +173,8 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
               Print
             </button>
           </div>)
-      } */}
-      <div className='flex justify-start absolute top-7 left-54 '>
-        <Button onClick={handlePrint} className='bg-gray-900 text-white' variant={'outline'}>
-          <Printer className='w-4 h-4' />
-          Print
-        </Button>
-      </div>
+      }
+     
       <div className="w-[210mm] min-h-[297mm] bg-white rounded-lg shadow border border-gray-200 flex flex-col mx-auto print:w-[210mm] print:min-h-[297mm]">
         <div ref={contentRef} className="flex-1 flex flex-col px-10 py-8 gap-8">
           {/* Header */}

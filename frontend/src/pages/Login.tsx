@@ -62,8 +62,8 @@ const Login = forwardRef<HTMLDivElement>((props, ref) => {
     <div ref={ref} className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-neutral-950">
       <Card className="w-[400px]">
         <CardHeader className="space-y-1">
-          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-blue-100 dark:bg-blue-900 rounded-full">
-            <Lock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-blue-100 scale-125 dark:bg-white rounded-full">
+            <img src={"/logo.png"} alt="logo" className="w-14 h-14  rounded-[1000px]  overflow-hidden bg-blue-100 dark:bg-zinc-900" />
           </div>
           <CardTitle className="text-2xl text-center">DEGROUP INVOICE</CardTitle>
           <p className="text-sm text-muted-foreground text-center">
