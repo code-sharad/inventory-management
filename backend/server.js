@@ -78,8 +78,20 @@ app.use(mongoSanitize());
 // );
 
 // Allow specific origin
-app.use(cors({
-  origin: 'https://invoice.degroop.com',
+// app.use(cors({
+//   origin: 'https://invoice.degroop.com',
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     credentials: true,
+//   })
+// );
+
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://invoice.degroop.com",
+      "https://inventory-management-alpha-taupe.vercel.app/",
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   })

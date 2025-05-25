@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { authAPI } from '@/api';
 import { toast } from 'sonner';
 import { isTokenExpired, isTokenExpiringSoon, getTimeUntilExpiry } from '@/lib/jwt-utils';
+import { checkAuthStatus, forceLogout } from '@/lib/auth-utils';
 import {
     User,
     AuthResponse,
@@ -35,22 +36,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 const storedUser = localStorage.getItem('user');
 
                 if (storedToken && storedUser) {
-                    // Check if stored token is expired
-                    if (isTokenExpired(storedToken)) {
-                        console.warn('Stored token is expired, clearing auth state');
-                        localStorage.removeItem('accessToken');
-                        localStorage.removeItem('user');
-                        toast.error('Your session has expired. Please log in again.');
-                    } else {
+                    // Use the auth utils to check status
+                    const authStatus = checkAuthStatus();
+
+                    if (authStatus === 'valid') {
                         setAccessToken(storedToken);
                         setUser(JSON.parse(storedUser));
+                        console.log('Auth initialized successfully');
+                    } else {
+                        console.warn('Stored auth data is invalid:', authStatus);
+                        forceLogout(`Invalid auth data on init: ${authStatus}`);
                     }
+                } else {
+                    console.log('No stored auth data found');
                 }
             } catch (error) {
                 console.error('Error initializing auth:', error);
                 // Clear corrupted data
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('user');
+                forceLogout('Auth initialization error');
             } finally {
                 setIsLoading(false);
             }
@@ -62,8 +65,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Add event listeners for auth events from axios interceptor
     useEffect(() => {
         const handleLogout = () => {
+            console.log('Auth logout event received');
             clearAuthState();
-            toast.error('Your session has expired. Please log in again.');
+            // Don't show toast here if already redirecting
+            if (!window.location.pathname.includes('/login')) {
+                toast.error('Your session has expired. Please log in again.');
+            }
         };
 
         const handleForbidden = (event: CustomEvent) => {
@@ -118,13 +125,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const logout = async (): Promise<void> => {
         try {
-            await authAPI.logout();
+            // Clear auth state immediately - don't wait for API call
             clearAuthState();
+
+            // Call the logout API (which handles the cleanup automatically)
+            await authAPI.logout();
+
             toast.success('Logged out successfully');
         } catch (error: any) {
-            // Even if the API call fails, clear local state
-            clearAuthState();
-            console.error('Logout error:', error);
+            // Even if the API call fails, state is already cleared
+            console.log('Logout process completed (API call may have failed)');
+
+            // Make sure we're redirected to login if not already there
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
+            }
         }
     };
 
@@ -252,11 +267,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         const checkAndRefreshToken = async () => {
             if (isTokenExpiringSoon(accessToken, 5)) {
-                console.log('Token expiring soon, attempting refresh...');
+                console.log('🔄 Token expiring soon, attempting refresh...');
                 const success = await refreshToken();
                 if (!success) {
+                    console.log('❌ Session refresh failed - user will be logged out');
                     toast.error('Session refresh failed. Please log in again.');
+                } else {
+                    console.log('✅ Token refreshed successfully');
                 }
+            } else {
+                const timeLeft = getTimeUntilExpiry(accessToken);
+                console.log(`⏰ Token valid for ${Math.floor(timeLeft / 60)}m ${timeLeft % 60}s`);
             }
         };
 
@@ -267,7 +288,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const interval = setInterval(checkAndRefreshToken, 60 * 1000);
 
         return () => clearInterval(interval);
-    }, [accessToken, refreshToken]);
+    }, [accessToken]);
 
     // Verification methods
     const verifyEmail = async (token: string): Promise<AuthResponse> => {

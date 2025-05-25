@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+import { forceLogout } from "@/lib/auth-utils";
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL || "http://localhost:3000",
@@ -8,6 +9,7 @@ const axiosInstance = axios.create({
 
 // Token management
 let isRefreshing = false;
+let isLoggingOut = false;
 let failedQueue: Array<{
   resolve: (value: any) => void;
   reject: (error: any) => void;
@@ -23,6 +25,12 @@ const processQueue = (error: any, token: string | null = null) => {
   });
 
   failedQueue = [];
+};
+
+// Helper function to force logout - updated to use auth-utils
+const handleAuthFailure = (reason: string) => {
+  console.log('Auth failure detected:', reason);
+  forceLogout(reason);
 };
 
 // Request interceptor to add access token
@@ -42,6 +50,17 @@ axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+
+    // Special handling for logout endpoint - always force logout regardless of response
+    if (originalRequest.url?.includes('/auth/logout')) {
+      handleAuthFailure('Logout API call');
+      return Promise.reject(error);
+    }
+
+    // If we're in the process of logging out, don't try to refresh
+    if (isLoggingOut) {
+      return Promise.reject(error);
+    }
 
     // If error is 401 and we haven't already tried to refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -78,42 +97,22 @@ axiosInstance.interceptors.response.use(
           }
 
           processQueue(null, accessToken);
-
           // Retry the original request
           return axiosInstance(originalRequest);
         }
       } catch (refreshError: any) {
         processQueue(refreshError, null);
 
-        // Check if it's "No refresh token found" - this is expected after password reset
-        if (refreshError.response?.data?.message === 'No refresh token found') {
-          // Don't log this as an error, it's expected after password reset
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('user');
-          window.dispatchEvent(new CustomEvent('auth:logout'));
-
-          // Only redirect if not already on an auth page
-          if (!window.location.pathname.includes('/login') &&
-            !window.location.pathname.includes('/reset-password') &&
-            !window.location.pathname.includes('/forgot-password')) {
-            window.location.href = '/login';
-          }
-
+        // Check if it's "No refresh token found" or any other refresh token error
+        if (refreshError.response?.data?.message === 'No refresh token found' ||
+          refreshError.response?.status === 401) {
+          console.log('Refresh token expired or not found, forcing logout');
+          handleAuthFailure('Refresh token expired or not found');
           return Promise.reject(refreshError);
         }
 
         // Remove tokens and redirect to login for other errors
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('user');
-
-        // Dispatch logout event
-        window.dispatchEvent(new CustomEvent('auth:logout'));
-
-        // Only redirect if not already on login page
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
-        }
-
+        handleAuthFailure('Refresh token error');
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -122,13 +121,8 @@ axiosInstance.interceptors.response.use(
 
     // Handle other authentication errors
     if (error.response?.status === 401) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('user');
-      window.dispatchEvent(new CustomEvent('auth:logout'));
-
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
+      console.log('401 error received, forcing logout');
+      handleAuthFailure('401 error received');
     }
 
     // Handle forbidden access
@@ -151,8 +145,21 @@ export const authAPI = {
   register: (data: { username: string; email: string; password: string; role?: string }) =>
     axiosInstance.post('/auth/register', data),
 
-  logout: () =>
-    axiosInstance.post('/auth/logout'),
+  logout: async () => {
+    isLoggingOut = true;
+    try {
+      // Try to call logout API, but don't wait for it or worry about errors
+      const response = await axiosInstance.post('/auth/logout');
+      return response;
+    } catch (error) {
+      // Ignore errors during logout API call
+      console.log('Logout API call failed, but proceeding with local logout');
+    } finally {
+      // Always force logout regardless of API response
+      handleAuthFailure('Logout API call');
+      isLoggingOut = false;
+    }
+  },
 
   logoutAll: () =>
     axiosInstance.post('/auth/logout-all'),

@@ -11,6 +11,7 @@ import {
 import { ThemeToggle } from "./ThemeToggle";
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { forceLogout } from "@/lib/auth-utils";
 
 export default function Header() {
   const { logout, user } = useAuth();
@@ -18,10 +19,14 @@ export default function Header() {
   const location = useLocation();
 
   const handleLogout = async () => {
+    console.log('Header logout clicked');
     try {
+      // First try the normal logout
       await logout();
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error('Normal logout failed, using force logout:', error);
+      // If normal logout fails, force logout
+      forceLogout('Header logout failed');
     }
   };
 

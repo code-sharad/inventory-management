@@ -34,6 +34,7 @@ import {
   type Invoice,
   type Product
 } from '@/hooks/useApi';
+import { AuthDebug } from '@/components/AuthDebug';
 
 // Register Chart.js components
 ChartJS.register(
@@ -205,6 +206,9 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen dark:bg-black bg-gray-50">
       <div className="container mx-auto p-6">
+        {/* Temporary Debug Panel */}
+        {/* <AuthDebug /> */}
+
         {/* Filter Dropdown */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <div className="flex-1" />

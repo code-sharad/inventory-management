@@ -155,7 +155,7 @@ router.post("/logout", authenticate, async (req, res) => {
 });
 
 // Logout all devices
-router.post("/logout-all", authenticate, async (req, res) => {
+router.post("/logout-all", authenticate, restrictTo("admin"), async (req, res) => {
   try {
     await AuthService.logoutAll(req.user._id, res);
   } catch (error) {
