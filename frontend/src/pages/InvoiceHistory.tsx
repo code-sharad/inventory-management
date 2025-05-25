@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useCallback, useTransition, startTransition, Suspense } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useTransition, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,6 +15,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   ChevronLeft,
   ChevronRight,
+  Download,
   Eye,
   Search,
   Trash2,
@@ -33,9 +34,91 @@ import {
   useDeleteInvoice,
   type Invoice
 } from "@/hooks/useApi";
+
+// Lazy load PDF components only when needed
 const ModernInvoicePDFWrapper = React.lazy(() => import("@/components/invoice-templates/ModernInvoicePDF"));
 const MinimalInvoicePDFWrapper = React.lazy(() => import("@/components/invoice-templates/MinimalInvoicePDF"));
 const ClassicInvoicePDFWrapper = React.lazy(() => import("@/components/invoice-templates/ClassicInviocePDF"));
+
+// PDF Download Button - Automated single-click download
+const PDFDownloadButton = React.memo(({ invoice }: { invoice: Invoice }) => {
+  const [shouldLoadPDF, setShouldLoadPDF] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [downloadTriggered, setDownloadTriggered] = useState(false);
+
+  const handleClick = useCallback(() => {
+    if (!shouldLoadPDF) {
+      setIsLoading(true);
+      setShouldLoadPDF(true);
+    }
+  }, [shouldLoadPDF]);
+
+  // Auto-trigger download when PDF component is loaded
+  useEffect(() => {
+    if (shouldLoadPDF && isLoading) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+        // Automatically trigger download after a short delay to ensure PDF is ready
+        setTimeout(() => {
+          setDownloadTriggered(true);
+        }, 200);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldLoadPDF, isLoading]);
+
+  return (
+    <div className="flex items-center justify-center w-12">
+      {shouldLoadPDF && !isLoading ? (
+        <Suspense fallback={
+          <Button variant="ghost" size="icon" disabled title="Loading PDF...">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
+            <span className="sr-only">Loading PDF</span>
+          </Button>
+        }>
+          {invoice.template === "modern" && (
+            <ModernInvoicePDFWrapper
+              invoiceData={invoice}
+              qrCode={invoice.qrCode}
+              autoDownload={downloadTriggered}
+            />
+          )}
+          {invoice.template === "minimal" && (
+            <MinimalInvoicePDFWrapper
+              invoiceData={invoice}
+              qrCode={invoice.qrCode}
+              autoDownload={downloadTriggered}
+            />
+          )}
+          {invoice.template === "classic" && (
+            <ClassicInvoicePDFWrapper
+              invoiceData={invoice}
+              qrCode={invoice.qrCode}
+              autoDownload={downloadTriggered}
+            />
+          )}
+        </Suspense>
+      ) : (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleClick}
+          disabled={isLoading}
+          title="Download PDF"
+        >
+          {isLoading ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
+          ) : (
+            <Download className="h-4 w-4" />
+          )}
+          <span className="sr-only">Download PDF</span>
+        </Button>
+      )}
+    </div>
+  );
+});
+
+PDFDownloadButton.displayName = 'PDFDownloadButton';
 
 // Search utilities
 const normalizeText = (text: string | undefined | null): string => {
@@ -81,6 +164,64 @@ const searchInvoices = (invoices: Invoice[], query: string): Invoice[] => {
 };
 
 
+
+// Memoized invoice row component for better performance
+const InvoiceRow = React.memo(({ invoice, onPreview, onDelete }: {
+  invoice: Invoice;
+  onPreview: (invoice: Invoice) => void;
+  onDelete: (invoice: Invoice) => void;
+}) => (
+  <TableRow>
+    <TableCell className="font-medium">
+      {invoice.invoiceNumber}
+    </TableCell>
+    <TableCell>
+      {format(parseISO(invoice.createdAt), "MMM d, yyyy")}
+    </TableCell>
+    <TableCell>
+      <div>
+        <div className="font-medium">
+          {invoice.customerBillTo.name}
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {/* {invoice.customerBillTo.address} */}
+        </div>
+      </div>
+    </TableCell>
+    <TableCell className="text-left font-medium">
+      ₹{formatCurrency(invoice.total)}
+    </TableCell>
+    <TableCell>
+      <div className="flex justify-center items-center gap-2 ">
+        <PDFDownloadButton invoice={invoice} />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onPreview(invoice)}
+          title="Preview Invoice"
+        >
+          <Eye className="h-4 w-4" />
+          <span className="sr-only">Preview</span>
+        </Button>
+      </div>
+    </TableCell>
+    <TableCell className="text-right">
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          title="Delete Invoice"
+          onClick={() => onDelete(invoice)}
+        >
+          <Trash2 className="h-4 w-4 text-destructive" />
+          <span className="sr-only">Delete</span>
+        </Button>
+      </div>
+    </TableCell>
+  </TableRow>
+));
+
+InvoiceRow.displayName = 'InvoiceRow';
 
 export default function BillingHistoryPage() {
   // React Query hooks
@@ -177,7 +318,12 @@ export default function BillingHistoryPage() {
     setIsPreviewOpen(true);
   }, []);
 
-  // Delete invoice
+  // Delete invoice handlers
+  const handleDeleteClick = useCallback((invoice: Invoice) => {
+    setInvoiceToDelete(invoice);
+    setDeleteDialogOpen(true);
+  }, []);
+
   const handleDeleteInvoice = async () => {
     if (!invoiceToDelete) return;
     try {
@@ -192,13 +338,51 @@ export default function BillingHistoryPage() {
   // Handle loading and error states
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 pt-6 md:p-8">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-            <p className="text-lg">Loading invoice history...</p>
+      <div className="flex-1 p-4 z-0 pt-6 md:p-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-3xl font-serif font-bold tracking-tight">Billing History</h2>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex gap-2">
+              <div className="relative">
+                <div className="h-10 w-[300px] bg-gray-200 animate-pulse rounded-md"></div>
+              </div>
+              <div className="h-10 w-20 bg-gray-200 animate-pulse rounded-md"></div>
+            </div>
           </div>
         </div>
+
+        <Card className="border-none shadow-none p-0">
+          <CardContent className="p-0">
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Invoice #</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead className="text-left">Amount</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-right">Delete</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[...Array(5)].map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell><div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div></TableCell>
+                      <TableCell><div className="h-4 w-24 bg-gray-200 animate-pulse rounded"></div></TableCell>
+                      <TableCell><div className="h-4 w-32 bg-gray-200 animate-pulse rounded"></div></TableCell>
+                      <TableCell><div className="h-4 w-16 bg-gray-200 animate-pulse rounded"></div></TableCell>
+                      <TableCell><div className="h-8 w-16 bg-gray-200 animate-pulse rounded ml-auto"></div></TableCell>
+                      <TableCell><div className="h-8 w-8 bg-gray-200 animate-pulse rounded ml-auto"></div></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -277,107 +461,19 @@ export default function BillingHistoryPage() {
                   <TableHead>Date</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead className="text-left">Amount</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                   <TableHead className="text-right">Delete</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedInvoices.length > 0 ? (
                   paginatedInvoices.map((invoice, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-medium">
-                        {invoice.invoiceNumber}
-                      </TableCell>
-                      <TableCell>
-                        {format(parseISO(invoice.createdAt), "MMM d, yyyy")}
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">
-                            {invoice.customerBillTo.name}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {/* {invoice.customerBillTo.address} */}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-left font-medium">
-                        ₹{formatCurrency(invoice.total)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex justify-end items-center gap-2">
-                          {/* <ModernInvoicePDFWrapper invoiceData={invoice} qrCode={invoice.qrCode} /> */}
-                          <Suspense fallback={<div className="h-9 w-9 animate-pulse bg-gray-200 rounded"></div>}>
-                            {invoice.template === "modern" && (
-                              <ModernInvoicePDFWrapper invoiceData={invoice} qrCode={invoice.qrCode} />
-                            )}
-                            {invoice.template === "minimal" && (
-                              <MinimalInvoicePDFWrapper invoiceData={invoice} qrCode={invoice.qrCode} />
-                            )}
-                            {invoice.template === "classic" && (
-                              <ClassicInvoicePDFWrapper invoiceData={invoice} qrCode={invoice.qrCode} />
-                            )}
-                          </Suspense>
-                          {/* {invoice.template === "minimal" && (
-                            <PDFDownloadLink
-                              
-                              document={<MinimalInvoicePDF invoiceData={invoice} qrCode={invoice.qrCode} />}
-                              fileName={`${invoice.invoiceNumber}.pdf`}
-                            >
-                              <Download className="h-4 w-4" />
-                            </PDFDownloadLink>
-                          )}
-                          {invoice.template === "classic" && (
-                            <PDFDownloadLink
-                              document={<ClassicInvoicePDF invoiceData={invoice} qrCode={invoice.qrCode} />}
-                              fileName={`${invoice.invoiceNumber}.pdf`}
-                            >
-                              <Download className="h-4 w-4" />
-                            </PDFDownloadLink>
-                          )}
-                          {invoice.template === "modern" && (
-                            <PDFDownloadLink
-                              document={<ModernInvoicePDF invoiceData={invoice} qrCode={invoice.qrCode} />}
-                              fileName={`${invoice.invoiceNumber}.pdf`}
-                            >
-                              <Download className="h-4 w-4" />
-                            </PDFDownloadLink>
-                          )} */}
-                          {/* <PDFDownloadLink
-                            document={<ClassicInvoicePDF invoiceData={invoice} qrCode={invoice.qrCode} />}
-                            fileName={`${invoice.invoiceNumber}.pdf`}
-                          >
-                            <Download className="h-4 w-4" />
-                          </PDFDownloadLink> */}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => previewInvoice(invoice)}
-                            title="Preview Invoice"
-                          >
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">Preview</span>
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title="Delete Invoice"
-                            onClick={() => {
-                              setInvoiceToDelete(invoice);
-                              setDeleteDialogOpen(true);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                            <span className="sr-only">Delete</span>
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                    <InvoiceRow
+                      key={invoice.id || index}
+                      invoice={invoice}
+                      onPreview={previewInvoice}
+                      onDelete={handleDeleteClick}
+                    />
                   ))
                 ) : (
                   <TableRow>

@@ -376,9 +376,16 @@ const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
     );
 };
 
-const MinimalInvoicePDFWrapper: React.FC<{ invoiceData: InvoiceData | null, qrCode: string }> = ({ invoiceData, qrCode }) => {
+const MinimalInvoicePDFWrapper: React.FC<{ invoiceData: InvoiceData | null, qrCode: string, autoDownload?: boolean }> = ({ invoiceData, qrCode, autoDownload }) => {
     if (!invoiceData) return null;
     const [instance, updateInstance] = usePDF({ document: <MinimalInvoicePDF invoiceData={invoiceData} qrCode={qrCode} /> });
+
+    React.useEffect(() => {
+        if (autoDownload && instance.url) {
+            window.open(instance.url, '_blank');
+        }
+    }, [autoDownload, instance.url]);
+
     return <button className='hover:cursor-pointer' onClick={() => instance.url && window.open(instance.url, '_blank')}><Download className="h-4 w-4" /></button>;
 };
 
