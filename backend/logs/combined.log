@@ -740,3 +740,11 @@
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-26 00:47:34:4734"}
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mSuccessful login\u001b[39m","meta":{"email":"admin@gmail.com","ip":"::1","userId":"681f415d3b428c8771e7ca6b"},"timestamp":"2025-05-26 00:47:49:4749"}
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mSetting refresh token cookie\u001b[39m","meta":{"deviceInfo":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 - ::1","sameSite":"none","secure":true},"timestamp":"2025-05-26 00:47:49:4749"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-25T19:19:19.742Z"},"timestamp":"2025-05-26 00:49:19:4919"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-26 00:49:19:4919"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-25T19:19:22.279Z"},"timestamp":"2025-05-26 00:49:22:4922"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-26 00:49:22:4922"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-25T19:20:12.543Z"},"timestamp":"2025-05-26 00:50:12:5012"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-26 00:50:12:5012"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-25T19:20:20.891Z"},"timestamp":"2025-05-26 00:50:20:5020"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-26 00:50:20:5020"}
