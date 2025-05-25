@@ -748,3 +748,7 @@
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-26 00:50:12:5012"}
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-25T19:20:20.891Z"},"timestamp":"2025-05-26 00:50:20:5020"}
 {"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-26 00:50:20:5020"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-25T19:23:20.134Z"},"timestamp":"2025-05-26 00:53:20:5320"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-26 00:53:20:5320"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mServer started successfully\u001b[39m","meta":{"environment":"production","port":3000,"timestamp":"2025-05-25T19:23:22.734Z"},"timestamp":"2025-05-26 00:53:22:5322"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mDatabase connected successfully\u001b[39m","meta":{"message":"succesfully connected to db"},"timestamp":"2025-05-26 00:53:22:5322"}

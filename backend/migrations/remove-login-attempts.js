@@ -4,7 +4,7 @@ require("dotenv").config();
 // Connect to MongoDB
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGOURI);
+    await mongoose.connect(process.env.MONGOURL);
     console.log("MongoDB connected for migration");
   } catch (error) {
     console.error("MongoDB connection error:", error);
