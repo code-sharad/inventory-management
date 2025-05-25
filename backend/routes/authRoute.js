@@ -14,7 +14,7 @@ const logger = require("../utils/logger");
 // Rate limiting configurations
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs
+  max: 15, // Limit each IP to 5 requests per windowMs
   message: {
     status: "error",
     message: "Too many authentication attempts, please try again later.",
@@ -25,7 +25,7 @@ const authLimiter = rateLimit({
 
 const passwordResetLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // Limit each IP to 3 password reset requests per hour
+  max: 6, // Limit each IP to 3 password reset requests per hour
   message: {
     status: "error",
     message: "Too many password reset attempts, please try again later.",
@@ -34,7 +34,7 @@ const passwordResetLimiter = rateLimit({
 
 const emailVerificationLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // Limit each IP to 3 email verification requests per hour
+  max: 6, // Limit each IP to 3 email verification requests per hour
   message: {
     status: "error",
     message: "Too many email verification attempts, please try again later.",
