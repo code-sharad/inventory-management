@@ -1,3 +1,8 @@
+// Buffer polyfill for browser environment
+import { Buffer } from 'buffer'
+// @ts-ignore
+window.Buffer = Buffer
+
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClientProvider } from '@tanstack/react-query'

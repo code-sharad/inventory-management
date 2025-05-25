@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useTransition, startTransition, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,7 +15,6 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   ChevronLeft,
   ChevronRight,
-  Download,
   Eye,
   Search,
   Trash2,
@@ -25,13 +24,8 @@ import ModernInvoiceTemplate from "@/components/invoice-templates/template-Moder
 import PremiumMinimalInvoice from "@/components/invoice-templates/template-minimal";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { format, parseISO } from "date-fns";
-import { toast } from "sonner";
 import InvoiceClassic from "@/components/invoice-templates/template-classic";
-import ModernInvoicePDF from "@/components/invoice-templates/ModernInvoicePDF";
-import { PDFDownloadLink } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
-import ClassicInvoicePDF from "@/components/invoice-templates/ClassicInviocePDF";
-import MinimalInvoicePDF from "@/components/invoice-templates/MinimalInvoicePDF";
 
 // React Query hooks
 import {
@@ -39,6 +33,9 @@ import {
   useDeleteInvoice,
   type Invoice
 } from "@/hooks/useApi";
+const ModernInvoicePDFWrapper = React.lazy(() => import("@/components/invoice-templates/ModernInvoicePDF"));
+const MinimalInvoicePDFWrapper = React.lazy(() => import("@/components/invoice-templates/MinimalInvoicePDF"));
+const ClassicInvoicePDFWrapper = React.lazy(() => import("@/components/invoice-templates/ClassicInviocePDF"));
 
 // Search utilities
 const normalizeText = (text: string | undefined | null): string => {
@@ -90,6 +87,9 @@ export default function BillingHistoryPage() {
   const { data: invoices = [], isLoading, error } = useInvoices();
   const deleteInvoiceMutation = useDeleteInvoice();
 
+  // Transition hook for handling lazy component loading
+  const [isPending, startTransition] = useTransition();
+
   // State management
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearchQuery, setActiveSearchQuery] = useState(""); // The actual search being applied
@@ -132,8 +132,10 @@ export default function BillingHistoryPage() {
 
   // Handle search execution
   const handleSearch = useCallback(() => {
-    setActiveSearchQuery(searchQuery);
-    setCurrentPage(1); // Reset to first page when search changes
+    startTransition(() => {
+      setActiveSearchQuery(searchQuery);
+      setCurrentPage(1); // Reset to first page when search changes
+    });
   }, [searchQuery]);
 
   // Handle search input change
@@ -150,9 +152,11 @@ export default function BillingHistoryPage() {
 
   // Clear search
   const handleClearSearch = useCallback(() => {
-    setSearchQuery("");
-    setActiveSearchQuery("");
-    setCurrentPage(1);
+    startTransition(() => {
+      setSearchQuery("");
+      setActiveSearchQuery("");
+      setCurrentPage(1);
+    });
   }, []);
 
   // Auto-reset page if current page is out of bounds
@@ -243,9 +247,10 @@ export default function BillingHistoryPage() {
               variant="default"
               size="default"
               className="whitespace-nowrap"
+              disabled={isPending}
             >
               <Search className="h-4 w-4 mr-2" />
-              Search
+              {isPending ? "Searching..." : "Search"}
             </Button>
             {activeSearchQuery && (
               <Button
@@ -253,6 +258,7 @@ export default function BillingHistoryPage() {
                 variant="outline"
                 size="default"
                 className="whitespace-nowrap"
+                disabled={isPending}
               >
                 Clear
               </Button>
@@ -300,9 +306,21 @@ export default function BillingHistoryPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end items-center gap-2">
-
-                          {invoice.template === "minimal" && (
+                          {/* <ModernInvoicePDFWrapper invoiceData={invoice} qrCode={invoice.qrCode} /> */}
+                          <Suspense fallback={<div className="h-9 w-9 animate-pulse bg-gray-200 rounded"></div>}>
+                            {invoice.template === "modern" && (
+                              <ModernInvoicePDFWrapper invoiceData={invoice} qrCode={invoice.qrCode} />
+                            )}
+                            {invoice.template === "minimal" && (
+                              <MinimalInvoicePDFWrapper invoiceData={invoice} qrCode={invoice.qrCode} />
+                            )}
+                            {invoice.template === "classic" && (
+                              <ClassicInvoicePDFWrapper invoiceData={invoice} qrCode={invoice.qrCode} />
+                            )}
+                          </Suspense>
+                          {/* {invoice.template === "minimal" && (
                             <PDFDownloadLink
+                              
                               document={<MinimalInvoicePDF invoiceData={invoice} qrCode={invoice.qrCode} />}
                               fileName={`${invoice.invoiceNumber}.pdf`}
                             >
@@ -324,7 +342,7 @@ export default function BillingHistoryPage() {
                             >
                               <Download className="h-4 w-4" />
                             </PDFDownloadLink>
-                          )}
+                          )} */}
                           {/* <PDFDownloadLink
                             document={<ClassicInvoicePDF invoiceData={invoice} qrCode={invoice.qrCode} />}
                             fileName={`${invoice.invoiceNumber}.pdf`}
@@ -396,8 +414,8 @@ export default function BillingHistoryPage() {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
+                onClick={() => startTransition(() => setCurrentPage((prev) => Math.max(prev - 1, 1)))}
+                disabled={currentPage === 1 || isPending}
               >
                 <ChevronLeft className="h-4 w-4" />
                 <span className="sr-only">Previous Page</span>
@@ -409,9 +427,9 @@ export default function BillingHistoryPage() {
                 variant="outline"
                 size="icon"
                 onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  startTransition(() => setCurrentPage((prev) => Math.min(prev + 1, totalPages)))
                 }
-                disabled={currentPage === totalPages}
+                disabled={currentPage === totalPages || isPending}
               >
                 <ChevronRight className="h-4 w-4" />
                 <span className="sr-only">Next Page</span>

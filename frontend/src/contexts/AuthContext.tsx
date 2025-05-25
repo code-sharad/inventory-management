@@ -266,19 +266,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (!accessToken) return;
 
         const checkAndRefreshToken = async () => {
-            if (isTokenExpiringSoon(accessToken, 5)) {
-                console.log('🔄 Token expiring soon, attempting refresh...');
-                const success = await refreshToken();
-                if (!success) {
-                    console.log('❌ Session refresh failed - user will be logged out');
-                    toast.error('Session refresh failed. Please log in again.');
-                } else {
-                    console.log('✅ Token refreshed successfully');
-                }
-            } else {
-                const timeLeft = getTimeUntilExpiry(accessToken);
-                console.log(`⏰ Token valid for ${Math.floor(timeLeft / 60)}m ${timeLeft % 60}s`);
-            }
+            // if (isTokenExpiringSoon(accessToken, 5)) {
+            //     console.log('🔄 Token expiring soon, attempting refresh...');
+            //     const success = await refreshToken();
+            //     if (!success) {
+            //         console.log('❌ Session refresh failed - user will be logged out');
+            //         toast.error('Session refresh failed. Please log in again.');
+            //     } else {
+            //         console.log('✅ Token refreshed successfully');
+            //     }
+            // } else {
+            //     const timeLeft = getTimeUntilExpiry(accessToken);
+            //     console.log(`⏰ Token valid for ${Math.floor(timeLeft / 60)}m ${timeLeft % 60}s`);
+            // }
         };
 
         // Check immediately

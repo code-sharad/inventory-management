@@ -6,10 +6,12 @@ import {
     View,
     StyleSheet,
     Font,
-    Image
+    Image,
+    usePDF
 } from '@react-pdf/renderer';
 import { formatCurrency } from '@/lib/formatCurrency';
 import Poppins from '../../../public/fonts/Poppins-Regular.ttf';
+import { Download } from 'lucide-react';
 
 Font.register({ family: 'Poppins', src: Poppins });
 
@@ -374,4 +376,10 @@ const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
     );
 };
 
-export default MinimalInvoicePDF;
+const MinimalInvoicePDFWrapper: React.FC<{ invoiceData: InvoiceData | null, qrCode: string }> = ({ invoiceData, qrCode }) => {
+    if (!invoiceData) return null;
+    const [instance, updateInstance] = usePDF({ document: <MinimalInvoicePDF invoiceData={invoiceData} qrCode={qrCode} /> });
+    return <button className='hover:cursor-pointer' onClick={() => instance.url && window.open(instance.url, '_blank')}><Download className="h-4 w-4" /></button>;
+};
+
+export default MinimalInvoicePDFWrapper;

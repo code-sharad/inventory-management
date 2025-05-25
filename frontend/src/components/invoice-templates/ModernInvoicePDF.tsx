@@ -6,10 +6,13 @@ import {
     View,
     StyleSheet,
     Font,
-    Image
+    Image,
+    usePDF
+
 } from '@react-pdf/renderer';
 import { formatCurrency } from '@/lib/formatCurrency';
 import Poppins from '../../../public/fonts/Poppins-Regular.ttf';
+import { Download } from 'lucide-react';
 
 Font.register({ family: 'Poppins', src: Poppins });
 
@@ -261,9 +264,10 @@ const styles = StyleSheet.create({
     },
 });
 
-const ModernInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> = ({ invoiceData, qrCode }) => {
+const ModernInvoicePDF: React.FC<{ invoiceData: InvoiceData | null, qrCode: string }> = ({ invoiceData, qrCode }) => {
+    if (!invoiceData) return null;
     const { customerBillTo, customerShipTo, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
-
+ 
     return (
         <Document>
             <Page size="A4" style={{ ...styles.page, flexDirection: 'column' }}>
@@ -418,5 +422,9 @@ const ModernInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> =
     );
 };
 
+const ModernInvoicePDFWrapper: React.FC<{ invoiceData: InvoiceData | null, qrCode: string }> = ({ invoiceData, qrCode }) => {
+    const [instance, updateInstance] = usePDF({document: <ModernInvoicePDF invoiceData={invoiceData} qrCode={qrCode} />});
+    return <button className='hover:cursor-pointer' onClick={() => instance.url && window.open(instance.url, '_blank')}><Download className="h-4 w-4" /></button>;
+};
 
-export default ModernInvoicePDF; 
+export default ModernInvoicePDFWrapper; 
