@@ -180,6 +180,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
           {/* Header */}
           <div className="border-b border-gray-200 pb-6 mb-2 flex justify-between sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className=''>
+              <img src={"/logo.png"} alt="logo" className="w-24 h-24  rounded-[1000px]  overflow-hidden " />
               <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-1 uppercase">{companyDetails.name}</h1>
               <div className="text-sm text-gray-500 space-y-0.5">
                 <p>{companyDetails.address}</p>
@@ -269,7 +270,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
             {/* Financial Summary at bottom right */}
             <div className="flex-1 flex flex-col justify-end">
               <div className="flex justify-end mt-8">
-                <div className="w-full sm:w-80 bg-gray-50 border border-gray-200 rounded-lg p-7 shadow flex flex-col gap-2 ">
+                <div className="w-full sm:w-80   rounded-lg p-7 flex flex-col gap-2 ">
                   <div className="flex justify-between text-gray-700 text-base font-semibold">
                     <span>Subtotal</span>
                     <span>₹{formatCurrency(subtotal)}</span>

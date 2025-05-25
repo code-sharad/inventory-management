@@ -165,16 +165,14 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
             </button>
           </div>)
       }
-    
+
       <div ref={contentRef}
         className="w-[210mm] min-h-[297mm] bg-white rounded-lg shadow flex flex-col mx-auto print:w-[210mm] print:min-h-[297mm]"
       >
         {/* Header */}
         <div className="px-8 py-6 flex items-center justify-between border-b border-gray-200 bg-white">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-700 font-bold text-xl">
-              <span>{companyDetails.name[0]}</span>
-            </div>
+            <img src={"/logo.png"} alt="logo" className="w-24 h-24  rounded-[1000px]  overflow-hidden " />
             <div>
               <h1 className="text-2xl font-bold text-gray-900 tracking-wide">{companyDetails.name}</h1>
               <p className="text-sm text-gray-500">{companyDetails.phone}</p>
@@ -193,8 +191,8 @@ const InvoiceClassic: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData })
         </div>
 
         {/* Invoice Info */}
-        <div className="px-8 py-6 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row md:justify-between md:items-center">
-          <div className="mb-4 md:mb-0 grid grid-cols-2 gap-2">
+        <div className="px-8 py-6 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row justify-between md:items-center">
+          <div className="mb-4 md:mb-0 grid grid-cols-2 gap-2 w-full justify-between ">
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-1">Bill To:</h3>
               <p className="text-gray-700"><span className="font-medium">Name:</span> {customerBillTo.name}</p>

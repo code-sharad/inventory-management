@@ -294,8 +294,8 @@ const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                     ))}
                 </View>
                 {/* Financial Summary */}
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 40 }}>
-                    <View style={{ width: '60%', backgroundColor: '#fafbfc', borderRadius: 6, padding: 12, borderWidth: 1, borderColor: '#e5e7eb', flexDirection: 'column', gap: 6 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 40,marginTop:20 }}>
+                    <View style={{ width: '60%', flexDirection: 'column', gap: 6 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', fontSize: 13, color: '#222' }}>
                             <Text>Subtotal</Text>
                             <Text>₹{formatCurrency(invoiceData.subtotal)}</Text>

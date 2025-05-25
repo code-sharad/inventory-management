@@ -727,7 +727,7 @@ function Invoice() {
                   />
                 </div>
               </div>
-              <div className="mt-6 w-full overflow-x-auto">
+              <div className="mt-6 w-full overflow-x-auto rounded-lg">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -746,7 +746,7 @@ function Invoice() {
                           {product.name}
                         </TableCell>
                         <TableCell>
-                          <span className="border dark:border-gray-700 dark:text-white rounded-2xl text-black text-sm px-2 py-1">
+                          <span className="border dark:border-gray-700 dark:text-white rounded-lg text-black text-sm px-2 py-1">
                             {product.category}
                           </span>
                         </TableCell>
@@ -762,7 +762,7 @@ function Invoice() {
                         <TableCell className="flex gap-2">
                           <button
                             onClick={() => handleProductDelete(product.id)}
-                            className="hover:rounded-md hover:bg-red-100 px-4 py-2"
+                            className="hover:rounded-md hover:bg-red-700 px-4 py-2"
                             title="Delete item"
                           >
                             <Trash2 width={16} />

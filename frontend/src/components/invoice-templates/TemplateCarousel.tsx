@@ -32,9 +32,7 @@ const TemplateCarousel: React.FC<TemplateCarouselProps> = ({
 
   React.useEffect(() => {
     const updateSlidesPerView = () => {
-      if (window.innerWidth < 640) setSlidesPerView(1);
-      else if (window.innerWidth < 1024) setSlidesPerView(2);
-      else setSlidesPerView(3);
+      setSlidesPerView(1); // Always show 1 template per row
     };
     updateSlidesPerView();
     window.addEventListener("resize", updateSlidesPerView);

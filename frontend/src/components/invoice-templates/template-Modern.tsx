@@ -96,6 +96,7 @@ const ModernInvoiceTemplate: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
       <div ref={contentRef} id="printable-content" className={`w-[794px] min-h-[1123px] bg-white rounded-b-lg my-5  px-8 pb-8 flex flex-col gap-8 ${getPageMargins()}`}>
         <div className="w-full rounded-t-lg bg-white border-b border-gray-300 px-0 py-6 flex flex-row justify-between items-center">
           <div className="flex flex-col items-start">
+            <img src={"/logo.png"} alt="logo" className="w-24 h-24  rounded-[1000px]  overflow-hidden " />
             <h1 className="text-2xl font-bold text-gray-900 tracking-wide">{companyDetails.name}</h1>
             <p className="text-gray-700 text-sm">{companyDetails.phone}</p>
             <p className="text-gray-700 text-sm">{companyDetails.email}</p>

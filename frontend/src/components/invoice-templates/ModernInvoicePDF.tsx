@@ -343,8 +343,8 @@ const ModernInvoicePDF: React.FC<{ invoiceData: InvoiceData | null, qrCode: stri
                     ))}
                 </View>
                 {/* Financial Summary */}
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                    <View style={{ width: '60%', backgroundColor: '#fff', borderRadius: 10, padding: 18, borderWidth: 1, borderColor: '#e5e7eb', flexDirection: 'column', gap: 6 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 20,marginBottom:20 }}>
+                    <View style={{ width: '60%',  flexDirection: 'column', gap: 6 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', fontSize: 13, color: '#555' }}>
                             <Text>Subtotal</Text>
                             <Text>₹{formatCurrency(invoiceData.subtotal)}</Text>

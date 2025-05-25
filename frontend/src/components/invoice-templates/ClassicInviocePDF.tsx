@@ -72,8 +72,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#222',
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#999',
         paddingBottom: 12,
         marginBottom: 8,
     },
@@ -248,12 +248,14 @@ const ClassicInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
             <Page size="A4" style={styles.page}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <View>
+                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                         <Image src={"/invoice-logo.png"} style={{ width: 64, height: 64 }} />
-                        <Text style={styles.companyName}>{companyDetails.name}</Text>
-                        {companyDetails.phone && <Text style={styles.companyAddress}>{companyDetails.phone}</Text>}
-                        {companyDetails.email && <Text style={styles.companyAddress}>{companyDetails.email}</Text>}
-                        <Text style={styles.companyAddress}>{companyDetails.address}, {companyDetails.cityState}</Text>
+                        <View style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                            <Text style={styles.companyName}>{companyDetails.name}</Text>
+                            {companyDetails.phone && <Text style={styles.companyAddress}>{companyDetails.phone}</Text>}
+                            {companyDetails.email && <Text style={styles.companyAddress}>{companyDetails.email}</Text>}
+                            <Text style={styles.companyAddress}>{companyDetails.address}, {companyDetails.cityState}</Text>
+                        </View>
                     </View>
                     <View style={styles.invoiceInfo}>
                         <View style={styles.qrCodeBox}>
@@ -310,8 +312,8 @@ const ClassicInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                         ))}
                     </View>
                     {/* Financial Summary */}
-                    <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                        <View style={{ width: '60%', backgroundColor: '#fff', padding: 12, borderWidth: 1, borderColor: '#bbb', flexDirection: 'column', gap: 6 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 20, marginBottom: 20 }}>
+                        <View style={{ width: '60%',  flexDirection: 'column', gap: 6 }}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', fontSize: 13, color: '#222' }}>
                                 <Text>Subtotal</Text>
                                 <Text>₹{formatCurrency(invoiceData.subtotal)}</Text>
