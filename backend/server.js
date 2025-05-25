@@ -92,7 +92,7 @@ app.use(
       "https://invoice.degroop.com",
       "https://inventory-management-alpha-taupe.vercel.app",
     ],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH"],
     credentials: true,
   })
 );
