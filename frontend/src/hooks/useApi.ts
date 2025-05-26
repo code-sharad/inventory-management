@@ -506,6 +506,7 @@ export const useDeleteInvoice = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: QUERY_KEYS.INVOICES });
             queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD_STATS });
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PRODUCTS })
             toast.success('Invoice deleted successfully!');
         },
         onError: (error: any) => {
