@@ -136,7 +136,7 @@ const Login = forwardRef<HTMLDivElement>((props, ref) => {
 
       // Add timeout to login request
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('invalid credentials')), 2000) // 2 second timeout
+        setTimeout(() => reject(new Error('invalid credentials')), 3000) 
       );
 
       const loginPromise = login(data);
