@@ -92,46 +92,39 @@ const ModernOverview: React.FC = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-white py-8 px-2">
             <Card className="w-full max-w-4xl shadow-xl border border-gray-200 p-0 bg-white">
-                <CardHeader className="bg-black rounded-t-lg p-6">
-                    <CardTitle className="text-white text-2xl font-bold tracking-wide flex justify-between items-center">
-                        <div className="flex flex-col gap-1">
-                            <span>{invoice.companyDetails.name}</span>
-                            <span className="text-gray-300 text-sm font-normal">{invoice.companyDetails.address}, {invoice.companyDetails.cityState}</span>
-                        </div>
-                        <div className="flex-shrink-0">
-                            {/* Company Logo */}
-                            <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center">
-                                <svg
-                                    className="w-12 h-12 text-black"
-                                    fill="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                                </svg>
+                <CardHeader className="bg-gradient-to-r from-neutral-900 to-neutral-800 rounded-t-lg p-8 shadow-lg">
+                    <CardTitle className="text-white flex justify-between items-center">
+                        <div className="flex items-center space-x-4">
+                            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-md overflow-hidden">
+                                <img src='/public/logo.png' alt="Company Logo" className="w-16 h-16 object-contain" />
                             </div>
+                            <div className="flex flex-col">
+                                <span className="text-2xl font-bold tracking-wide">{invoice.companyDetails.name}</span>
+                                <span className="text-gray-200 text-sm mt-1 max-w-md">{invoice.companyDetails.address}, {invoice.companyDetails.cityState}</span>
+                            </div>
+                        </div>
+                        <div className='flex flex-col items-end'>
+                            <div className="text-gray-200 uppercase tracking-wide text-xs mb-2">Invoice Details</div>
+                            <div className="text-xl font-semibold">#{invoice.invoiceNumber}</div>
+                            <div className="text-gray-200 text-sm mt-1">Issued: {invoice.invoiceDate}</div>
                         </div>
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 flex flex-col gap-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <div className="text-black font-semibold mb-1 uppercase tracking-wide text-xs">Bill To</div>
-                            <div className="font-medium text-gray-900">{invoice.customerBillTo.name}</div>
-                            <div className="text-gray-700 text-sm">{invoice.customerBillTo.address}</div>
-                            <div className="text-gray-700 text-sm">{invoice.customerBillTo.gstNumber ? `GSTIN: ${invoice.customerBillTo.gstNumber}` : ''}</div>
-                            <div className="text-gray-700 text-sm">{invoice.customerBillTo.panNumber ? `PAN: ${invoice.customerBillTo.panNumber}` : ''}</div>
+                    <div className="flex justify-between space-x-8">
+                        <div className="flex-1">
+                            <h3 className="text-sm font-semibold text-gray-500 mb-2">Bill To</h3>
+                            <p className="text-gray-800">{invoice.customerBillTo.name}</p>
+                            <p className="text-sm text-gray-600">{invoice.customerBillTo.address}</p>
+                            {invoice.customerBillTo.gstNumber && <p className="text-sm text-gray-600">GSTIN: {invoice.customerBillTo.gstNumber}</p>}
+                            {invoice.customerBillTo.panNumber && <p className="text-sm text-gray-600">PAN: {invoice.customerBillTo.panNumber}</p>}
                         </div>
-                        <div>
-                            <div className="text-black font-semibold mb-1 uppercase tracking-wide text-xs">Ship To</div>
-                            <div className="font-medium text-gray-900">{invoice.customerShipTo.name}</div>
-                            <div className="text-gray-700 text-sm">{invoice.customerShipTo.address}</div>
-                            <div className="text-gray-700 text-sm">{invoice.customerShipTo.gstNumber ? `GSTIN: ${invoice.customerShipTo.gstNumber}` : ''}</div>
-                            <div className="text-gray-700 text-sm">{invoice.customerShipTo.panNumber ? `PAN: ${invoice.customerShipTo.panNumber}` : ''}</div>
-                        </div>
-                        <div>
-                            <div className="text-black font-semibold mb-1 uppercase tracking-wide text-xs">Invoice Info</div>
-                            <div className="text-gray-900 font-medium">Invoice #: {invoice.invoiceNumber}</div>
-                            <div className="text-gray-700 text-sm">Date: {invoice.invoiceDate}</div>
+                        <div className="flex-1">
+                            <h3 className="text-sm font-semibold text-gray-500 mb-2">Ship To</h3>
+                            <p className="text-gray-800">{invoice.customerShipTo.name}</p>
+                            <p className="text-sm text-gray-600">{invoice.customerShipTo.address}</p>
+                            {invoice.customerShipTo.gstNumber && <p className="text-sm text-gray-600">GSTIN: {invoice.customerShipTo.gstNumber}</p>}
+                            {invoice.customerShipTo.panNumber && <p className="text-sm text-gray-600">PAN: {invoice.customerShipTo.panNumber}</p>}
                         </div>
                     </div>
                     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
