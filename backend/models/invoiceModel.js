@@ -102,7 +102,6 @@ const invoiceSchema = mongoose.Schema({
   },
   qrCode: {
     type: String,
-    required: true,
     default: "",
   },
   createdAt: {

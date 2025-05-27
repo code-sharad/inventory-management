@@ -36,12 +36,16 @@ import {
 } from "@/hooks/useApi";
 
 // Lazy load PDF components only when needed
-const ModernInvoicePDFWrapper = React.lazy(() => import("@/components/invoice-templates/ModernInvoicePDF"));
-const MinimalInvoicePDFWrapper = React.lazy(() => import("@/components/invoice-templates/MinimalInvoicePDF"));
-const ClassicInvoicePDFWrapper = React.lazy(() => import("@/components/invoice-templates/ClassicInviocePDF"));
+// const ModernInvoicePDFWrapper = React.lazy(() => import("@/components/invoice-templates/ModernInvoicePDF"));
+// const MinimalInvoicePDFWrapper = React.lazy(() => import("@/components/invoice-templates/MinimalInvoicePDF"));
+// const ClassicInvoicePDFWrapper = React.lazy(() => import("@/components/invoice-templates/ClassicInviocePDF"));
+
+import ModernInvoicePDFWrapper from "@/components/invoice-templates/ModernInvoicePDF";
+import MinimalInvoicePDFWrapper from "@/components/invoice-templates/MinimalInvoicePDF";
+import ClassicInvoicePDFWrapper from "@/components/invoice-templates/ClassicInviocePDF";
 
 // PDF Download Button - Automated single-click download
-const PDFDownloadButton = React.memo(({ invoice }: { invoice: Invoice }) => {
+const PDFDownloadButton = ({ invoice }: { invoice: Invoice }) => {
   const [shouldLoadPDF, setShouldLoadPDF] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [downloadTriggered, setDownloadTriggered] = useState(false);
@@ -116,9 +120,8 @@ const PDFDownloadButton = React.memo(({ invoice }: { invoice: Invoice }) => {
       )}
     </div>
   );
-});
+};
 
-PDFDownloadButton.displayName = 'PDFDownloadButton';
 
 // Search utilities
 const normalizeText = (text: string | undefined | null): string => {
@@ -192,7 +195,7 @@ const InvoiceRow = React.memo(({ invoice, onPreview, onDelete }: {
       ₹{formatCurrency(invoice.total)}
     </TableCell>
     <TableCell>
-      <div className="flex justify-center items-center gap-2 ">
+      <div className="flex justify-center items-center gap-2 " key={invoice.id}>
         <PDFDownloadButton invoice={invoice} />
         <Button
           variant="ghost"

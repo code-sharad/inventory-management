@@ -11,10 +11,17 @@ interface InvoiceData {
     invoiceNumber: string;
     createdAt: string;
     invoiceDate: string;
-    customer: {
+    customerBillTo: {
         name: string;
-        email: string;
         address: string;
+        gstNumber?: string;
+        panNumber?: string;
+    };
+    customerShipTo: {
+        name: string;
+        address: string;
+        gstNumber?: string;
+        panNumber?: string;
     };
     companyDetails: {
         name: string;
@@ -52,7 +59,7 @@ const ModernOverview: React.FC = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await axiosInstance.get(`/invoice-view/${id}`);
+                const response = await axiosInstance.get(`/invoice/${id}`);
 
                 if (response.status !== 200) throw new Error('Invoice not found');
                 const data = response.data;
@@ -86,18 +93,40 @@ const ModernOverview: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center bg-white py-8 px-2">
             <Card className="w-full max-w-4xl shadow-xl border border-gray-200 p-0 bg-white">
                 <CardHeader className="bg-black rounded-t-lg p-6">
-                    <CardTitle className="text-white text-2xl font-bold tracking-wide flex flex-col gap-1">
-                        <span>{invoice.companyDetails.name}</span>
-                        <span className="text-gray-300 text-sm font-normal">{invoice.companyDetails.address}, {invoice.companyDetails.cityState}</span>
+                    <CardTitle className="text-white text-2xl font-bold tracking-wide flex justify-between items-center">
+                        <div className="flex flex-col gap-1">
+                            <span>{invoice.companyDetails.name}</span>
+                            <span className="text-gray-300 text-sm font-normal">{invoice.companyDetails.address}, {invoice.companyDetails.cityState}</span>
+                        </div>
+                        <div className="flex-shrink-0">
+                            {/* Company Logo */}
+                            <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center">
+                                <svg
+                                    className="w-12 h-12 text-black"
+                                    fill="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                                </svg>
+                            </div>
+                        </div>
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 flex flex-col gap-6">
-                    <div className="flex flex-col sm:flex-row justify-between gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <div className="text-black font-semibold mb-1 uppercase tracking-wide text-xs">Bill To</div>
-                            <div className="font-medium text-gray-900">{invoice.customer.name}</div>
-                            <div className="text-gray-700 text-sm">{invoice.customer.address}</div>
-                            <div className="text-gray-700 text-sm">{invoice.customer.email}</div>
+                            <div className="font-medium text-gray-900">{invoice.customerBillTo.name}</div>
+                            <div className="text-gray-700 text-sm">{invoice.customerBillTo.address}</div>
+                            <div className="text-gray-700 text-sm">{invoice.customerBillTo.gstNumber ? `GSTIN: ${invoice.customerBillTo.gstNumber}` : ''}</div>
+                            <div className="text-gray-700 text-sm">{invoice.customerBillTo.panNumber ? `PAN: ${invoice.customerBillTo.panNumber}` : ''}</div>
+                        </div>
+                        <div>
+                            <div className="text-black font-semibold mb-1 uppercase tracking-wide text-xs">Ship To</div>
+                            <div className="font-medium text-gray-900">{invoice.customerShipTo.name}</div>
+                            <div className="text-gray-700 text-sm">{invoice.customerShipTo.address}</div>
+                            <div className="text-gray-700 text-sm">{invoice.customerShipTo.gstNumber ? `GSTIN: ${invoice.customerShipTo.gstNumber}` : ''}</div>
+                            <div className="text-gray-700 text-sm">{invoice.customerShipTo.panNumber ? `PAN: ${invoice.customerShipTo.panNumber}` : ''}</div>
                         </div>
                         <div>
                             <div className="text-black font-semibold mb-1 uppercase tracking-wide text-xs">Invoice Info</div>

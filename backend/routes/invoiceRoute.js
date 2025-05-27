@@ -21,14 +21,13 @@ router.post("/", async (req, res) => {
 
   try {
     const invoiceData = req.body;
-    console.log(invoiceData, "invoiceData");
+    // console.log(invoiceData, "invoiceData");
     // const url = await QRCode.toDataURL(
     //   `${process.env.VITE_FRONTEND_URL}/invoice/${newInvoice._id}`,
     //   { width: 64 }
     // );
-    const url = await generateQRCode(invoiceData._id);
-    invoiceData.qrCode = url;
-    console.log(url, "url");
+    // invoiceData.qrCode = url;
+    // console.log(url, "url");
 
     // Update quantities for all items in the invoice
     for (const invoiceItem of invoiceData.items) {
@@ -51,11 +50,16 @@ router.post("/", async (req, res) => {
 
     // Create and save the invoice first (without QR code)
     const newInvoice = new invoiceModel(invoiceData);
-    await newInvoice.save({ session });
+    // await newInvoice.save({ session });
 
     // Now generate the QR code using the saved invoice's ID
 
+    console.log(newInvoice._id, "newInvoice._id");
+    const url = await generateQRCode(newInvoice._id);
+    console.log(url, "url");
+    newInvoice.qrCode = url;
     await newInvoice.save({ session });
+
 
     // Commit the transaction
     await session.commitTransaction();

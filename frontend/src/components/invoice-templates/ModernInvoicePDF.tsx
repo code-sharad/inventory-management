@@ -281,7 +281,7 @@ const ModernInvoicePDF: React.FC<{ invoiceData: InvoiceData | null, qrCode: stri
                         <Text style={{ color: '#555', fontSize: 11, marginTop: 4, maxWidth: 200 }}>{companyDetails.address}, {companyDetails.cityState}</Text>
                     </View>
                     <View style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                        <View style={{ marginBottom: 4 }}>{qrCode ? <Image src={qrCode} style={{ width: 64, height: 64 }} /> : <Text style={{ fontSize: 8, color: '#aaa' }}>QR CODE</Text>}</View>
+                        <View style={{ marginBottom: 4 ,borderWidth:1,borderColor:'#e0e0e0',borderRadius:4}}>{qrCode ? <Image src={qrCode} style={{ width: 64, height: 64 }} /> : <Text style={{ fontSize: 8, color: '#aaa' }}>QR CODE</Text>}</View>
                         <Text style={{ color: '#555', fontSize: 11, marginTop: 2 }}>Invoice #: {invoiceNumber}</Text>
                         <Text style={{ color: '#555', fontSize: 11 }}>Date: {invoiceDate}</Text>
                     </View>
