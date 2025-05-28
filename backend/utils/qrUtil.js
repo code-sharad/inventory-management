@@ -8,6 +8,6 @@ async function generateQRCode(invoiceId) {
   return url;
 }
 
-generateQRCode('6835a26534c7b65c11d73f35').then((res) => {
+generateQRCode('6836c31ca68de9644f606a92').then((res) => {
     console.log(res)
 })

@@ -75,106 +75,117 @@ const ModernOverview: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-white">
-                <span className="text-lg text-gray-700 font-semibold">Loading invoice summary...</span>
+            <div className="flex items-center justify-center min-h-screen bg-white px-4">
+                <span className="text-base sm:text-lg text-gray-700 font-semibold text-center">Loading invoice summary...</span>
             </div>
         );
     }
 
     if (error || !invoice) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-white">
-                <span className="text-lg text-red-700 font-semibold">{error || 'Invoice not found.'}</span>
+            <div className="flex items-center justify-center min-h-screen bg-white px-4">
+                <span className="text-base sm:text-lg text-red-700 font-semibold text-center">{error || 'Invoice not found.'}</span>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-white py-8 px-2">
+        <div className="min-h-screen flex items-center justify-center bg-white py-4 sm:py-8 px-2 sm:px-4">
             <Card className="w-full max-w-4xl shadow-xl border border-gray-200 p-0 bg-white">
-                <CardHeader className="bg-gradient-to-r from-neutral-900 to-neutral-800 rounded-t-lg p-8 shadow-lg">
-                    <CardTitle className="text-white flex justify-between items-center">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-md overflow-hidden">
-                                <img src='/public/logo.png' alt="Company Logo" className="w-16 h-16 object-contain" />
+                <CardHeader className="bg-gradient-to-r from-neutral-900 to-neutral-800 rounded-t-lg p-4 sm:p-6 lg:p-8 shadow-lg">
+                    <CardTitle className="text-white">
+                        <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full flex items-center justify-center shadow-md overflow-hidden flex-shrink-0">
+                                    <img src='/public/logo.png' alt="Company Logo" className="w-12 h-12 sm:w-16 sm:h-16 object-contain" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xl sm:text-2xl font-bold tracking-wide">{invoice.companyDetails.name}</span>
+                                    <span className="text-gray-200 text-xs sm:text-sm mt-1 max-w-md break-words">{invoice.companyDetails.address}, {invoice.companyDetails.cityState}</span>
+                                </div>
                             </div>
-                            <div className="flex flex-col">
-                                <span className="text-2xl font-bold tracking-wide">{invoice.companyDetails.name}</span>
-                                <span className="text-gray-200 text-sm mt-1 max-w-md">{invoice.companyDetails.address}, {invoice.companyDetails.cityState}</span>
+                            <div className='flex flex-col items-start lg:items-end'>
+                                <div className="text-gray-200 uppercase tracking-wide text-xs mb-2">Invoice Details</div>
+                                <div className="text-lg sm:text-xl font-semibold">#{invoice.invoiceNumber}</div>
+                                <div className="text-gray-200 text-xs sm:text-sm mt-1">Issued: {invoice.invoiceDate}</div>
                             </div>
-                        </div>
-                        <div className='flex flex-col items-end'>
-                            <div className="text-gray-200 uppercase tracking-wide text-xs mb-2">Invoice Details</div>
-                            <div className="text-xl font-semibold">#{invoice.invoiceNumber}</div>
-                            <div className="text-gray-200 text-sm mt-1">Issued: {invoice.invoiceDate}</div>
                         </div>
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6 flex flex-col gap-6">
-                    <div className="flex justify-between space-x-8">
+                <CardContent className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-6">
+                    <div className="flex flex-col sm:flex-row sm:justify-between space-y-6 sm:space-y-0 sm:space-x-8">
                         <div className="flex-1">
                             <h3 className="text-sm font-semibold text-gray-500 mb-2">Bill To</h3>
-                            <p className="text-gray-800">{invoice.customerBillTo.name}</p>
-                            <p className="text-sm text-gray-600">{invoice.customerBillTo.address}</p>
-                            {invoice.customerBillTo.gstNumber && <p className="text-sm text-gray-600">GSTIN: {invoice.customerBillTo.gstNumber}</p>}
-                            {invoice.customerBillTo.panNumber && <p className="text-sm text-gray-600">PAN: {invoice.customerBillTo.panNumber}</p>}
+                            <p className="text-gray-800 font-medium">{invoice.customerBillTo.name}</p>
+                            <p className="text-xs sm:text-sm text-gray-600 break-words">{invoice.customerBillTo.address}</p>
+                            {invoice.customerBillTo.gstNumber && <p className="text-xs sm:text-sm text-gray-600">GSTIN: {invoice.customerBillTo.gstNumber}</p>}
+                            {invoice.customerBillTo.panNumber && <p className="text-xs sm:text-sm text-gray-600">PAN: {invoice.customerBillTo.panNumber}</p>}
                         </div>
                         <div className="flex-1">
                             <h3 className="text-sm font-semibold text-gray-500 mb-2">Ship To</h3>
-                            <p className="text-gray-800">{invoice.customerShipTo.name}</p>
-                            <p className="text-sm text-gray-600">{invoice.customerShipTo.address}</p>
-                            {invoice.customerShipTo.gstNumber && <p className="text-sm text-gray-600">GSTIN: {invoice.customerShipTo.gstNumber}</p>}
-                            {invoice.customerShipTo.panNumber && <p className="text-sm text-gray-600">PAN: {invoice.customerShipTo.panNumber}</p>}
+                            <p className="text-gray-800 font-medium">{invoice.customerShipTo.name}</p>
+                            <p className="text-xs sm:text-sm text-gray-600 break-words">{invoice.customerShipTo.address}</p>
+                            {invoice.customerShipTo.gstNumber && <p className="text-xs sm:text-sm text-gray-600">GSTIN: {invoice.customerShipTo.gstNumber}</p>}
+                            {invoice.customerShipTo.panNumber && <p className="text-xs sm:text-sm text-gray-600">PAN: {invoice.customerShipTo.panNumber}</p>}
                         </div>
                     </div>
                     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
                         <Table className="min-w-full">
                             <TableHeader>
                                 <TableRow className="bg-gray-100">
-                                    <TableHead className="p-3 text-black font-semibold">Item</TableHead>
-                                    <TableHead className="p-3 text-black font-semibold">HSN Code</TableHead>
-                                    <TableHead className="p-3 text-black font-semibold">Qty</TableHead>
-                                    <TableHead className="p-3 text-black font-semibold">Unit Price</TableHead>
-                                    <TableHead className="p-3 text-black font-semibold">Total</TableHead>
+                                    <TableHead className="p-2 sm:p-3 text-black font-semibold text-xs sm:text-sm">Item</TableHead>
+                                    <TableHead className="p-2 sm:p-3 text-black font-semibold text-xs sm:text-sm hidden sm:table-cell">HSN Code</TableHead>
+                                    <TableHead className="p-2 sm:p-3 text-black font-semibold text-xs sm:text-sm">Qty</TableHead>
+                                    <TableHead className="p-2 sm:p-3 text-black font-semibold text-xs sm:text-sm">Price</TableHead>
+                                    <TableHead className="p-2 sm:p-3 text-black font-semibold text-xs sm:text-sm">Total</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {invoice.items.map((item) => (
                                     <TableRow key={item.id} className="hover:bg-gray-50">
-                                        <TableCell className="p-3 font-medium text-gray-900">{item.name}</TableCell>
-                                        <TableCell className="p-3 text-gray-800">{item.hsnCode || '-'}</TableCell>
-                                        <TableCell className="p-3 text-gray-800">{item.quantity}</TableCell>
-                                        <TableCell className="p-3 text-gray-800">₹{formatCurrency(item.price)}</TableCell>
-                                        <TableCell className="p-3 text-gray-900 font-semibold">₹{formatCurrency(item.price * item.quantity)}</TableCell>
+                                        <TableCell className="p-2 sm:p-3 font-medium text-gray-900 text-xs sm:text-sm">
+                                            <div className="break-words">
+                                                {item.name}
+                                                <div className="sm:hidden text-xs text-gray-600 mt-1">
+                                                    {item.hsnCode && `HSN: ${item.hsnCode}`}
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="p-2 sm:p-3 text-gray-800 text-xs sm:text-sm hidden sm:table-cell">{item.hsnCode || '-'}</TableCell>
+                                        <TableCell className="p-2 sm:p-3 text-gray-800 text-xs sm:text-sm">{item.quantity}</TableCell>
+                                        <TableCell className="p-2 sm:p-3 text-gray-800 text-xs sm:text-sm">₹{formatCurrency(item.price)}</TableCell>
+                                        <TableCell className="p-2 sm:p-3 text-gray-900 font-semibold text-xs sm:text-sm">₹{formatCurrency(item.price * item.quantity)}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
                         </Table>
                     </div>
                     <div className="flex flex-col items-end gap-1 mt-2">
-                        <div className="flex justify-between w-full max-w-xs text-gray-700 text-base">
-                            <span>Subtotal</span>
-                            <span>₹{formatCurrency(invoice.subtotal)}</span>
-                        </div>
-                        {invoice.transportationAndOthers !== undefined && (
-                            <div className="flex justify-between w-full max-w-xs text-gray-700 text-base">
-                                <span>Transportation & Others</span>
-                                <span>₹{formatCurrency(invoice.transportationAndOthers)}</span>
+                        <div className="w-full sm:w-auto sm:max-w-xs space-y-1">
+                            <div className="flex justify-between text-gray-700 text-sm sm:text-base">
+                                <span>Subtotal</span>
+                                <span>₹{formatCurrency(invoice.subtotal)}</span>
                             </div>
-                        )}
-                        {invoice.packaging !== undefined && (
-                            <div className="flex justify-between w-full max-w-xs text-gray-700 text-base">
-                                <span>Packaging</span>
-                                <span>₹{formatCurrency(invoice.packaging)}</span>
+                            {invoice.transportationAndOthers !== undefined && (
+                                <div className="flex justify-between text-gray-700 text-sm sm:text-base">
+                                    <span className="text-left">Transportation & Others</span>
+                                    <span>₹{formatCurrency(invoice.transportationAndOthers)}</span>
+                                </div>
+                            )}
+                            {invoice.packaging !== undefined && (
+                                <div className="flex justify-between text-gray-700 text-sm sm:text-base">
+                                    <span>Packaging</span>
+                                    <span>₹{formatCurrency(invoice.packaging)}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between text-gray-700 text-sm sm:text-base">
+                                <span>GST ({invoice.gstRate}%)</span>
+                                <span>₹{formatCurrency(invoice.gstAmount)}</span>
                             </div>
-                        )}
-                        <div className="flex justify-between w-full max-w-xs text-gray-700 text-base">
-                            <span>GST ({invoice.gstRate}%)</span>
-                            <span>₹{formatCurrency(invoice.gstAmount)}</span>
-                        </div>
-                        <div className="flex justify-between w-full max-w-xs text-blue-900 text-lg font-bold mt-2 border-t pt-2">
-                            <span>Total</span>
-                            <span>₹{formatCurrency(invoice.total)}</span>
+                            <div className="flex justify-between text-blue-900 text-base sm:text-lg font-bold mt-2 pt-2 border-t">
+                                <span>Total</span>
+                                <span>₹{formatCurrency(invoice.total)}</span>
+                            </div>
                         </div>
                     </div>
                 </CardContent>
