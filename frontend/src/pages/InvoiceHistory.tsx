@@ -50,12 +50,20 @@ const PDFDownloadButton = ({ invoice }: { invoice: Invoice }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [downloadTriggered, setDownloadTriggered] = useState(false);
 
-  const handleClick = useEffect(() => {
+  // Reset states when invoice changes
+  useEffect(() => {
+    setShouldLoadPDF(false);
+    setIsLoading(false);
+    setDownloadTriggered(false);
+  }, [invoice.id]);
+
+  const handleDownloadClick = () => {
     if (!shouldLoadPDF) {
       setIsLoading(true);
       setShouldLoadPDF(true);
+      setDownloadTriggered(false); // Reset download trigger
     }
-  }, [shouldLoadPDF]);
+  };
 
   // Auto-trigger download when PDF component is loaded
   useEffect(() => {
@@ -70,6 +78,17 @@ const PDFDownloadButton = ({ invoice }: { invoice: Invoice }) => {
       return () => clearTimeout(timer);
     }
   }, [shouldLoadPDF, isLoading]);
+
+  // Reset download trigger after download is complete
+  useEffect(() => {
+    if (downloadTriggered) {
+      const timer = setTimeout(() => {
+        setDownloadTriggered(false);
+        setShouldLoadPDF(false); // Reset PDF loading state
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [downloadTriggered]);
 
   return (
     <div className="flex items-center justify-center w-12">
@@ -106,7 +125,7 @@ const PDFDownloadButton = ({ invoice }: { invoice: Invoice }) => {
         <Button
           variant="ghost"
           size="icon"
-          // onClick={handleClick}
+          onClick={handleDownloadClick}
           disabled={isLoading}
           title="Download PDF"
         >
