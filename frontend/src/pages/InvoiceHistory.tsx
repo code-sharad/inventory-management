@@ -50,7 +50,7 @@ const PDFDownloadButton = ({ invoice }: { invoice: Invoice }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [downloadTriggered, setDownloadTriggered] = useState(false);
 
-  const handleClick = useCallback(() => {
+  const handleClick = useEffect(() => {
     if (!shouldLoadPDF) {
       setIsLoading(true);
       setShouldLoadPDF(true);
@@ -106,7 +106,7 @@ const PDFDownloadButton = ({ invoice }: { invoice: Invoice }) => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={handleClick}
+          // onClick={handleClick}
           disabled={isLoading}
           title="Download PDF"
         >
