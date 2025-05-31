@@ -287,7 +287,7 @@ const ClassicInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                         ) : ''}
                     </View>
                     {/* Items Table */}
-                    <View style={[styles.table, { marginBottom: 32 }]}>
+                    <View style={[styles.table, { marginBottom: 32 }]} minPresenceAhead={25}>
                         {/* Table Header */}
                         <View style={styles.tableHeader} wrap={false}>
                             <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Item</Text>
