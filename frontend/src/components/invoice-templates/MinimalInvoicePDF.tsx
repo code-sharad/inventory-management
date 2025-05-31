@@ -249,10 +249,12 @@ const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                         <Text style={styles.invoiceNumber}>Date: {invoiceDate}</Text>
                     </View>
                 </View>
-                {/* Bill To & Ship To */}
-                <View style={styles.billToSection}>
-                    <View style={styles.billTo}>
-                        <Text style={styles.cardTitle}>Bill To:</Text>
+                {/* Main Content Wrapper */}
+                <View style={{ marginBottom: 72 }}>
+                    {/* Bill To & Ship To */}
+                    <View style={styles.billToSection}>
+                        <View style={styles.billTo}>
+                            <Text style={styles.cardTitle}>Bill To:</Text>
                         <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>Name:</Text> {customerBillTo.name}</Text>
                         {customerBillTo.address && <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {customerBillTo.address}</Text>}
                         {customerBillTo.gstNumber && <Text style={styles.cardField}><Text style={{ fontWeight: 'bold' }}>GST Number:</Text> {customerBillTo.gstNumber}</Text>}
@@ -269,7 +271,7 @@ const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                     ) : ''}
                 </View>
                 {/* Items Table */}
-                <View style={[styles.table, { marginBottom: 32 }]}>
+                <View style={styles.table}>
                     {/* Table Header */}
                     <View style={styles.tableHeader} wrap={false}>
                         <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Item</Text>
@@ -337,6 +339,8 @@ const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                     <Text style={{ fontSize: 11, marginBottom: 2 }}>- We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</Text>
                     <Text style={{ fontSize: 11 }}>- Payment is due within 30 days of the invoice date.</Text>
                 </View>
+                </View>
+                {/* End of Main Content Wrapper */}
                 {/* Classic UI Footer with border, background, and spaced info */}
                 <View
                     style={{
