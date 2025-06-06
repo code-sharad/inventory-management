@@ -20,12 +20,14 @@ interface InvoiceData {
     address: string;
     gstNumber?: string;
     panNumber?: string;
+    phoneNumber?: string;
   };
   customerShipTo: {
     name: string;
     address: string;
     gstNumber?: string;
     panNumber?: string;
+    phoneNumber?: string;
   };
   companyDetails: {
     name: string;
@@ -229,7 +231,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
         <div className="text-xs px-4 py-2 space-y-1">
           <div><span className="font-bold">M/S:</span> {invoiceData.customerBillTo.name}</div>
           <div><span className="font-bold">Address:</span> {invoiceData.customerBillTo.address}</div>
-          <div><span className="font-bold">PHONE:</span> -</div>
+          <div><span className="font-bold">PHONE:</span> {invoiceData.customerBillTo.phoneNumber || '-'}</div>
           <div><span className="font-bold">GSTIN:</span> {invoiceData.customerBillTo.gstNumber || '-'}</div>
         </div>
       </div>
@@ -239,7 +241,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
         <div className="text-xs px-4 py-2 space-y-1">
           <div><span className="font-bold">M/S:</span> {invoiceData.customerShipTo.name}</div>
           <div><span className="font-bold">Address:</span> {invoiceData.customerShipTo.address}</div>
-          <div><span className="font-bold">PHONE:</span> -</div>
+          <div><span className="font-bold">PHONE:</span> {invoiceData.customerShipTo.phoneNumber || '-'}</div>
           <div><span className="font-bold">GSTIN:</span> {invoiceData.customerShipTo.gstNumber || '-'}</div>
         </div>
       </div>
@@ -308,7 +310,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
             </div>
           </div>
           {/* 6-column Invoice Info Table */}
-        
+
 
           {/* Customer Details */}
           {renderCustomerDetails({ invoiceData })}

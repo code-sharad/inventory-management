@@ -22,6 +22,12 @@ const customerSchema = new mongoose.Schema({
     // unique: true,
     required: false,
   },
+  phoneNumber: {
+    type: String,
+    maxLength: 10,
+    minLength: 10,
+    required: false,
+  },
 });
 
 customerSchema.index({ gstNumber: 1 }, { unique: true });

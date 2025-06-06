@@ -19,6 +19,10 @@ const invoiceSchema = mongoose.Schema({
       type: String,
       required: true,
     },
+    phoneNumber: {
+      type: String,
+      required: false,
+    },
   },
   customerShipTo:{
     name: {
@@ -35,6 +39,10 @@ const invoiceSchema = mongoose.Schema({
       required: false,
     },
     panNumber: {
+      type: String,
+      required: false,
+    },
+    phoneNumber: {
       type: String,
       required: false,
     },

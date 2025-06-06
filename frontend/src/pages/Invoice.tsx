@@ -446,7 +446,8 @@ function Invoice() {
                                             name: c.name,
                                             gstNumber: c.gstNumber,
                                             panNumber: c.panNumber,
-                                            address: c.address
+                                            address: c.address,
+                                            phoneNumber: c.phoneNumber,
                                           });
                                           setBillToOpen(false);
                                         }}
@@ -484,6 +485,10 @@ function Invoice() {
                             <span className="text-sm font-medium">Address:</span>
                             <span>{selectedCustomerBillTo.address}</span>
                           </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium">Phone Number:</span>
+                            <span>{selectedCustomerBillTo.phoneNumber || '-'}</span>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -517,7 +522,8 @@ function Invoice() {
                                             name: b.name,
                                             gstNumber: b.gstNumber,
                                             panNumber: b.panNumber,
-                                            address: b.address
+                                            address: b.address,
+                                            phoneNumber: b.phoneNumber,
                                           });
                                           setShipToOpen(false);
                                         }}
@@ -554,6 +560,10 @@ function Invoice() {
                           <div className="flex justify-between">
                             <span className="text-sm font-medium">Address:</span>
                             <span>{selectedCustomerShipTo.address}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm font-medium">Phone Number:</span>
+                            <span>{selectedCustomerShipTo.phoneNumber || '-'}</span>
                           </div>
                         </div>
                       )}

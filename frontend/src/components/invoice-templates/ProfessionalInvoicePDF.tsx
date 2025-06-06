@@ -25,12 +25,14 @@ interface InvoiceData {
         address: string;
         gstNumber?: string;
         panNumber?: string;
+        phoneNumber?: string;
     };
     customerShipTo: {
         name: string;
         address: string;
         gstNumber?: string;
         panNumber?: string;
+        phoneNumber?: string;
     };
     companyDetails: {
         name: string;
@@ -387,27 +389,27 @@ const ProfessionalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: strin
 
     const renderHeader = () => (
 
-        <View style={{ flexDirection: 'row', borderWidth: 2, borderColor: '#000', marginBottom: 10 }} wrap={false}>
+        <View style={{ flexDirection: 'row',  borderColor: '#000', marginBottom: 10 }} wrap={false}>
             {/* QR Code Left */}
             <View style={{ width: 80, padding: 8, backgroundColor: '#f8fafc', alignItems: 'center', justifyContent: 'center' }}>
                 {/* Placeholder for QR code (React PDF does not support SVG QR out of the box) */}
                 <Image src={qrCode} style={{ width: 80, height: 80 }} />
             </View>
             {/* Company Info Center */}
-            <View style={{ flex: 1, padding: 8, borderRightWidth: 1, borderRightColor: '#000' }}>
+            <View style={{ flex: 1, padding: 8  }}>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#2E5C8A', textAlign: 'center', marginBottom: 4 }}>DYNAMIC ENTRPRISE</Text>
                 {/* <Text style={{ fontSize: 10, color: '#fff', backgroundColor: '#2E5C8A', padding: 4, textAlign: 'center', marginBottom: 4 }}>Manufacturing & Supply of Precision Press Tool & Room Component</Text> */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 9, textAlign: 'left', width: 120 }}>{companyDetails.address}</Text>
-                    <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={{ fontSize: 9 }}>Tel : 079-25820309</Text>
-                        <Text style={{ fontSize: 9 }}>Web : www.gfttools.com</Text>
-                        <Text style={{ fontSize: 9 }}>Email : info@gfttools.com</Text>
+                    <View style={{ alignItems: 'flex-start' }}>
+                        <Text style={{ fontSize: 9 }}>Tel : {companyDetails.phone}</Text>
+                        {/* <Text style={{ fontSize: 9 }}>Web : {companyDetails.website}</Text> */}
+                        <Text style={{ fontSize: 9 }}>Email : {companyDetails.email}</Text>
                     </View>
+                    <Text style={{ fontSize: 9, textAlign: 'left', width: 120 }}>{companyDetails.address}</Text>
                 </View>
             </View>
             {/* Logo Right */}
-            <View style={{ width: 80, padding: 8, backgroundColor: '#f0f8ff', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 80, padding: 8,  alignItems: 'center', justifyContent: 'center' }}>
                 <Image src="/logo.png" style={{ width: 80, height: 80 }} />
             </View>
         </View>
@@ -437,7 +439,7 @@ const ProfessionalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: strin
                 <View style={{ padding: 8 }}>
                 <Text style={{ fontSize: 9, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>M/S:</Text> {customerBillTo.name || '-'}</Text>
                 <Text style={{ fontSize: 9, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {customerBillTo.address || '-'}</Text>
-                <Text style={{ fontSize: 9, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>PHONE:</Text> -</Text>
+                <Text style={{ fontSize: 9, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>PHONE:</Text> {customerBillTo.phoneNumber || '-'}</Text>
                 <Text style={{ fontSize: 9, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>GSTIN:</Text> {customerBillTo.gstNumber || '-'}</Text>
                 </View>
             </View>
@@ -447,7 +449,7 @@ const ProfessionalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: strin
                 <View style={{ padding: 8 }}>
                     <Text style={{ fontSize: 9, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>M/S:</Text> {invoiceData.customerShipTo.name || '-'}</Text>
                     <Text style={{ fontSize: 9, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {invoiceData.customerShipTo.address || '-'}</Text>
-                    <Text style={{ fontSize: 9, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>PHONE:</Text> -</Text>
+                    <Text style={{ fontSize: 9, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>PHONE:</Text> {invoiceData.customerShipTo.phoneNumber || '-'}</Text>
                     <Text style={{ fontSize: 9, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>GSTIN:</Text> {invoiceData.customerShipTo.gstNumber || '-'}</Text>
                 </View>
             </View>

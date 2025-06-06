@@ -55,6 +55,10 @@ const customerValidationSchema: ValidationSchema = {
         required: false,
         pattern: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
     },
+    phoneNumber: {
+        required: false,
+        pattern: /^\d{10}$/,
+    },
 };
 
 export default function CustomerPage() {
@@ -75,6 +79,7 @@ export default function CustomerPage() {
         address: '',
         gstNumber: '',
         panNumber: '',
+        phoneNumber: '',
     })
 
     // Form error states
@@ -140,7 +145,7 @@ export default function CustomerPage() {
 
         try {
             await createCustomerMutation.mutateAsync(newCustomer);
-            setNewCustomer({ name: "", gstNumber: '', address: '', panNumber: '' });
+            setNewCustomer({ name: "", gstNumber: '', address: '', panNumber: '', phoneNumber: '' });
             setisAddCustomerDialogOpen(false);
         } catch (error: any) {
             console.error('Add customer error:', error);
@@ -278,6 +283,20 @@ export default function CustomerPage() {
                                             />
                                             {customerErrors.panNumber && <ErrorMessage error={customerErrors.panNumber} />}
                                         </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="phoneNumber">Phone Number</Label>
+                                            <Input
+                                                id="phoneNumber"
+                                                value={newCustomer.phoneNumber}
+                                                type="tel"
+                                                pattern="^[0-9]{10}$"
+                                                maxLength={10}
+                                                minLength={10}
+                                                onChange={(e) => handleFieldChange('phoneNumber', e.target.value)}
+                                                placeholder="9876543210"
+                                            />
+                                            {customerErrors.phoneNumber && <ErrorMessage error={customerErrors.phoneNumber} />}
+                                        </div>
                                         {customerErrors.general && <GeneralError error={customerErrors.general} />}
                                     </div>
                                     <DialogFooter>
@@ -300,6 +319,7 @@ export default function CustomerPage() {
                                     <TableHead className="text-left">GST Number</TableHead>
                                     <TableHead className="text-left">Address</TableHead>
                                     <TableHead className="text-left">PAN Number</TableHead>
+                                    <TableHead className="text-left">Phone Number</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -310,6 +330,7 @@ export default function CustomerPage() {
                                         <TableCell className="text-left">{customer.gstNumber}</TableCell>
                                         <TableCell className="text-left truncate min-w-24 max-w-44">{customer.address}</TableCell>
                                         <TableCell className="text-left">{customer.panNumber}</TableCell>
+                                        <TableCell className="text-left">{customer.phoneNumber || '-'}</TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
                                                 <Button
@@ -380,6 +401,20 @@ export default function CustomerPage() {
                                             onChange={(e) => setCurrentCustomer({ ...currentCustomer, panNumber: e.target.value })}
                                         />
                                         {customerErrors.panNumber && <ErrorMessage error={customerErrors.panNumber} />}
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="edit-phoneNumber">Phone Number</Label>
+                                        <Input
+                                            id="edit-phoneNumber"
+                                            value={currentCustomer.phoneNumber}
+                                            type="tel"
+                                            pattern="^[0-9]{10}$"
+                                            maxLength={10}
+                                            minLength={10}
+                                            onChange={(e) => setCurrentCustomer({ ...currentCustomer, phoneNumber: e.target.value })}
+                                            placeholder="9876543210"
+                                        />
+                                        {customerErrors.phoneNumber && <ErrorMessage error={customerErrors.phoneNumber} />}
                                     </div>
                                     {customerErrors.general && <GeneralError error={customerErrors.general} />}
                                 </div>

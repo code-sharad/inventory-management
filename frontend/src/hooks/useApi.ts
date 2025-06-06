@@ -33,6 +33,7 @@ export interface Customer {
     gstNumber: string;
     panNumber: string;
     address: string;
+    phoneNumber?: string;
 }
 
 export interface CustomerRaw {
@@ -41,6 +42,7 @@ export interface CustomerRaw {
     gstNumber: string;
     panNumber: string;
     address: string;
+    phoneNumber?: string;
 }
 
 export interface InvoiceData {
@@ -334,6 +336,7 @@ export const useCustomers = () => {
                 gstNumber: customer.gstNumber || "Unknown GST Number",
                 panNumber: customer.panNumber || "Unknown Pan Number",
                 address: customer.address || "Unknown Address",
+                phoneNumber: customer.phoneNumber || "",
             }));
 
             return customers;
@@ -362,6 +365,7 @@ export const useCreateCustomer = () => {
             gstNumber: string;
             panNumber: string;
             address: string;
+            phoneNumber?: string;
         }) => {
             const response = await axiosInstance.post('/customer', customerData, {
                 withCredentials: true

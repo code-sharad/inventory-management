@@ -27,12 +27,14 @@ interface InvoiceData {
         address: string;
         gstNumber?: string;
         panNumber?: string;
+        phoneNumber?: string;
     };
     customerShipTo: {
         name: string;
         address: string;
         gstNumber?: string;
         panNumber?: string;
+        phoneNumber?: string;
     };
     companyDetails: {
         name: string;
@@ -286,7 +288,7 @@ const ClassicInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                 <View style={{ padding: 8 }}>
                     <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>M/S:</Text> {customerBillTo.name || '-'}</Text>
                     <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {customerBillTo.address || '-'}</Text>
-                    <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>PHONE:</Text> -</Text>
+                    <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>PHONE:</Text> {customerBillTo.phoneNumber || '-'}</Text>
                     <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>GSTIN:</Text> {customerBillTo.gstNumber || '-'}</Text>
                 </View>
             </View>
@@ -296,7 +298,7 @@ const ClassicInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                 <View style={{ padding: 8 }}>
                     <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>M/S:</Text> {customerShipTo.name || '-'}</Text>
                     <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {customerShipTo.address || '-'}</Text>
-                    <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>PHONE:</Text> -</Text>
+                    <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>PHONE:</Text> {customerShipTo.phoneNumber || '-'}</Text>
                     <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>GSTIN:</Text> {customerShipTo.gstNumber || '-'}</Text>
                 </View>
             </View>

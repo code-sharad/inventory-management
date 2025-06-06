@@ -7,7 +7,9 @@ import {
     StyleSheet,
     Font,
     Image,
-    usePDF
+    pdf,
+    usePDF,
+    // pdf
 } from '@react-pdf/renderer';
 import { formatCurrency } from '@/lib/formatCurrency';
 import Poppins from '../../../public/fonts/Poppins-Regular.ttf';
@@ -25,12 +27,14 @@ interface InvoiceData {
         address: string;
         gstNumber?: string;
         panNumber?: string;
+        phoneNumber?: string;
     };
     customerShipTo: {
         name: string;
         address: string;
         gstNumber?: string;
         panNumber?: string;
+        phoneNumber?: string;
     };
     companyDetails: {
         name: string;
@@ -230,7 +234,7 @@ const styles = StyleSheet.create({
     },
 });
 
-const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> = ({ invoiceData, qrCode }) => {
+const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string, autoDownload?: boolean }> = ({ invoiceData, qrCode, autoDownload = false }) => {
     const { customerBillTo, customerShipTo, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
 
     // Split items based on pagination rules
@@ -270,7 +274,7 @@ const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                 <View style={{ padding: 8 }}>
                     <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>M/S:</Text> {customerBillTo.name || '-'}</Text>
                     <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {customerBillTo.address || '-'}</Text>
-                    <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>PHONE:</Text> -</Text>
+                    <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>PHONE:</Text> {customerBillTo.phoneNumber || '-'}</Text>
                     <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>GSTIN:</Text> {customerBillTo.gstNumber || '-'}</Text>
                 </View>
             </View>
@@ -280,7 +284,7 @@ const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                 <View style={{ padding: 8 }}>
                     <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>M/S:</Text> {customerShipTo.name || '-'}</Text>
                     <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>Address:</Text> {customerShipTo.address || '-'}</Text>
-                    <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>PHONE:</Text> -</Text>
+                    <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>PHONE:</Text> {customerShipTo.phoneNumber || '-'}</Text>
                     <Text style={{ fontSize: 11, marginBottom: 2 }}><Text style={{ fontWeight: 'bold' }}>GSTIN:</Text> {customerShipTo.gstNumber || '-'}</Text>
                 </View>
             </View>
@@ -489,17 +493,6 @@ const MinimalInvoicePDF: React.FC<{ invoiceData: InvoiceData, qrCode: string }> 
                             style={{ fontSize: 10, color: '#222' }}
                             render={() => `Invoice No: ${invoiceNumber}`}
                         />
-                        <Text
-                            style={{ fontSize: 10, color: '#222' }}
-                            render={() => `Invoice Date: ${invoiceDate}`}
-                        />
-                        <Text
-                            style={{ fontSize: 10, color: '#222' }}
-                            render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`}
-                        />
-                        <Text style={{ position: 'absolute', left: 32, bottom: 4, fontSize: 9, color: '#888', width: '100%', textAlign: 'center' }}>
-                            This is an electronically generated document, no signature is required
-                        </Text>
                     </View>
                 </Page>
             ))}
@@ -521,4 +514,3 @@ const MinimalInvoicePDFWrapper: React.FC<{ invoiceData: InvoiceData | null, qrCo
 };
 
 export default MinimalInvoicePDFWrapper;
-
