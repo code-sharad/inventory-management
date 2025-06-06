@@ -47,30 +47,31 @@ interface InvoiceData {
   gstAmount: number;
   gstRate: number;
   total: number;
-  template: "modern" | "minimal" | "classic";
+  template: "modern" | "minimal" | "classic" | "professional";
   packaging?: number;
   transportationAndOthers?: number;
+  challanNo?: string;
+  challanDate?: string;
+  poNo?: string;
+  eWayNo?: string;
 };
 
 const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoiceData }) => {
   const { customerBillTo, customerShipTo, invoiceNumber, invoiceDate, items, companyDetails } = invoiceData;
-
-  const url = window.location.href;
-
-  const gstRate = 0.18; // 18% GST
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const gstAmount = subtotal * gstRate;
-  const total = subtotal + gstAmount;
-
   const contentRef = useRef<HTMLDivElement>(null);
+  const url = window.location.href;
   const [loading, setLoading] = useState(false);
 
-  const handlePrint = useReactToPrint({
-    contentRef: contentRef,
-    documentTitle: `Invoice ${invoiceNumber}`,
-  });
+  // Split items based on pagination rules
+  const firstPageItems = items.slice(0, 7);
+  const remainingItems = items.slice(7);
+  const additionalPages: Array<Array<typeof items[0]>> = [];
 
-  // PDF Download (A4, scale=2)
+  // Split remaining items into pages of 14 each
+  for (let i = 0; i < remainingItems.length; i += 14) {
+    additionalPages.push(remainingItems.slice(i, i + 14));
+  }
+
   const handleDownloadPDF = async () => {
     setLoading(true);
     try {
@@ -88,10 +89,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
           });
 
           const imgData = canvas.toDataURL('image/png');
-          const imgProps = {
-            width: canvas.width,
-            height: canvas.height,
-          };
+          const imgProps = pdf.getImageProperties(imgData);
           const pdfHeight = (imgProps.height * usableWidth) / imgProps.width;
 
           if (pdfHeight <= usablePageHeight) {
@@ -144,7 +142,7 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
             }
           }
 
-          pdf.save(`invoice_${invoiceNumber}.pdf`);
+          pdf.save(`minimal_invoice_${invoiceNumber}.pdf`);
         });
       }
     } catch (error) {
@@ -155,153 +153,206 @@ const PremiumMinimalInvoice: React.FC<{ invoiceData: InvoiceData }> = ({ invoice
     }
   };
 
-  console.log(url)
+  const handlePrint = useReactToPrint({
+    contentRef: contentRef,
+    documentTitle: `Minimal-Invoice-${invoiceNumber}`,
+  });
 
+  const renderItemsTable = (pageItems: typeof items, pageNumber: number) => (
+    <div className="overflow-x-auto border border-gray-300 rounded-lg mb-6">
+      <Table className="w-full">
+        <TableHeader>
+          <TableRow className="bg-gray-100">
+            <TableHead className="p-4 text-gray-800 font-semibold border-b border-gray-300">Item</TableHead>
+            <TableHead className="p-4 text-gray-800 font-semibold border-b border-gray-300">HSN Code</TableHead>
+            <TableHead className="p-4 text-gray-800 font-semibold border-b border-gray-300">Qty</TableHead>
+            <TableHead className="p-4 text-gray-800 font-semibold border-b border-gray-300">Price</TableHead>
+            <TableHead className="p-4 text-gray-800 font-semibold border-b border-gray-300">Total</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {pageItems.map((item, index) => (
+            <TableRow key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+              <TableCell className="p-4 font-medium text-gray-900 text-xs">{item.name}</TableCell>
+              <TableCell className="p-4 text-xs">
+                <Badge className="bg-gray-200 text-gray-700 border-none">{item.hsnCode || '-'}</Badge>
+              </TableCell>
+              <TableCell className="p-4 text-gray-800 text-xs">{item.quantity}</TableCell>
+              <TableCell className="p-4 text-gray-800 text-xs">₹{formatCurrency(item.price)}</TableCell>
+              <TableCell className="p-4 text-gray-900 font-semibold text-xs">₹{formatCurrency(item.price * item.quantity)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
+  const renderFooterContent = () => (
+    <>
+      {/* Totals Section */}
+      <div className="flex flex-col items-end mb-8">
+        <div className="w-full bg-white rounded-lg p-6 border border-gray-300 flex flex-col gap-2 max-w-xs">
+          <div className="flex justify-between text-gray-700 text-base">
+            <span>Subtotal</span>
+            <span>₹{formatCurrency(invoiceData.subtotal)}</span>
+          </div>
+          {invoiceData.transportationAndOthers !== undefined && (
+            <div className="flex justify-between text-gray-700 text-base">
+              <span>Transportation & Others</span>
+              <span>₹{formatCurrency(invoiceData.transportationAndOthers)}</span>
+            </div>
+          )}
+          {invoiceData.packaging !== undefined && (
+            <div className="flex justify-between text-gray-700 text-base">
+              <span>Packaging</span>
+              <span>₹{formatCurrency(invoiceData.packaging)}</span>
+            </div>
+          )}
+          <div className="flex justify-between text-gray-700 text-base">
+            <span>GST ({invoiceData.gstRate}%)</span>
+            <span>₹{formatCurrency(invoiceData.gstAmount)}</span>
+          </div>
+          <div className="flex justify-between text-gray-900 text-lg font-bold mt-2 border-t pt-2">
+            <span>Total</span>
+            <span>₹{formatCurrency(invoiceData.total)}</span>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  const renderCustomerDetails = ({ invoiceData }: { invoiceData: InvoiceData }) => (
+    <div className="border text-black border-gray-200 rounded-lg mb-6 flex bg-white overflow-hidden">
+      {/* Bill To */}
+      <div className="flex-1 border-r border-gray-200 p-0">
+        <div className="font-bold text-center border-b border-gray-200 py-1 mb-2 text-sm">Bill To</div>
+        <div className="text-xs px-4 py-2 space-y-1">
+          <div><span className="font-bold">M/S:</span> {invoiceData.customerBillTo.name}</div>
+          <div><span className="font-bold">Address:</span> {invoiceData.customerBillTo.address}</div>
+          <div><span className="font-bold">PHONE:</span> -</div>
+          <div><span className="font-bold">GSTIN:</span> {invoiceData.customerBillTo.gstNumber || '-'}</div>
+        </div>
+      </div>
+      {/* Ship To */}
+      <div className="flex-1 border-r border-gray-200 p-0">
+        <div className="font-bold text-center border-b border-gray-200 py-1 mb-2 text-sm">Ship To</div>
+        <div className="text-xs px-4 py-2 space-y-1">
+          <div><span className="font-bold">M/S:</span> {invoiceData.customerShipTo.name}</div>
+          <div><span className="font-bold">Address:</span> {invoiceData.customerShipTo.address}</div>
+          <div><span className="font-bold">PHONE:</span> -</div>
+          <div><span className="font-bold">GSTIN:</span> {invoiceData.customerShipTo.gstNumber || '-'}</div>
+        </div>
+      </div>
+      {/* Invoice Details */}
+      <div className="flex-1 p-0">
+        <div className="flex flex-row text-xs">
+          {/* Left Column */}
+          <div className="flex-1 border-r border-gray-200">
+            <div className="border-b border-gray-200 p-1"><span className="font-bold">Invoice No.</span> <span>{invoiceData.invoiceNumber}</span></div>
+            <div className="border-b border-gray-200 p-1"><span className="font-bold">Challan No.</span> <span>{invoiceData.challanNo || '-'}</span></div>
+            <div className="border-b border-gray-200 p-1"><span className="font-bold">DELIVERY DATE</span> <span>{invoiceData.invoiceDate}</span></div>
+            <div className="p-1"><span className="font-bold">P.O. No.</span> <span>{invoiceData.poNo || '-'}</span></div>
+          </div>
+          {/* Right Column */}
+          <div className="flex-1">
+            <div className="border-b border-gray-200 p-1"><span className="font-bold">Invoice Date</span> <span>{invoiceData.invoiceDate}</span></div>
+            <div className="border-b border-gray-200 p-1"><span className="font-bold">Challan Date</span> <span>{invoiceData.challanDate || '-'}</span></div>
+            <div className="border-b border-gray-200 p-1"><span className="font-bold">Reverse Charge</span> <span>No</span></div>
+            <div className="p-1"><span className="font-bold">E-Way No.</span> <span>{invoiceData.eWayNo || '-'}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#fafafa] dark:bg-neutral-900 flex flex-col items-center py-8 px-2 font-sans">
-      {/* Download Button */}
-      {
-        !url.includes('billing') ? '' : (
-          <div className=" my-4 border-gray-200 flex w-full justify-start ml-6 rounded-b-lg gap-2">
-           
-            <button
-              onClick={handlePrint}
-              className="px-7 py-3 bg-blue-700 text-white font-bold rounded shadow hover:bg-blue-900 transition-colors text-lg border border-blue-700"
-              disabled={loading}
-            >
-              Print
-            </button>
-          </div>)
-      }
-     
-      <div className="w-[210mm] min-h-[297mm] bg-white rounded-lg shadow border border-gray-200 flex flex-col mx-auto print:w-[210mm] print:min-h-[297mm]">
-        <div ref={contentRef} className="flex-1 flex flex-col px-10 py-8 gap-8">
+    <div className="min-h-screen bg-gray-100 py-8 px-4">
+      {/* Action Buttons */}
+      {!url.includes('billing') ? '' : (
+        <div className="max-w-4xl mx-auto mb-4 flex gap-4">
+          <button
+            onClick={handlePrint}
+            className="px-6 py-2 bg-blue-700 text-white font-bold rounded shadow hover:bg-blue-900 transition-colors"
+            disabled={loading}
+          >
+            Print
+          </button>
+          <button
+            onClick={handleDownloadPDF}
+            className="px-6 py-2 bg-green-600 text-white font-bold rounded shadow hover:bg-green-800 transition-colors"
+            disabled={loading}
+          >
+            {loading ? 'Generating...' : 'Download PDF'}
+          </button>
+        </div>
+      )}
+
+      {/* Invoice Pages */}
+      <div ref={contentRef} className="space-y-8">
+        {/* First Page */}
+        <div className="max-w-4xl mx-auto bg-white p-8 shadow-lg rounded-lg">
           {/* Header */}
-          <div className="border-b border-gray-200 pb-6 mb-2 flex justify-between sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className=''>
-              <img src={"/logo.png"} alt="logo" className="w-24 h-24  rounded-[1000px]  overflow-hidden " />
-              <h1 className="text-3xl font-bold text-gray-900 tracking-tight mb-1 uppercase">{companyDetails.name}</h1>
-              <div className="text-sm text-gray-500 space-y-0.5">
-                <p>{companyDetails.address}</p>
-                <p>{companyDetails.cityState}</p>
-                <p>Phone: {companyDetails.phone}</p>
-                <p>Email: {companyDetails.email}</p>
-              </div>
-            </div>
-            <div className="text-right">
-
-              <div className="text-xs text-gray-700 space-y-0.5 flex flex-col items-end justify-center gap-3">
-                <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} size={64} />
-                <div>
-                  <p>Invoice #: <span className="font-semibold">{invoiceNumber}</span></p>
-                  <p>Date: <span className="font-semibold">{invoiceDate}</span></p>
-                  <p className="text-gray-600 font-bold">Due: {new Date(new Date(invoiceDate).setDate(new Date(invoiceDate).getDate() + 30)).toLocaleDateString()}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bill To only */}
-          <div className="flex flex-col sm:flex-row justify-between gap-8">
-            <div className="bg-gray-50 border grid grid-cols-2 border-gray-200 rounded-lg p-6 flex-1 min-w-[220px]">
+          <div className="flex items-center justify-between border-b border-gray-300 pb-6 mb-6">
+            <div className="flex items-center space-x-4">
+              <img src={"/logo.png"} alt="logo" className="w-16 h-16 rounded-full" />
               <div>
-                <h3 className="text-lg font-bold text-gray-800 mb-2 uppercase tracking-wide text-left">Bill To</h3>
-                <p className="font-semibold text-gray-900">{customerBillTo.name}</p>
-                <p className="text-gray-700 text-sm">{customerBillTo.address}</p>
-                {/* <p className="text-gray-700 text-sm">{customerBillTo.email}</p> */}
-                {customerBillTo.gstNumber && (
-                  <p className="text-gray-700 text-sm">GSTIN: {customerBillTo.gstNumber}</p>
-                )}
-                {customerBillTo.panNumber && (
-                  <p className="text-gray-700 text-sm">PAN: {customerBillTo.panNumber}</p>
-                )}
+                <h1 className="text-2xl font-bold text-gray-900">{companyDetails.name}</h1>
+                <p className="text-gray-600 text-sm">{companyDetails.phone}</p>
+                <p className="text-gray-600 text-sm">{companyDetails.email}</p>
+                <p className="text-gray-600 text-sm max-w-md">{companyDetails.address}, {companyDetails.cityState}</p>
               </div>
-              {
-                customerShipTo.name && customerShipTo.address && (
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-800 mb-2 uppercase tracking-wide text-left">Ship To</h3>
-                    <p className="font-semibold text-gray-900">{customerShipTo.name}</p>
-                    <p className="text-gray-700 text-sm">{customerShipTo.address}</p>
-                    {/* <p className="text-gray-700 text-sm">{customerBillTo.email}</p> */}
-                    {customerShipTo.gstNumber && (
-                      <p className="text-gray-700 text-sm">GSTIN: {customerShipTo.gstNumber}</p>
-                    )}
-                    {customerShipTo.panNumber && (
-                      <p className="text-gray-700 text-sm">PAN: {customerShipTo.panNumber}</p>
-                    )}
-                  </div>
-                )
-              }
+            </div>
+
+            <div className="text-right">
+              <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} size={64} />
             </div>
           </div>
+          {/* 6-column Invoice Info Table */}
+        
 
-          {/* Items Table + Summary */}
-          <div className="flex-1 flex flex-col">
-            <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-              <Table className='min-w-full'>
-                <TableHeader>
-                  <TableRow className="bg-gray-100">
-                    <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">Item</TableHead>
-                    <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">HSN Code</TableHead>
-                    <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">Qty</TableHead>
-                    <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">Price</TableHead>
-                    <TableHead className="p-4 text-gray-800 font-bold uppercase tracking-wider">Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.length > 0 ? (
-                    items.map((item, index) => (
-                      <TableRow key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                        <TableCell className="p-4 font-semibold text-gray-900">{item.name}</TableCell>
+          {/* Customer Details */}
+          {renderCustomerDetails({ invoiceData })}
 
-                        <TableCell className="p-4 text-gray-900">{item.hsnCode || '-'}</TableCell>
-                        <TableCell className="p-4 text-gray-900">{item.quantity}</TableCell>
-                        <TableCell className="p-4 text-gray-900">₹{formatCurrency(item.price)}</TableCell>
-                        <TableCell className="p-4 text-gray-900 font-bold">₹{formatCurrency(item.price * item.quantity)}</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow><TableCell colSpan={5} className="text-center py-4 text-gray-400">No items</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            {/* Financial Summary at bottom right */}
-            <div className="flex-1 flex flex-col justify-end">
-              <div className="flex justify-end mt-8">
-                <div className="w-full sm:w-80   rounded-lg p-7 flex flex-col gap-2 ">
-                  <div className="flex justify-between text-gray-700 text-base font-semibold">
-                    <span>Subtotal</span>
-                    <span>₹{formatCurrency(subtotal)}</span>
-                  </div>
-                  {invoiceData.transportationAndOthers !== undefined && (
-                    <div className="flex justify-between text-gray-700 text-base">
-                      <span>Transportation & Others</span>
-                      <span>₹{formatCurrency(invoiceData.transportationAndOthers)}</span>
-                    </div>
-                  )}
-                  {invoiceData.packaging !== undefined && (
-                    <div className="flex justify-between text-gray-700 text-base">
-                      <span>Packaging</span>
-                      <span>₹{formatCurrency(invoiceData.packaging)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-gray-700 text-base font-semibold">
-                    <span>GST (18%)</span>
-                    <span>₹{formatCurrency(gstAmount)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-900 text-2xl font-extrabold mt-2 border-t border-gray-200 pt-3">
-                    <span>Total</span>
-                    <span>₹{formatCurrency(total)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Items Table */}
+          {renderItemsTable(firstPageItems, 1)}
+          {additionalPages.length === 0 && renderFooterContent()}
+
+          {/* Page Footer */}
+          <div className="text-center text-sm text-gray-500 mt-6 pt-4 border-t border-gray-200">
+            Invoice No: {invoiceNumber} | Invoice Date: {invoiceDate} | Page 1 of {additionalPages.length + 1}
           </div>
         </div>
 
+        {/* Additional Pages */}
+        {additionalPages.map((pageItems, pageIndex) => (
+          <div key={pageIndex} className="max-w-4xl mx-auto bg-white p-8 shadow-lg rounded-lg">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-gray-300 pb-6 mb-6">
+              <div className="flex items-center space-x-4">
+                <img src={"/logo.png"} alt="logo" className="w-16 h-16 rounded-full" />
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">{companyDetails.name}</h1>
+                  <p className="text-gray-600 text-sm">{companyDetails.phone}</p>
+                  <p className="text-gray-600 text-sm">{companyDetails.email}</p>
+                  <p className="text-gray-600 text-sm max-w-md">{companyDetails.address}, {companyDetails.cityState}</p>
+                </div>
+              </div>
 
+              <div className="text-right">
+                <QRCode value={`${import.meta.env.VITE_FRONTEND_URL}/invoice/${invoiceData.id}`} size={64} />
+              </div>
+            </div>
+
+            {/* Items Table */}
+            {renderItemsTable(pageItems, pageIndex + 2)}
+            {pageIndex === additionalPages.length - 1 && renderFooterContent()}
+
+            {/* Page Footer */}
+            <div className="text-center text-sm text-gray-500 mt-6 pt-4 border-t border-gray-200">
+              Invoice No: {invoiceNumber} | Invoice Date: {invoiceDate} | Page {pageIndex + 2} of {additionalPages.length + 1}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -43,7 +43,7 @@ interface InvoiceData {
     gstAmount: number;
     gstRate: number;
     total: number;
-    template: 'modern' | 'minimal' | 'classic';
+    template: 'modern' | 'minimal' | 'classic' | 'gujarat';
     transportationAndOthers?: number;
     packaging?: number;
 }

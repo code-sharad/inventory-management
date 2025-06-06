@@ -26,6 +26,7 @@ import PremiumMinimalInvoice from "@/components/invoice-templates/template-minim
 import { formatCurrency } from "@/lib/formatCurrency";
 import { format, parseISO } from "date-fns";
 import InvoiceClassic from "@/components/invoice-templates/template-classic";
+import ProfessionalInvoiceTemplate from "@/components/invoice-templates/template-professional";
 import QRCode from 'qrcode';
 
 // React Query hooks
@@ -43,6 +44,7 @@ import {
 import ModernInvoicePDFWrapper from "@/components/invoice-templates/ModernInvoicePDF";
 import MinimalInvoicePDFWrapper from "@/components/invoice-templates/MinimalInvoicePDF";
 import ClassicInvoicePDFWrapper from "@/components/invoice-templates/ClassicInviocePDF";
+import { ProfessionalInvoicePDFWrapper } from "@/components/invoice-templates/ProfessionalInvoicePDF";
 
 // PDF Download Button - Automated single-click download
 const PDFDownloadButton = ({ invoice }: { invoice: Invoice }) => {
@@ -115,6 +117,13 @@ const PDFDownloadButton = ({ invoice }: { invoice: Invoice }) => {
           )}
           {invoice.template === "classic" && (
             <ClassicInvoicePDFWrapper
+              invoiceData={invoice}
+              qrCode={invoice.qrCode}
+              autoDownload={downloadTriggered}
+            />
+          )}
+          {invoice.template === "professional" && (
+            <ProfessionalInvoicePDFWrapper
               invoiceData={invoice}
               qrCode={invoice.qrCode}
               autoDownload={downloadTriggered}
@@ -594,6 +603,11 @@ export default function BillingHistoryPage() {
             )}
             {selectedInvoice?.template === "classic" && (
               <InvoiceClassic
+                invoiceData={selectedInvoice}
+              />
+            )}
+            {selectedInvoice?.template === "professional" && (
+              <ProfessionalInvoiceTemplate
                 invoiceData={selectedInvoice}
               />
             )}

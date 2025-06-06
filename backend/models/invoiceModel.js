@@ -108,6 +108,10 @@ const invoiceSchema = mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  challanNo: { type: Number },
+  poNo: { type: Number },
+  eWayNo: { type: String, match: /^[a-zA-Z0-9]+$/, maxlength: 11 },
+  challanDate: { type: String },
 });
 
 const invoiceModel = mongoose.model("invoiceModel", invoiceSchema);

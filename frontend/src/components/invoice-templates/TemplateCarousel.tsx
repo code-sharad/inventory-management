@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import InvoiceClassic from "./template-classic";
 import ModernInvoiceTemplate from "./template-Modern";
 import PremiumMinimalInvoice from "./template-minimal";
+import ProfessionalInvoiceTemplate from "./template-professional";
 
 interface Template {
   id: string;
@@ -61,6 +62,8 @@ const TemplateCarousel: React.FC<TemplateCarouselProps> = ({
         return InvoiceClassic;
       case "minimal":
         return PremiumMinimalInvoice;
+      case "gujarat":
+        return ProfessionalInvoiceTemplate;
       default:
         return ModernInvoiceTemplate;
     }

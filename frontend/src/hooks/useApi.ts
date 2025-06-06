@@ -49,6 +49,10 @@ export interface InvoiceData {
     customerShipTo: Customer;
     invoiceNumber: string;
     invoiceDate: string;
+    challanNo?: string;
+    poNo?: string;
+    eWayNo?: string;
+    challanDate?: string;
     items: any[];
     companyDetails: any;
     subtotal: number;
@@ -64,6 +68,10 @@ export interface Invoice {
     invoiceNumber: string;
     createdAt: string;
     invoiceDate: string;
+    challanNo?: string;
+    poNo?: string;
+    eWayNo?: string;
+    challanDate?: string;
     customerBillTo: {
         name: string;
         address: string;
@@ -97,7 +105,7 @@ export interface Invoice {
     gstRate: number;
     total: number;
     qrCode: string;
-    template: "modern" | "minimal" | "classic";
+    template: "modern" | "minimal" | "classic" | "professional";
 }
 
 // Query Keys

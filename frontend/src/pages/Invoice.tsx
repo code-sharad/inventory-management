@@ -32,6 +32,7 @@ import { useState, useEffect } from "react";
 import InvoiceClassic from "@/components/invoice-templates/template-classic";
 import ModernInvoiceTemplate from "@/components/invoice-templates/template-Modern";
 import PremiumMinimalInvoice from "@/components/invoice-templates/template-minimal";
+import ProfessionalInvoiceTemplate from "@/components/invoice-templates/template-professional";
 import TemplateCarousel from "@/components/invoice-templates/TemplateCarousel";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
@@ -93,7 +94,7 @@ function Invoice() {
     email: "dyn.enterprises@gmail.com",
   });
 
-  const [selectedTemplate, setSelectedTemplate] = useState("modern");
+  const [selectedTemplate, setSelectedTemplate] = useState("professional");
   const [selectedCustomerBillTo, setSelectedCustomerBillTo] = useState<Customer>({
     id: "",
     name: "",
@@ -115,6 +116,12 @@ function Invoice() {
   const [billToOpen, setBillToOpen] = useState(false);
   const [shipToOpen, setShipToOpen] = useState(false);
   const navigate = useNavigate();
+
+  const [challanNo, setChallanNo] = useState("");
+  const [poNo, setPoNo] = useState("");
+  const [eWayNo, setEWayNo] = useState("");
+  const [challanDate, setChallanDate] = useState("");
+  const [formErrors, setFormErrors] = useState<{challanNo?: string, poNo?: string, eWayNo?: string}>({});
 
   // Set invoice number when fetched
   useEffect(() => {
@@ -153,6 +160,12 @@ function Invoice() {
   }
 
   const templates = [
+    {
+      id: "professional",
+      name: "Professional Template",
+      preview: "/templates/professional.png",
+      component: ProfessionalInvoiceTemplate,
+    },
     {
       id: "modern",
       name: "Modern Template",
@@ -253,17 +266,34 @@ function Invoice() {
     setInvoiceItems(newProducts);
   };
 
+  const validateFields = () => {
+    const errors: {challanNo?: string, poNo?: string, eWayNo?: string} = {};
+    if (challanNo && !/^\d+$/.test(challanNo)) {
+      errors.challanNo = "Challan No. must be a number";
+    }
+    if (poNo && !/^\d+$/.test(poNo)) {
+      errors.poNo = "P.O. No. must be a number";
+    }
+    if (eWayNo && (!/^[a-zA-Z0-9]+$/.test(eWayNo) || eWayNo.length > 11)) {
+      errors.eWayNo = "E-Way No. must be alphanumeric and max 11 characters";
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSaveInvoice = async () => {
+    if (!validateFields()) {
+      toast.error("Please fix the form errors before saving.");
+      return;
+    }
     if (!selectedCustomerBillTo.id || invoiceItems.length === 0) {
       toast.error("Please provide customer name, email, address, invoice number, and at least one item.");
       return;
     }
-
     if (invoiceItems.some(item => !item.category || item.category === "Uncategorized")) {
       toast.error("All items must have a valid category (not 'Uncategorized').");
       return;
     }
-
     try {
       console.log("Saving invoice with data:", JSON.stringify(invoiceData, null, 2));
       await saveInvoiceMutation.mutateAsync(invoiceData);
@@ -287,6 +317,10 @@ function Invoice() {
     customerShipTo: selectedCustomerShipTo,
     invoiceNumber,
     invoiceDate,
+    challanNo,
+    poNo,
+    eWayNo,
+    challanDate,
     items: invoiceItems.map(item => ({
       ...item,
       category: item.categoryId,
@@ -547,6 +581,54 @@ function Invoice() {
                         value={gstRate}
                         onChange={(e) => setGstRate(Number(e.target.value))}
                         type="number"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1">
+                      <Label className="mb-2">Challan No.</Label>
+                      <Input
+                        className="w-full"
+                        value={challanNo}
+                        onChange={(e) => setChallanNo(e.target.value)}
+                        placeholder="Enter Challan No."
+                        type="text"
+                      />
+                      {formErrors.challanNo && <span className="text-red-600 text-xs">{formErrors.challanNo}</span>}
+                    </div>
+                    <div className="flex-1">
+                      <Label className="mb-2">P.O. No.</Label>
+                      <Input
+                        className="w-full"
+                        value={poNo}
+                        onChange={(e) => setPoNo(e.target.value)}
+                        placeholder="Enter P.O. No."
+                        type="text"
+                      />
+                      {formErrors.poNo && <span className="text-red-600 text-xs">{formErrors.poNo}</span>}
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1">
+                      <Label className="mb-2">E-Way No.</Label>
+                      <Input
+                        className="w-full"
+                        value={eWayNo}
+                        onChange={(e) => setEWayNo(e.target.value)}
+                        placeholder="Enter E-Way No."
+                        type="text"
+                        maxLength={11}
+                      />
+                      {formErrors.eWayNo && <span className="text-red-600 text-xs">{formErrors.eWayNo}</span>}
+                    </div>
+                    <div className="flex-1">
+                      <Label className="mb-2">Challan Date</Label>
+                      <Input
+                        className="w-full"
+                        value={challanDate}
+                        onChange={(e) => setChallanDate(e.target.value)}
+                        placeholder="Enter Challan Date"
+                        type="date"
                       />
                     </div>
                   </div>
