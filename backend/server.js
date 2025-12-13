@@ -255,39 +255,44 @@ const gracefulShutdown = (signal) => {
 
 const PORT = process.env.PORT || 3000;
 
-const server = app.listen(PORT, () => {
-  logger.info(`Server started successfully`, {
-    port: PORT,
-    environment: process.env.NODE_ENV || "development",
-    timestamp: new Date().toISOString(),
-  });
-});
-
-// Handle unhandled promise rejections
-process.on("unhandledRejection", (err, promise) => {
-  logger.error("Unhandled Promise Rejection", {
-    error: err.message,
-    stack: err.stack,
+// Only start the server if not running in Vercel serverless environment
+if (process.env.VERCEL !== "1") {
+  const server = app.listen(PORT, () => {
+    logger.info(`Server started successfully`, {
+      port: PORT,
+      environment: process.env.NODE_ENV || "development",
+      timestamp: new Date().toISOString(),
+    });
   });
 
-  // Close server & exit process
-  server.close(() => {
+  // Handle unhandled promise rejections
+  process.on("unhandledRejection", (err, promise) => {
+    logger.error("Unhandled Promise Rejection", {
+      error: err.message,
+      stack: err.stack,
+    });
+
+    // Close server & exit process
+    server.close(() => {
+      process.exit(1);
+    });
+  });
+
+  // Handle uncaught exceptions
+  process.on("uncaughtException", (err) => {
+    logger.error("Uncaught Exception", {
+      error: err.message,
+      stack: err.stack,
+    });
+
     process.exit(1);
   });
-});
 
-// Handle uncaught exceptions
-process.on("uncaughtException", (err) => {
-  logger.error("Uncaught Exception", {
-    error: err.message,
-    stack: err.stack,
-  });
+  // Graceful shutdown
+  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+}
 
-  process.exit(1);
-});
-
-// Graceful shutdown
-process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-process.on("SIGINT", () => gracefulShutdown("SIGINT"));
-
+// Export for Vercel serverless
 module.exports = app;
+
